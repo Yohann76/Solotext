@@ -69,19 +69,6 @@
           <span v-if="errors.confirmPassword" class="error-message">{{ errors.confirmPassword }}</span>
         </div>
 
-        <div class="form-group">
-          <label for="role" class="form-label">Type de compte</label>
-          <select
-            id="role"
-            v-model="form.role"
-            class="form-select"
-            :class="{ 'error': errors.role }"
-          >
-            <option value="user">Utilisateur</option>
-            <option value="admin">Administrateur</option>
-          </select>
-          <span v-if="errors.role" class="error-message">{{ errors.role }}</span>
-        </div>
 
         <div class="form-group">
           <label class="checkbox-container">
@@ -145,7 +132,6 @@ export default {
       email: '',
       password: '',
       confirmPassword: '',
-      role: 'user',
       acceptTerms: false
     })
     
@@ -214,7 +200,7 @@ export default {
       successMessage.value = ''
       
       try {
-        const result = await register(form.email, form.password, form.role)
+        const result = await register(form.email, form.password)
         
         if (result.success) {
           successMessage.value = 'Compte créé avec succès ! Redirection...'

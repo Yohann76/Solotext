@@ -1,29 +1,29 @@
 import { ref, reactive } from 'vue'
 import authService from '../services/auth.js'
 
-// État global de l'authentification
+// State global for authentication
 const isAuthenticated = ref(false)
 const user = ref(null)
 const listeners = new Set()
 
-// Fonction pour notifier tous les composants du changement
+// Function to notify all components of the change
 const notifyListeners = () => {
   listeners.forEach(callback => callback())
 }
 
-// Fonction pour s'abonner aux changements
+// Function to subscribe to changes
 const subscribe = (callback) => {
   listeners.add(callback)
   return () => listeners.delete(callback)
 }
 
-// Fonction pour vérifier l'état d'authentification
+// Function to check the authentication state
 const checkAuth = () => {
   const wasAuthenticated = isAuthenticated.value
   isAuthenticated.value = authService.isAuthenticated()
   user.value = authService.getCurrentUser()
   
-  // Notifier si l'état a changé
+  // Notify if the state has changed
   if (wasAuthenticated !== isAuthenticated.value) {
     notifyListeners()
   }
@@ -31,7 +31,7 @@ const checkAuth = () => {
   return { isAuthenticated: isAuthenticated.value, user: user.value }
 }
 
-// Fonction pour se connecter
+// Function to login
 const login = async (email, password) => {
   try {
     const result = await authService.login(email, password)
@@ -46,10 +46,10 @@ const login = async (email, password) => {
   }
 }
 
-// Fonction pour s'inscrire
-const register = async (email, password, role = 'user') => {
+// Function to register
+const register = async (email, password) => {
   try {
-    const result = await authService.register(email, password, role)
+    const result = await authService.register(email, password, 'user')
     if (result.success) {
       checkAuth()
       notifyListeners()
@@ -61,7 +61,7 @@ const register = async (email, password, role = 'user') => {
   }
 }
 
-// Fonction pour se déconnecter
+// Function to logout
 const logout = async () => {
   try {
     await authService.logout()
@@ -72,18 +72,18 @@ const logout = async () => {
   }
 }
 
-// Fonction pour forcer la synchronisation
+// Function to force the synchronization
 const sync = () => {
   checkAuth()
   notifyListeners()
 }
 
-// Initialiser l'état au chargement
+// Initialize the state at loading
 checkAuth()
 
 export function useAuthStore() {
   return {
-    // État
+    // State
     isAuthenticated,
     user,
     
@@ -94,7 +94,7 @@ export function useAuthStore() {
     checkAuth,
     sync,
     
-    // Utilitaires
+    // Utilities
     subscribe
   }
 }

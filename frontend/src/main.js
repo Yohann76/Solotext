@@ -4,12 +4,14 @@ import App from './App.vue'
 import Home from './views/Home.vue'
 import Login from './views/Login.vue'
 import Register from './views/Register.vue'
+import Application from './views/Application.vue'
 import './style.css'
 
 const routes = [
   { path: '/', component: Home },
   { path: '/login', component: Login },
   { path: '/register', component: Register },
+  { path: '/application', component: Application },
 ]
 
 const router = createRouter({

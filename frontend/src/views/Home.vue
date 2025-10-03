@@ -1,25 +1,7 @@
 <template>
   <div class="home">
     <!-- Header -->
-    <header class="header">
-      <nav class="nav">
-        <div class="nav-brand">
-          <h1 class="logo">SoloText</h1>
-        </div>
-        <div class="nav-links">
-          <a href="#features" class="nav-link">Fonctionnalités</a>
-          <a href="#pricing" class="nav-link">Tarifs</a>
-          <a href="#contact" class="nav-link">Contact</a>
-          <template v-if="!isAuthenticated">
-            <router-link to="/login" class="btn btn-outline">Se connecter</router-link>
-            <router-link to="/register" class="btn btn-primary">S'inscrire</router-link>
-          </template>
-          <template v-else>
-            <UserIndicator @logout="handleLogout" />
-          </template>
-        </div>
-      </nav>
-    </header>
+    <CommonHeader />
 
     <!-- Hero Section -->
     <section class="hero">
@@ -221,7 +203,7 @@
 
 <script>
 import { ref, onMounted, onUnmounted } from 'vue'
-import UserIndicator from '../components/UserIndicator.vue'
+import CommonHeader from '../components/CommonHeader.vue'
 import Notification from '../components/Notification.vue'
 import { useNotifications } from '../composables/useNotifications.js'
 import { useAuthStore } from '../stores/authStore.js'
@@ -229,18 +211,12 @@ import { useAuthStore } from '../stores/authStore.js'
 export default {
   name: 'Home',
   components: {
-    UserIndicator,
+    CommonHeader,
     Notification
   },
   setup() {
-    const { isAuthenticated, user, logout, subscribe } = useAuthStore()
+    const { isAuthenticated, user, subscribe } = useAuthStore()
     const { notifications, removeNotification, success, error } = useNotifications()
-
-    const handleLogout = async () => {
-      const userName = user.value?.displayName || 'Utilisateur'
-      await logout()
-      success(`Au revoir ${userName} ! Vous avez été déconnecté.`)
-    }
 
     onMounted(() => {
       // S'abonner aux changements d'authentification
@@ -274,7 +250,6 @@ export default {
     return {
       isAuthenticated,
       user,
-      handleLogout,
       notifications,
       removeNotification
     }

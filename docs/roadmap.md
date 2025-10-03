@@ -2,8 +2,6 @@
 
 ## V1
 
-- Display good role in dropdown user in nav
-- create application route
 - after login/registration, redirect in application (not in landing page (/))
 - create form text for analyse 
 - put text analyse in database (with text)

@@ -36,6 +36,11 @@ const login = async (email, password) => {
   try {
     const result = await authService.login(email, password)
     if (result.success) {
+      // Synchroniser le token avec le service d'analyse
+      if (typeof window !== 'undefined') {
+        const analysisService = (await import('../services/analysis.js')).default
+        analysisService.setToken(result.data.token)
+      }
       checkAuth()
       notifyListeners()
     }
@@ -51,6 +56,11 @@ const register = async (email, password) => {
   try {
     const result = await authService.register(email, password, 'user')
     if (result.success) {
+      // Synchroniser le token avec le service d'analyse
+      if (typeof window !== 'undefined') {
+        const analysisService = (await import('../services/analysis.js')).default
+        analysisService.setToken(result.data.token)
+      }
       checkAuth()
       notifyListeners()
     }

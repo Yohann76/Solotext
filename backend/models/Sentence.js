@@ -19,7 +19,7 @@ const Sentence = sequelize.define('Sentence', {
     type: DataTypes.TEXT,
     allowNull: false,
     set(value) {
-      // Nettoyer et normaliser la phrase
+      // Clean and normalize the sentence
       if (value) {
         const cleaned = value.trim().replace(/\s+/g, ' ');
         this.setDataValue('sentence_text', cleaned);
@@ -30,7 +30,7 @@ const Sentence = sequelize.define('Sentence', {
     type: DataTypes.TEXT,
     allowNull: true,
     set(value) {
-      // Valider et normaliser l'URL
+      // Validate and normalize the URL
       if (value) {
         const trimmed = value.trim();
         if (trimmed && !trimmed.startsWith('http')) {
@@ -52,33 +52,33 @@ const Sentence = sequelize.define('Sentence', {
   createdAt: 'created_at',
   updatedAt: 'updated_at',
   getterMethods: {
-    // Getter pour obtenir la longueur de la phrase
+    // Getter to get the length of the sentence
     length() {
       return this.sentence_text ? this.sentence_text.length : 0;
     },
     
-    // Getter pour obtenir le nombre de mots dans la phrase
+    // Getter to get the number of words in the sentence
     wordCount() {
       if (!this.sentence_text) return 0;
       return this.sentence_text.split(/\s+/).filter(word => word.length > 0).length;
     },
     
-    // Getter pour vérifier si la phrase est longue (plus de 50 caractères)
+    // Getter to check if the sentence is long (more than 50 characters)
     isLong() {
       return this.length > 50;
     },
     
-    // Getter pour vérifier si la phrase est courte (moins de 20 caractères)
+    // Getter to check if the sentence is short (less than 20 characters)
     isShort() {
       return this.length < 20;
     },
     
-    // Getter pour obtenir le statut de duplication formaté
+    // Getter to get the duplication status formatted
     duplicateStatus() {
       return this.is_duplicate ? 'Dupliquée' : 'Originale';
     },
     
-    // Getter pour obtenir un résumé de la phrase (premiers 50 caractères)
+    // Getter to get the preview of the sentence (first 50 characters)
     preview() {
       if (!this.sentence_text) return '';
       return this.sentence_text.length > 50 
@@ -86,12 +86,12 @@ const Sentence = sequelize.define('Sentence', {
         : this.sentence_text;
     },
     
-    // Getter pour vérifier si la phrase a une source
+    // Getter to check if the sentence has a source
     hasSource() {
       return !!this.source_url;
     },
     
-    // Getter pour obtenir le domaine de la source
+    // Getter to get the domain of the source
     sourceDomain() {
       if (!this.source_url) return null;
       try {
@@ -102,18 +102,18 @@ const Sentence = sequelize.define('Sentence', {
       }
     },
     
-    // Getter pour obtenir la couleur de statut (pour l'interface)
+    // Getter to get the status color (for the interface)
     statusColor() {
       return this.is_duplicate ? 'red' : 'green';
     },
     
-    // Getter pour obtenir l'icône de statut
+    // Getter to get the status icon
     statusIcon() {
       return this.is_duplicate ? '⚠️' : '✅';
     }
   },
   setterMethods: {
-    // Setter pour marquer une phrase comme dupliquée avec source
+    // Setter to mark a sentence as duplicate with source
     markAsDuplicate(sourceUrl = null) {
       this.is_duplicate = true;
       if (sourceUrl) {
@@ -121,17 +121,17 @@ const Sentence = sequelize.define('Sentence', {
       }
     },
     
-    // Setter pour marquer une phrase comme originale
+    // Setter to mark a sentence as original
     markAsOriginal() {
       this.is_duplicate = false;
       this.source_url = null;
     },
     
-    // Setter pour analyser et marquer automatiquement une phrase
+    // Setter to analyze and automatically mark a sentence
     analyzeSentence(text, sourceUrl = null) {
       this.sentence_text = text;
       
-      // Logique simple d'analyse (à remplacer par un vrai algorithme)
+      // Simple analysis logic (to be replaced by a real algorithm)
       const suspiciousWords = ['copié', 'plagiat', 'identique', 'similaire'];
       const hasSuspiciousWords = suspiciousWords.some(word => 
         text.toLowerCase().includes(word)
@@ -144,7 +144,7 @@ const Sentence = sequelize.define('Sentence', {
       }
     },
     
-    // Setter pour mettre à jour la source
+    // Setter to update the source
     setSource(url) {
       this.source_url = url;
       if (url) {

@@ -23,7 +23,7 @@ const Analysis = sequelize.define('Analysis', {
     type: DataTypes.TEXT,
     allowNull: false,
     set(value) {
-      // Nettoyer et normaliser le texte
+      // Clean and normalize the text
       if (value) {
         const cleaned = value.trim().replace(/\s+/g, ' ');
         this.setDataValue('source_text', cleaned);
@@ -32,15 +32,20 @@ const Analysis = sequelize.define('Analysis', {
   },
   duplicate_percent: {
     type: DataTypes.DECIMAL(5, 2),
-    allowNull: false,
+    allowNull: true, // allow null by default // update with worker later
+    defaultValue: null,
     validate: {
       min: 0,
       max: 100
     },
     set(value) {
-      // Arrondir à 2 décimales
-      const rounded = Math.round(parseFloat(value) * 100) / 100;
-      this.setDataValue('duplicate_percent', rounded);
+      // Round to 2 decimal if the value exists
+      if (value !== null && value !== undefined) {
+        const rounded = Math.round(parseFloat(value) * 100) / 100;
+        this.setDataValue('duplicate_percent', rounded);
+      } else {
+        this.setDataValue('duplicate_percent', null);
+      }
     }
   }
 }, {
@@ -49,7 +54,7 @@ const Analysis = sequelize.define('Analysis', {
   createdAt: 'created_at',
   updatedAt: 'updated_at',
   getterMethods: {
-    // Getter pour vérifier si l'analyse est récente (moins de 24h)
+    // Getter to check if the analysis is recent (less than 24h)
     isRecent() {
       if (!this.analyzed_at) return false;
       const now = new Date();
@@ -58,7 +63,7 @@ const Analysis = sequelize.define('Analysis', {
       return diffHours < 24;
     },
     
-    // Getter pour obtenir le niveau de risque de plagiat
+    // Getter to get the risk level of plagiarism
     plagiarismRisk() {
       if (this.duplicate_percent >= 80) return 'Très élevé';
       if (this.duplicate_percent >= 60) return 'Élevé';
@@ -67,23 +72,23 @@ const Analysis = sequelize.define('Analysis', {
       return 'Très faible';
     },
     
-    // Getter pour vérifier si l'analyse est acceptable
+    // Getter to check if the analysis is acceptable
     isAcceptable() {
       return this.duplicate_percent < 20;
     },
     
-    // Getter pour obtenir le nombre de mots du texte
+    // Getter to get the number of words in the text
     wordCount() {
       if (!this.source_text) return 0;
       return this.source_text.split(/\s+/).filter(word => word.length > 0).length;
     },
     
-    // Getter pour obtenir le nombre de caractères
+    // Getter to get the number of characters
     characterCount() {
       return this.source_text ? this.source_text.length : 0;
     },
     
-    // Getter pour obtenir un résumé du texte (premiers 100 caractères)
+    // Getter to get the summary of the text (first 100 characters)
     summary() {
       if (!this.source_text) return '';
       return this.source_text.length > 100 
@@ -91,7 +96,7 @@ const Analysis = sequelize.define('Analysis', {
         : this.source_text;
     },
     
-    // Getter pour obtenir l'âge de l'analyse en heures
+    // Getter to get the age of the analysis in hours
     ageInHours() {
       if (!this.analyzed_at) return 0;
       const now = new Date();
@@ -99,26 +104,26 @@ const Analysis = sequelize.define('Analysis', {
       return Math.floor((now - analyzed) / (1000 * 60 * 60));
     },
     
-    // Getter pour obtenir le pourcentage formaté
+    // Getter to get the formatted percentage
     duplicatePercentFormatted() {
       return `${this.duplicate_percent}%`;
     }
   },
   setterMethods: {
-    // Setter pour analyser un nouveau texte
+    // Setter to analyze a new text
     analyzeText(text) {
       this.source_text = text;
       this.analyzed_at = new Date();
-      // Ici on pourrait ajouter la logique d'analyse de duplication
-      // Pour l'instant, on met un pourcentage aléatoire
-      this.duplicate_percent = Math.random() * 100;
+      // Here we could add the logic to analyze the duplication
+      // For now, we put a random percentage
+      this.duplicate_percent = Math.random() * 100; // TODO: remove this
     },
     
-    // Setter pour mettre à jour le pourcentage de duplication
+    // Setter to update the duplication percentage
     setDuplicatePercent(percent) {
       if (percent < 0 || percent > 100) {
-        throw new Error('Le pourcentage de duplication doit être entre 0 et 100');
-      }
+        throw new Error('The duplication percentage must be between 0 and 100');
+      } 
       this.duplicate_percent = percent;
     }
   }

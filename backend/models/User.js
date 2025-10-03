@@ -15,7 +15,7 @@ const User = sequelize.define('User', {
       isEmail: true
     },
     set(value) {
-      // Normaliser l'email en minuscules
+      // Normalize the email in lowercase
       this.setDataValue('email', value ? value.toLowerCase().trim() : value);
     }
   },
@@ -24,7 +24,7 @@ const User = sequelize.define('User', {
     allowNull: true,
     unique: true,
     set(value) {
-      // Normaliser l'ID Google
+      // Normalize the Google ID
       this.setDataValue('google_id', value ? value.trim() : null);
     }
   },
@@ -32,7 +32,7 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING(255),
     allowNull: true,
     set(value) {
-      // Le mot de passe sera haché avant sauvegarde
+      // The password will be hashed before saving
       this.setDataValue('password', value);
     }
   },
@@ -41,7 +41,7 @@ const User = sequelize.define('User', {
     allowNull: false,
     defaultValue: 'user',
     set(value) {
-      // Normaliser le rôle
+      // Normalize the role
       this.setDataValue('role', value ? value.toLowerCase().trim() : 'user');
     }
   }
@@ -51,24 +51,24 @@ const User = sequelize.define('User', {
   createdAt: 'created_at',
   updatedAt: 'updated_at',
   getterMethods: {
-    // Getter pour obtenir le nom d'affichage
+    // Getter to get the display name
     displayName() {
       return this.email ? this.email.split('@')[0] : 'Utilisateur';
     },
     
-    // Getter pour vérifier si l'utilisateur a un compte Google
+    // Getter to check if the user has a Google account
     hasGoogleAccount() {
       return !!this.google_id;
     },
     
-    // Getter pour obtenir les initiales
+    // Getter to get the initials
     initials() {
       if (!this.email) return 'U';
       const name = this.email.split('@')[0];
       return name.substring(0, 2).toUpperCase();
     },
     
-    // Getter pour obtenir l'âge du compte en jours
+    // Getter to get the age of the account in days
     accountAge() {
       if (!this.created_at) return 0;
       const now = new Date();
@@ -76,28 +76,28 @@ const User = sequelize.define('User', {
       return Math.floor((now - created) / (1000 * 60 * 60 * 24));
     },
     
-    // Getter pour vérifier si l'utilisateur est admin
+    // Getter to check if the user is admin
     isAdmin() {
       return this.role === 'admin';
     },
     
-    // Getter pour vérifier si l'utilisateur est un utilisateur normal
+    // Getter to check if the user is a normal user
     isUser() {
       return this.role === 'user';
     },
     
-    // Getter pour obtenir le rôle formaté
+    // Getter to get the formatted role
     roleFormatted() {
       return this.role === 'admin' ? 'Administrateur' : 'Utilisateur';
     },
     
-    // Getter pour vérifier si l'utilisateur a un mot de passe
+    // Getter to check if the user has a password
     hasPassword() {
       return !!this.password;
     }
   },
   setterMethods: {
-    // Setter pour valider et normaliser les données
+    // Setter to validate and normalize the data
     setUserData(data) {
       if (data.email) {
         this.email = data.email;
@@ -110,20 +110,20 @@ const User = sequelize.define('User', {
       }
     },
     
-    // Setter pour définir le rôle admin
+    // Setter to set the admin role
     setAsAdmin() {
       this.role = 'admin';
     },
     
-    // Setter pour définir le rôle utilisateur
+    // Setter to set the user role
     setAsUser() {
       this.role = 'user';
     },
     
-    // Setter pour définir un mot de passe (sera haché)
+    // Setter to set a password (will be hashed)
     setPassword(plainPassword) {
       if (plainPassword) {
-        // Le hachage sera fait dans le script avec bcrypt
+        // The hashing will be done in the script with bcrypt
         this.password = plainPassword;
       }
     }

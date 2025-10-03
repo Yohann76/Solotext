@@ -11,6 +11,7 @@ const Sentence = require('./models/Sentence');
 
 // Import des routes d'authentification
 const authRoutes = require('./routes/auth');
+const analysesRoutes = require('./routes/analyses');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -48,6 +49,9 @@ app.get('/', (req, res) => {
 
 // Routes d'authentification (publiques)
 app.use('/api/auth', authRoutes);
+
+// Routes des analyses (protégées)
+app.use('/api/analyses', analysesRoutes);
 
 // Route de santé
 app.get('/api/health', (req, res) => {

@@ -62,6 +62,7 @@ import CommonHeader from '../components/CommonHeader.vue'
 import Notification from '../components/Notification.vue'
 import { useAuthStore } from '../stores/authStore.js'
 import { useNotifications } from '../composables/useNotifications.js'
+import analysisService from '../services/analysis.js'
 
 export default {
   name: 'Application',
@@ -107,13 +108,18 @@ export default {
       loading.value = true
 
       try {
-        // TODO: Appeler l'API d'analyse
-        await new Promise(resolve => setTimeout(resolve, 2000)) // Simulation
+        // Appeler l'API pour créer l'analyse
+        const result = await analysisService.createAnalysis(form.value.text.trim())
         
-        success('Analyse terminée ! (Fonctionnalité en cours de développement)')
-        form.value.text = '' // Vider le formulaire après analyse
+        if (result.success) {
+          success(`Analyse créée avec succès ! ID: ${result.data.analysis.id}`)
+          form.value.text = '' // Vider le formulaire après analyse
+        } else {
+          error(result.message || 'Erreur lors de la création de l\'analyse')
+        }
       } catch (err) {
-        error('Erreur lors de l\'analyse du texte')
+        console.error('Erreur lors de l\'analyse:', err)
+        error(err.message || 'Erreur lors de l\'analyse du texte')
       } finally {
         loading.value = false
       }

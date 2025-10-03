@@ -20,7 +20,7 @@ const Subscription = sequelize.define('Subscription', {
     allowNull: false,
     unique: true,
     set(value) {
-      // Normaliser l'ID Stripe
+      // Normalize the Stripe ID
       this.setDataValue('stripe_subscription_id', value ? value.trim() : value);
     }
   },
@@ -28,7 +28,7 @@ const Subscription = sequelize.define('Subscription', {
     type: DataTypes.ENUM('active', 'canceled', 'past_due', 'trialing'),
     allowNull: false,
     set(value) {
-      // Normaliser le statut
+      // Normalize the status
       this.setDataValue('status', value ? value.toLowerCase().trim() : value);
     }
   },
@@ -54,27 +54,27 @@ const Subscription = sequelize.define('Subscription', {
   createdAt: 'created_at',
   updatedAt: 'updated_at',
   getterMethods: {
-    // Getter pour vérifier si l'abonnement est actif
+    // Getter to check if the subscription is active
     isActive() {
       return this.status === 'active';
     },
     
-    // Getter pour vérifier si l'abonnement est en période d'essai
+    // Getter to check if the subscription is in trial period
     isTrialing() {
       return this.status === 'trialing';
     },
     
-    // Getter pour vérifier si l'abonnement est annulé
+    // Getter to check if the subscription is canceled
     isCanceled() {
       return this.status === 'canceled';
     },
     
-    // Getter pour vérifier si l'abonnement est en retard de paiement
+    // Getter to check if the subscription is past due
     isPastDue() {
       return this.status === 'past_due';
     },
     
-    // Getter pour obtenir le nombre de jours restants dans la période
+    // Getter to get the number of days remaining in the period
     daysRemaining() {
       if (!this.current_period_end) return 0;
       const now = new Date();
@@ -83,12 +83,12 @@ const Subscription = sequelize.define('Subscription', {
       return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     },
     
-    // Getter pour vérifier si l'abonnement expire bientôt (dans 7 jours)
+    // Getter to check if the subscription is expiring soon (in 7 days)
     isExpiringSoon() {
       return this.daysRemaining <= 7 && this.daysRemaining > 0;
     },
     
-    // Getter pour obtenir la durée de l'abonnement en jours
+    // Getter to get the duration of the subscription in days
     subscriptionDuration() {
       if (!this.start_date || !this.current_period_end) return 0;
       const start = new Date(this.start_date);
@@ -96,7 +96,7 @@ const Subscription = sequelize.define('Subscription', {
       return Math.ceil((end - start) / (1000 * 60 * 60 * 24));
     },
     
-    // Getter pour obtenir le statut formaté
+    // Getter to get the formatted status
     statusFormatted() {
       const statusMap = {
         'active': 'Actif',
@@ -108,7 +108,7 @@ const Subscription = sequelize.define('Subscription', {
     }
   },
   setterMethods: {
-    // Setter pour mettre à jour le statut avec validation
+    // Setter to update the status with validation
     setStatus(newStatus) {
       const validStatuses = ['active', 'canceled', 'past_due', 'trialing'];
       if (validStatuses.includes(newStatus)) {
@@ -118,13 +118,13 @@ const Subscription = sequelize.define('Subscription', {
       }
     },
     
-    // Setter pour annuler l'abonnement
+    // Setter to cancel the subscription
     cancel() {
       this.status = 'canceled';
       this.cancel_at_period_end = true;
     },
     
-    // Setter pour réactiver l'abonnement
+    // Setter to reactivate the subscription
     reactivate() {
       this.status = 'active';
       this.cancel_at_period_end = false;

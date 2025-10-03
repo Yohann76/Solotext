@@ -32,6 +32,7 @@ dev-run:
 	@echo ""
 	@echo "Frontend: http://localhost:8080"
 	@echo "Backend API: http://localhost:3000"
+	@echo "Adminer (DB Admin): http://localhost:8081"
 	@echo "Health Check: http://localhost:3000/api/health"
 	@echo ""
 	@echo "To see the logs: make dev-logs"

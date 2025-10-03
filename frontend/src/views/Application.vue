@@ -5,37 +5,64 @@
     
     <!-- Contenu principal -->
     <main class="main-content">
-      <div class="container">
-        <div class="analysis-form-container">
-          <h1 class="page-title">Analyse de texte</h1>
-          <p class="page-subtitle">Collez votre texte ci-dessous pour l'analyser</p>
+      <div class="app-layout">
+        <!-- Sidebar avec historique -->
+        <aside class="sidebar">
+          <div class="sidebar-header">
+            <h2 class="sidebar-title">Historique des analyses</h2>
+            <div class="analysis-count">{{ analyses.length }} analyse{{ analyses.length > 1 ? 's' : '' }}</div>
+          </div>
           
-          <form @submit.prevent="analyzeText" class="analysis-form">
-            <div class="form-group">
-              <label for="text" class="form-label">Texte à analyser</label>
-              <textarea
-                id="text"
-                v-model="form.text"
-                class="form-textarea"
-                :class="{ 'error': errors.text }"
-                placeholder="Collez votre texte ici..."
-                rows="10"
-                required
-              ></textarea>
-              <span v-if="errors.text" class="error-message">{{ errors.text }}</span>
+          <div class="sidebar-content">
+            <div v-if="analyses.length === 0" class="empty-state">
+              <div class="empty-icon">📄</div>
+              <p>Aucune analyse pour le moment</p>
             </div>
             
-            <div class="form-actions">
-              <button 
-                type="submit" 
-                class="btn btn-primary btn-large"
-                :disabled="loading"
-              >
-                <span v-if="loading">Analyse en cours...</span>
-                <span v-else>🔍 Analyser</span>
-              </button>
+            <div v-else class="analyses-list">
+              <AnalysisCard
+                v-for="analysis in analyses"
+                :key="analysis.id"
+                :analysis="analysis"
+                @select="selectAnalysis"
+              />
             </div>
-          </form>
+          </div>
+        </aside>
+
+        <!-- Zone principale -->
+        <div class="main-zone">
+          <div class="analysis-form-container">
+            <h1 class="page-title">Analyse de texte</h1>
+            <p class="page-subtitle">Collez votre texte ci-dessous pour l'analyser</p>
+            
+            <form @submit.prevent="analyzeText" class="analysis-form">
+              <div class="form-group">
+                <label for="text" class="form-label">Texte à analyser</label>
+                <textarea
+                  id="text"
+                  v-model="form.text"
+                  class="form-textarea"
+                  :class="{ 'error': errors.text }"
+                  placeholder="Collez votre texte ici..."
+                  rows="10"
+                  required
+                ></textarea>
+                <span v-if="errors.text" class="error-message">{{ errors.text }}</span>
+              </div>
+              
+              <div class="form-actions">
+                <button 
+                  type="submit" 
+                  class="btn btn-primary btn-large"
+                  :disabled="loading"
+                >
+                  <span v-if="loading">Analyse en cours...</span>
+                  <span v-else>🔍 Analyser</span>
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </main>
@@ -60,6 +87,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import CommonHeader from '../components/CommonHeader.vue'
 import Notification from '../components/Notification.vue'
+import AnalysisCard from '../components/AnalysisCard.vue'
 import { useAuthStore } from '../stores/authStore.js'
 import { useNotifications } from '../composables/useNotifications.js'
 import analysisService from '../services/analysis.js'
@@ -68,7 +96,8 @@ export default {
   name: 'Application',
   components: {
     CommonHeader,
-    Notification
+    Notification,
+    AnalysisCard
   },
   setup() {
     const router = useRouter()
@@ -82,14 +111,36 @@ export default {
 
     const errors = ref({})
     const loading = ref(false)
+    const analyses = ref([])
+    const selectedAnalysis = ref(null)
 
-    // Vérifier l'authentification
-    onMounted(() => {
+    // Vérifier l'authentification et charger les analyses
+    onMounted(async () => {
       if (!isAuthenticated.value) {
         router.push('/login')
         return
       }
+      
+      await loadAnalyses()
     })
+
+    const loadAnalyses = async () => {
+      try {
+        const result = await analysisService.getAnalyses(1, 50) // Charger les 50 dernières analyses
+        if (result.success) {
+          analyses.value = result.data.analyses
+        }
+      } catch (err) {
+        console.error('Erreur lors du chargement des analyses:', err)
+        error('Erreur lors du chargement de l\'historique')
+      }
+    }
+
+    const selectAnalysis = (analysis) => {
+      selectedAnalysis.value = analysis
+      // TODO: Afficher les détails de l'analyse sélectionnée
+      console.log('Analyse sélectionnée:', analysis)
+    }
 
     const analyzeText = async () => {
       // Validation
@@ -114,6 +165,8 @@ export default {
         if (result.success) {
           success(`Analyse créée avec succès ! ID: ${result.data.analysis.id}`)
           form.value.text = '' // Vider le formulaire après analyse
+          // Recharger la liste des analyses
+          await loadAnalyses()
         } else {
           error(result.message || 'Erreur lors de la création de l\'analyse')
         }
@@ -129,9 +182,13 @@ export default {
       form,
       errors,
       loading,
+      analyses,
+      selectedAnalysis,
       notifications,
       removeNotification,
-      analyzeText
+      analyzeText,
+      selectAnalysis,
+      loadAnalyses
     }
   }
 }
@@ -145,14 +202,75 @@ export default {
 
 .main-content {
   padding-top: 70px; /* Hauteur du header fixe */
-  padding: 4rem 0;
   margin-top: 2rem; /* Marge supplémentaire pour séparer du menu */
+  height: calc(100vh - 70px - 2rem);
+  overflow: hidden;
+}
+
+.app-layout {
+  display: flex;
+  height: 100%;
+}
+
+.sidebar {
+  width: 350px;
+  background: #f8fafc;
+  border-right: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sidebar-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: white;
+}
+
+.sidebar-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0 0 0.5rem 0;
+}
+
+.analysis-count {
+  font-size: 0.85rem;
+  color: #718096;
+}
+
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #718096;
+}
+
+.empty-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.analyses-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.main-zone {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
 
 .container {
   max-width: 800px;
   margin: 0 auto;
-  padding: 0 2rem;
 }
 
 .analysis-form-container {
@@ -277,13 +395,26 @@ export default {
 }
 
 /* Responsive */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 300px;
+  }
+}
+
 @media (max-width: 768px) {
-  .main-content {
-    padding: 2rem 0;
+  .app-layout {
+    flex-direction: column;
   }
   
-  .container {
-    padding: 0 1rem;
+  .sidebar {
+    width: 100%;
+    height: 200px;
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  
+  .main-zone {
+    padding: 1rem;
   }
   
   .analysis-form-container {
@@ -311,6 +442,10 @@ export default {
   
   .form-textarea {
     min-height: 150px;
+  }
+  
+  .sidebar {
+    height: 150px;
   }
 }
 </style>

@@ -8,6 +8,21 @@
 
 ## Run project 
 
+### Makefile run 
+
+```
+make dev-build 
+make dev-run 
+make dev-kill   
+
+make dev-logs 
+make dev-status 
+make dev-clean  
+make dev-restart 
+
+make help  
+```
+
 ### Docker run 
 
 ```

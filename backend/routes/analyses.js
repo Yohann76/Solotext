@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Analysis = require('../models/Analysis');
 const { authenticateToken } = require('../middleware/auth');
+const queueService = require('../services/queueService');
 
 // POST /api/analyses - Create a new analysis
 router.post('/', authenticateToken, async (req, res) => {
@@ -35,10 +36,18 @@ router.post('/', authenticateToken, async (req, res) => {
       analyzed_at: new Date() // Date of analysis
     });
 
+    // Send analysis task to queue
+    const taskSent = await queueService.sendAnalysisTask(analysis.id, analysis.source_text);
+    
+    if (!taskSent) {
+      console.warn(`⚠️ Impossible d'envoyer la tâche d'analyse #${analysis.id} à la queue`);
+      // Continue anyway, analysis is created
+    }
+
     // Return the created analysis
     res.status(201).json({
       success: true,
-      message: 'Analyse créée avec succès',
+      message: 'Analyse créée avec succès et envoyée au traitement',
       data: {
         analysis: {
           id: analysis.id,

@@ -38,6 +38,8 @@ services:
       - DB_NAME=solotext
       - DB_USER=solotext_user
       - DB_PASSWORD=solotext_password
+      - RABBITMQ_URL=amqp://admin:admin123@rabbitmq:5672
+      - ANALYSIS_QUEUE=analysis_queue
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -93,6 +95,55 @@ services:
       retries: 3
       start_period: 40s
 
+  # Service RabbitMQ for message queuing # http://localhost:15672/ (admin/admin123)
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: solotext-rabbitmq
+    ports:
+      - "5672:5672"   # AMQP port
+      - "15672:15672" # Management UI
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin123
+      - RABBITMQ_DEFAULT_VHOST=/
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - solotext-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Service Analysis Worker for processing text analyses
+  analysis-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.worker
+    container_name: solotext-analysis-worker
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=solotext
+      - DB_USER=solotext_user
+      - DB_PASSWORD=solotext_password
+      - RABBITMQ_URL=amqp://admin:admin123@rabbitmq:5672
+      - ANALYSIS_QUEUE=analysis_queue
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - solotext-network
+    restart: unless-stopped
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
 networks:
   solotext-network:
     driver: bridge
@@ -101,3 +152,4 @@ volumes:
   postgres_data:
   node_modules_backend:
   node_modules_frontend:
+  rabbitmq_data:

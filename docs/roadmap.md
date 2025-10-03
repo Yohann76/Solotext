@@ -2,10 +2,17 @@
 
 ## V1
 
-- create analysis from text 
-- add worker -> for cut text in sentence, and update sentance database
+
+- add worker -> for cut text in sentence, and update sentance database :check? 
+
 - add worker -> analyse each sentence with first method (AI)
-- improve history analyse (small card, and color from analysis, add nbr sentence in card)
+    - On same worker ? or create second worker ?  -> create second worker?
+
+- Analyse sentence worker:
+    - add credential for GPT (in docker environement and .env)
+    - add request for each sentance, in paralel?
+
+- Improve history analyse (small card, and color from analysis, add nbr sentence in card)
 
 ## V1.1
 
@@ -23,6 +30,7 @@
 - add page : "conditions d’utilisation"  
 - add page : "politique de confidentialité"  
 - add backup DB (and testing)
+- add red banner on top website if GPT API is not available
 
 
 

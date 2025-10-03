@@ -8,6 +8,8 @@ email
 google_id (pour connexion via Google)
 created_at
 updated_at
+role 
+password
 
 
 Subscriptions: (fonctionnement mois par mois, un user peut avoir plusieurs subscription, mais qu’un seul status=active)

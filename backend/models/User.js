@@ -27,6 +27,23 @@ const User = sequelize.define('User', {
       // Normaliser l'ID Google
       this.setDataValue('google_id', value ? value.trim() : null);
     }
+  },
+  password: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    set(value) {
+      // Le mot de passe sera haché avant sauvegarde
+      this.setDataValue('password', value);
+    }
+  },
+  role: {
+    type: DataTypes.ENUM('admin', 'user'),
+    allowNull: false,
+    defaultValue: 'user',
+    set(value) {
+      // Normaliser le rôle
+      this.setDataValue('role', value ? value.toLowerCase().trim() : 'user');
+    }
   }
 }, {
   tableName: 'users',
@@ -57,6 +74,26 @@ const User = sequelize.define('User', {
       const now = new Date();
       const created = new Date(this.created_at);
       return Math.floor((now - created) / (1000 * 60 * 60 * 24));
+    },
+    
+    // Getter pour vérifier si l'utilisateur est admin
+    isAdmin() {
+      return this.role === 'admin';
+    },
+    
+    // Getter pour vérifier si l'utilisateur est un utilisateur normal
+    isUser() {
+      return this.role === 'user';
+    },
+    
+    // Getter pour obtenir le rôle formaté
+    roleFormatted() {
+      return this.role === 'admin' ? 'Administrateur' : 'Utilisateur';
+    },
+    
+    // Getter pour vérifier si l'utilisateur a un mot de passe
+    hasPassword() {
+      return !!this.password;
     }
   },
   setterMethods: {
@@ -67,6 +104,27 @@ const User = sequelize.define('User', {
       }
       if (data.google_id) {
         this.google_id = data.google_id;
+      }
+      if (data.role) {
+        this.role = data.role;
+      }
+    },
+    
+    // Setter pour définir le rôle admin
+    setAsAdmin() {
+      this.role = 'admin';
+    },
+    
+    // Setter pour définir le rôle utilisateur
+    setAsUser() {
+      this.role = 'user';
+    },
+    
+    // Setter pour définir un mot de passe (sera haché)
+    setPassword(plainPassword) {
+      if (plainPassword) {
+        // Le hachage sera fait dans le script avec bcrypt
+        this.password = plainPassword;
       }
     }
   }

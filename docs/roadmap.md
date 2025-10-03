@@ -2,9 +2,8 @@
 
 ## V1
 
-- Create authentification request between client/server 
-- Create register route/form
-- Create login route/form
+- Create register form view 
+- Create login form view
 
 - add worker (for form traitement, get sentence + analyse duplicate)
 - Update landing page with project color in chart 

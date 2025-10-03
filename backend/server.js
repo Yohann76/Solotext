@@ -9,6 +9,9 @@ const Subscription = require('./models/Subscription'); // Renommé de Text à Su
 const Analysis = require('./models/Analysis');
 const Sentence = require('./models/Sentence');
 
+// Import des routes d'authentification
+const authRoutes = require('./routes/auth');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -27,17 +30,24 @@ Analysis.belongsTo(User, { foreignKey: 'user_id' });
 Analysis.hasMany(Sentence, { foreignKey: 'analysis_id' });
 Sentence.belongsTo(Analysis, { foreignKey: 'analysis_id' });
 
+// Import des middlewares d'authentification
+const { authenticateToken, requireRole } = require('./middleware/auth');
+
 // Routes de base
 app.get('/', (req, res) => {
   res.json({ 
     message: 'API SoloText - Serveur en cours d\'exécution',
     version: '1.0.0',
     endpoints: {
+      auth: '/api/auth',
       users: '/api/users',
       health: '/api/health'
     }
   });
 });
+
+// Routes d'authentification (publiques)
+app.use('/api/auth', authRoutes);
 
 // Route de santé
 app.get('/api/health', (req, res) => {
@@ -48,8 +58,8 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Routes pour les utilisateurs
-app.get('/api/users', async (req, res) => {
+// Routes pour les utilisateurs (protégées)
+app.get('/api/users', authenticateToken, requireRole(['admin']), async (req, res) => {
   try {
     const users = await User.findAll();
     res.json({
@@ -66,7 +76,7 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
-app.get('/api/users/:id', async (req, res) => {
+app.get('/api/users/:id', authenticateToken, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const user = await User.findByPk(id);
@@ -91,7 +101,7 @@ app.get('/api/users/:id', async (req, res) => {
   }
 });
 
-app.post('/api/users', async (req, res) => {
+app.post('/api/users', authenticateToken, requireRole(['admin']), async (req, res) => {
   try {
     const { email, google_id } = req.body;
     
@@ -125,7 +135,7 @@ app.post('/api/users', async (req, res) => {
   }
 });
 
-app.put('/api/users/:id', async (req, res) => {
+app.put('/api/users/:id', authenticateToken, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const { email, google_id } = req.body;
@@ -155,7 +165,7 @@ app.put('/api/users/:id', async (req, res) => {
   }
 });
 
-app.delete('/api/users/:id', async (req, res) => {
+app.delete('/api/users/:id', authenticateToken, requireRole(['admin']), async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const user = await User.findByPk(id);
@@ -183,8 +193,8 @@ app.delete('/api/users/:id', async (req, res) => {
   }
 });
 
-// Routes pour les analyses
-app.get('/api/analyses', async (req, res) => {
+// Routes pour les analyses (protégées)
+app.get('/api/analyses', authenticateToken, async (req, res) => {
   try {
     const analyses = await Analysis.findAll({
       include: [{
@@ -208,7 +218,7 @@ app.get('/api/analyses', async (req, res) => {
   }
 });
 
-app.post('/api/analyses', async (req, res) => {
+app.post('/api/analyses', authenticateToken, async (req, res) => {
   try {
     const { user_id, source_text, duplicate_percent } = req.body;
     

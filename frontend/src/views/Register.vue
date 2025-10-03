@@ -131,11 +131,15 @@
 <script>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { useNotifications } from '../composables/useNotifications.js'
+import { useAuthStore } from '../stores/authStore.js'
 
 export default {
   name: 'Register',
   setup() {
     const router = useRouter()
+    const { success, error } = useNotifications()
+    const { register } = useAuthStore()
     
     const form = reactive({
       email: '',
@@ -210,37 +214,24 @@ export default {
       successMessage.value = ''
       
       try {
-        const response = await fetch('http://localhost:3000/api/auth/register', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: form.email,
-            password: form.password,
-            role: form.role
-          })
-        })
+        const result = await register(form.email, form.password, form.role)
         
-        const data = await response.json()
-        
-        if (data.success) {
+        if (result.success) {
           successMessage.value = 'Compte créé avec succès ! Redirection...'
-          
-          // Stocker les données utilisateur et le token
-          localStorage.setItem('token', data.data.token)
-          localStorage.setItem('user', JSON.stringify(data.data.user))
+          success(`Compte créé avec succès ! Bienvenue ${result.data.user.displayName}`)
           
           // Rediriger vers la page d'accueil après 2 secondes
           setTimeout(() => {
             router.push('/')
           }, 2000)
         } else {
-          errorMessage.value = data.message || 'Erreur lors de la création du compte'
+          errorMessage.value = result.message || 'Erreur lors de la création du compte'
+          error(result.message || 'Erreur lors de la création du compte')
         }
       } catch (error) {
         console.error('Erreur d\'inscription:', error)
         errorMessage.value = 'Erreur de connexion au serveur'
+        error('Erreur de connexion au serveur')
       } finally {
         loading.value = false
       }

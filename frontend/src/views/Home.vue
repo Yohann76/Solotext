@@ -15,8 +15,7 @@
             <router-link to="/register" class="btn btn-primary">S'inscrire</router-link>
           </template>
           <template v-else>
-            <span class="user-info">Bonjour, {{ user.displayName }}!</span>
-            <button @click="logout" class="btn btn-outline">Déconnexion</button>
+            <UserIndicator @logout="handleLogout" />
           </template>
         </div>
       </nav>
@@ -204,31 +203,53 @@
         </div>
       </div>
     </footer>
+
+    <!-- Notifications -->
+    <div class="notifications-container">
+      <Notification
+        v-for="notification in notifications"
+        :key="notification.id"
+        :message="notification.message"
+        :type="notification.type"
+        :duration="notification.duration"
+        :auto-close="notification.autoClose"
+        @close="removeNotification(notification.id)"
+      />
+    </div>
   </div>
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
-import authService from '../services/auth.js'
+import { ref, onMounted, onUnmounted } from 'vue'
+import UserIndicator from '../components/UserIndicator.vue'
+import Notification from '../components/Notification.vue'
+import { useNotifications } from '../composables/useNotifications.js'
+import { useAuthStore } from '../stores/authStore.js'
 
 export default {
   name: 'Home',
+  components: {
+    UserIndicator,
+    Notification
+  },
   setup() {
-    const isAuthenticated = ref(false)
-    const user = ref(null)
+    const { isAuthenticated, user, logout, subscribe } = useAuthStore()
+    const { notifications, removeNotification, success, error } = useNotifications()
 
-    const checkAuth = () => {
-      isAuthenticated.value = authService.isAuthenticated()
-      user.value = authService.getCurrentUser()
-    }
-
-    const logout = async () => {
-      await authService.logout()
-      checkAuth()
+    const handleLogout = async () => {
+      const userName = user.value?.displayName || 'Utilisateur'
+      await logout()
+      success(`Au revoir ${userName} ! Vous avez été déconnecté.`)
     }
 
     onMounted(() => {
-      checkAuth()
+      // S'abonner aux changements d'authentification
+      const unsubscribe = subscribe(() => {
+        // Notification de connexion
+        if (isAuthenticated.value) {
+          success(`Bienvenue ${user.value?.displayName || 'Utilisateur'} ! Vous êtes maintenant connecté.`)
+        }
+      })
       
       // Smooth scrolling pour les liens d'ancrage
       document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -243,12 +264,19 @@ export default {
           }
         })
       })
+      
+      // Nettoyer l'abonnement
+      onUnmounted(() => {
+        unsubscribe()
+      })
     })
 
     return {
       isAuthenticated,
       user,
-      logout
+      handleLogout,
+      notifications,
+      removeNotification
     }
   }
 }

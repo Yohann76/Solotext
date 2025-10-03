@@ -89,11 +89,15 @@
 <script>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { useNotifications } from '../composables/useNotifications.js'
+import { useAuthStore } from '../stores/authStore.js'
 
 export default {
   name: 'Login',
   setup() {
     const router = useRouter()
+    const { success, error } = useNotifications()
+    const { login } = useAuthStore()
     
     const form = reactive({
       email: '',
@@ -144,32 +148,22 @@ export default {
       errorMessage.value = ''
       
       try {
-        const response = await fetch('http://localhost:3000/api/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: form.email,
-            password: form.password
-          })
-        })
+        const result = await login(form.email, form.password)
         
-        const data = await response.json()
-        
-        if (data.success) {
-          // Stocker les données utilisateur et le token
-          localStorage.setItem('token', data.data.token)
-          localStorage.setItem('user', JSON.stringify(data.data.user))
+        if (result.success) {
+          // Notification de succès
+          success(`Connexion réussie ! Bienvenue ${result.data.user.displayName}`)
           
           // Rediriger vers la page d'accueil
           router.push('/')
         } else {
-          errorMessage.value = data.message || 'Erreur de connexion'
+          errorMessage.value = result.message || 'Erreur de connexion'
+          error(result.message || 'Erreur de connexion')
         }
       } catch (error) {
         console.error('Erreur de connexion:', error)
         errorMessage.value = 'Erreur de connexion au serveur'
+        error('Erreur de connexion au serveur')
       } finally {
         loading.value = false
       }

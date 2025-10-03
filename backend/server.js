@@ -2,6 +2,13 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
+// Import de la configuration de base de données
+const { sequelize, testConnection } = require('./config/database');
+const User = require('./models/User');
+const Subscription = require('./models/Subscription'); // Renommé de Text à Subscription
+const Analysis = require('./models/Analysis');
+const Sentence = require('./models/Sentence');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -10,11 +17,15 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Données de test (simulation d'une base de données)
-let users = [
-  { id: 1, name: 'Jean Dupont', email: 'jean@example.com' },
-  { id: 2, name: 'Marie Martin', email: 'marie@example.com' }
-];
+// Configuration des associations entre modèles
+User.hasMany(Subscription, { foreignKey: 'user_id' });
+Subscription.belongsTo(User, { foreignKey: 'user_id' });
+
+User.hasMany(Analysis, { foreignKey: 'user_id' });
+Analysis.belongsTo(User, { foreignKey: 'user_id' });
+
+Analysis.hasMany(Sentence, { foreignKey: 'analysis_id' });
+Sentence.belongsTo(Analysis, { foreignKey: 'analysis_id' });
 
 // Routes de base
 app.get('/', (req, res) => {
@@ -38,96 +49,319 @@ app.get('/api/health', (req, res) => {
 });
 
 // Routes pour les utilisateurs
-app.get('/api/users', (req, res) => {
-  res.json({
-    success: true,
-    data: users,
-    count: users.length
-  });
-});
-
-app.get('/api/users/:id', (req, res) => {
-  const id = parseInt(req.params.id);
-  const user = users.find(u => u.id === id);
-  
-  if (!user) {
-    return res.status(404).json({
+app.get('/api/users', async (req, res) => {
+  try {
+    const users = await User.findAll();
+    res.json({
+      success: true,
+      data: users,
+      count: users.length
+    });
+  } catch (error) {
+    res.status(500).json({
       success: false,
-      message: 'Utilisateur non trouvé'
+      message: 'Erreur lors de la récupération des utilisateurs',
+      error: error.message
     });
   }
-  
-  res.json({
-    success: true,
-    data: user
-  });
 });
 
-app.post('/api/users', (req, res) => {
-  const { name, email } = req.body;
-  
-  if (!name || !email) {
-    return res.status(400).json({
+app.get('/api/users/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const user = await User.findByPk(id);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Utilisateur non trouvé'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    res.status(500).json({
       success: false,
-      message: 'Le nom et l\'email sont requis'
+      message: 'Erreur lors de la récupération de l\'utilisateur',
+      error: error.message
     });
   }
-  
-  const newUser = {
-    id: users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1,
-    name,
-    email
-  };
-  
-  users.push(newUser);
-  
-  res.status(201).json({
-    success: true,
-    data: newUser,
-    message: 'Utilisateur créé avec succès'
-  });
 });
 
-app.put('/api/users/:id', (req, res) => {
-  const id = parseInt(req.params.id);
-  const { name, email } = req.body;
-  const userIndex = users.findIndex(u => u.id === id);
-  
-  if (userIndex === -1) {
-    return res.status(404).json({
+app.post('/api/users', async (req, res) => {
+  try {
+    const { email, google_id } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'L\'email est requis'
+      });
+    }
+    
+    const newUser = await User.create({ email, google_id });
+    
+    res.status(201).json({
+      success: true,
+      data: newUser,
+      message: 'Utilisateur créé avec succès'
+    });
+  } catch (error) {
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Un utilisateur avec cet email ou google_id existe déjà'
+      });
+    }
+    
+    res.status(500).json({
       success: false,
-      message: 'Utilisateur non trouvé'
+      message: 'Erreur lors de la création de l\'utilisateur',
+      error: error.message
     });
   }
-  
-  if (name) users[userIndex].name = name;
-  if (email) users[userIndex].email = email;
-  
-  res.json({
-    success: true,
-    data: users[userIndex],
-    message: 'Utilisateur mis à jour avec succès'
-  });
 });
 
-app.delete('/api/users/:id', (req, res) => {
-  const id = parseInt(req.params.id);
-  const userIndex = users.findIndex(u => u.id === id);
-  
-  if (userIndex === -1) {
-    return res.status(404).json({
+app.put('/api/users/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const { email, google_id } = req.body;
+    
+    const user = await User.findByPk(id);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Utilisateur non trouvé'
+      });
+    }
+    
+    await user.update({ email, google_id });
+    
+    res.json({
+      success: true,
+      data: user,
+      message: 'Utilisateur mis à jour avec succès'
+    });
+  } catch (error) {
+    res.status(500).json({
       success: false,
-      message: 'Utilisateur non trouvé'
+      message: 'Erreur lors de la mise à jour de l\'utilisateur',
+      error: error.message
     });
   }
-  
-  const deletedUser = users.splice(userIndex, 1)[0];
-  
-  res.json({
-    success: true,
-    data: deletedUser,
-    message: 'Utilisateur supprimé avec succès'
-  });
+});
+
+app.delete('/api/users/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const user = await User.findByPk(id);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Utilisateur non trouvé'
+      });
+    }
+    
+    await user.destroy();
+    
+    res.json({
+      success: true,
+      data: user,
+      message: 'Utilisateur supprimé avec succès'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la suppression de l\'utilisateur',
+      error: error.message
+    });
+  }
+});
+
+// Routes pour les analyses
+app.get('/api/analyses', async (req, res) => {
+  try {
+    const analyses = await Analysis.findAll({
+      include: [{
+        model: User,
+        attributes: ['id', 'email']
+      }],
+      order: [['analyzed_at', 'DESC']]
+    });
+    
+    res.json({
+      success: true,
+      data: analyses,
+      count: analyses.length
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la récupération des analyses',
+      error: error.message
+    });
+  }
+});
+
+app.post('/api/analyses', async (req, res) => {
+  try {
+    const { user_id, source_text, duplicate_percent } = req.body;
+    
+    if (!user_id || !source_text || duplicate_percent === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: 'user_id, source_text et duplicate_percent sont requis'
+      });
+    }
+    
+    const newAnalysis = await Analysis.create({
+      user_id,
+      analyzed_at: new Date(),
+      source_text,
+      duplicate_percent
+    });
+    
+    res.status(201).json({
+      success: true,
+      data: newAnalysis,
+      message: 'Analyse créée avec succès'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la création de l\'analyse',
+      error: error.message
+    });
+  }
+});
+
+// Routes pour les phrases
+app.get('/api/analyses/:id/sentences', async (req, res) => {
+  try {
+    const analysis_id = parseInt(req.params.id);
+    const sentences = await Sentence.findAll({
+      where: { analysis_id },
+      order: [['created_at', 'ASC']]
+    });
+    
+    res.json({
+      success: true,
+      data: sentences,
+      count: sentences.length
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la récupération des phrases',
+      error: error.message
+    });
+  }
+});
+
+app.post('/api/analyses/:id/sentences', async (req, res) => {
+  try {
+    const analysis_id = parseInt(req.params.id);
+    const { sentence_text, source_url, is_duplicate } = req.body;
+    
+    if (!sentence_text) {
+      return res.status(400).json({
+        success: false,
+        message: 'sentence_text est requis'
+      });
+    }
+    
+    const newSentence = await Sentence.create({
+      analysis_id,
+      sentence_text,
+      source_url,
+      is_duplicate: is_duplicate || false
+    });
+    
+    res.status(201).json({
+      success: true,
+      data: newSentence,
+      message: 'Phrase ajoutée avec succès'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la création de la phrase',
+      error: error.message
+    });
+  }
+});
+
+// Routes pour les abonnements
+app.get('/api/subscriptions', async (req, res) => {
+  try {
+    const subscriptions = await Subscription.findAll({
+      include: [{
+        model: User,
+        attributes: ['id', 'email']
+      }],
+      order: [['created_at', 'DESC']]
+    });
+    
+    res.json({
+      success: true,
+      data: subscriptions,
+      count: subscriptions.length
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la récupération des abonnements',
+      error: error.message
+    });
+  }
+});
+
+app.post('/api/subscriptions', async (req, res) => {
+  try {
+    const { 
+      user_id, 
+      stripe_subscription_id, 
+      status, 
+      start_date, 
+      current_period_start, 
+      current_period_end, 
+      cancel_at_period_end 
+    } = req.body;
+    
+    if (!user_id || !stripe_subscription_id || !status) {
+      return res.status(400).json({
+        success: false,
+        message: 'user_id, stripe_subscription_id et status sont requis'
+      });
+    }
+    
+    const newSubscription = await Subscription.create({
+      user_id,
+      stripe_subscription_id,
+      status,
+      start_date: start_date || new Date(),
+      current_period_start: current_period_start || new Date(),
+      current_period_end: current_period_end || new Date(),
+      cancel_at_period_end: cancel_at_period_end || false
+    });
+    
+    res.status(201).json({
+      success: true,
+      data: newSubscription,
+      message: 'Abonnement créé avec succès'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la création de l\'abonnement',
+      error: error.message
+    });
+  }
 });
 
 // Gestion des erreurs 404
@@ -147,11 +381,30 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Démarrage du serveur
-app.listen(PORT, () => {
-  console.log(`🚀 Serveur démarré sur le port ${PORT}`);
-  console.log(`📡 API disponible sur http://localhost:${PORT}`);
-  console.log(`🔍 Documentation: http://localhost:${PORT}/api/health`);
-});
+// Initialisation et démarrage du serveur
+const startServer = async () => {
+  try {
+    // Tester la connexion à la base de données
+    await testConnection();
+    
+    // Synchroniser les modèles avec la base de données
+    await sequelize.sync({ alter: true });
+    console.log('✅ Modèles synchronisés avec la base de données');
+    
+    // Démarrer le serveur
+    app.listen(PORT, () => {
+      console.log(`🚀 Serveur démarré sur le port ${PORT}`);
+      console.log(`📡 API disponible sur http://localhost:${PORT}`);
+      console.log(`🔍 Documentation: http://localhost:${PORT}/api/health`);
+      console.log(`🗄️  Base de données PostgreSQL connectée`);
+    });
+  } catch (error) {
+    console.error('❌ Erreur lors du démarrage du serveur:', error);
+    process.exit(1);
+  }
+};
+
+// Démarrer le serveur
+startServer();
 
 module.exports = app;

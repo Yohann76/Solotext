@@ -32,6 +32,7 @@ docker-compose ps
 
 http://localhost:3000/  # backend 
 http://localhost:8080/  # frontend
+http://localhost:8081/  # adminer
 ```
 
 ### Manual run

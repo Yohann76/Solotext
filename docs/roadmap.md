@@ -2,12 +2,10 @@
 
 ## V1
 
-- put text analyse in database (with text)
 - create analysis from text 
 - add worker -> for cut text in sentence, and update sentance database
 - add worker -> analyse each sentence with first method (AI)
-- add historie of different text research (link semantixio, historie in left naviguation)
-- add visual analyse for each analyse
+- improve history analyse (small card, and color from analysis, add nbr sentence in card)
 
 ## V1.1
 

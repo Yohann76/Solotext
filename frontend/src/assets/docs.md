@@ -3,3 +3,6 @@ Dossier src/assets/ - Assets traités
 ✅ Styles personnalisés : @/assets/styles/theme.css
 ✅ Polices : @/assets/fonts/custom.woff2
 ✅ Données : @/assets/data/config.json
+
+Color: 
+

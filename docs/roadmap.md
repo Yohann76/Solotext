@@ -2,8 +2,6 @@
 
 ## V1 
 
-- add this project to github repository
-- add docker-compose
 - add Makefile (make dev-kill, make dev-build, make dev-run)
 - add postgres Database 
 - add worker (for form traitement, get sentence + analyse duplicate)

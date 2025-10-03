@@ -8,4 +8,35 @@
 
 ## Run project 
 
-with make ...
+### Docker run 
+
+```
+docker-compose up -d --build
+docker-compose down
+docker-compose ps
+
+http://localhost:3000/  # backend 
+http://localhost:8080/  # frontend
+```
+
+### Manual run
+
+Backend 
+
+```
+cd backend
+npm run dev
+
+http://localhost:3000/    # endpoint base 
+http://localhost:3000/api/health  # endpoint santé
+```
+
+Frontend
+
+```
+cd frontend
+npm install
+npm run dev
+
+http://localhost:8080/ 
+```

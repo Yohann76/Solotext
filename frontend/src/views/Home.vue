@@ -10,7 +10,14 @@
           <a href="#features" class="nav-link">Fonctionnalités</a>
           <a href="#pricing" class="nav-link">Tarifs</a>
           <a href="#contact" class="nav-link">Contact</a>
-          <button class="btn btn-primary">Commencer</button>
+          <template v-if="!isAuthenticated">
+            <router-link to="/login" class="btn btn-outline">Se connecter</router-link>
+            <router-link to="/register" class="btn btn-primary">S'inscrire</router-link>
+          </template>
+          <template v-else>
+            <span class="user-info">Bonjour, {{ user.displayName }}!</span>
+            <button @click="logout" class="btn btn-outline">Déconnexion</button>
+          </template>
         </div>
       </nav>
     </header>
@@ -20,15 +27,21 @@
       <div class="hero-content">
         <h1 class="hero-title">
           Gérez vos textes avec 
-          <span class="gradient-text">SoloText</span>
+          <span class="gradient-text">SoloText</span> 🔥
         </h1>
         <p class="hero-description">
           La solution SaaS moderne pour organiser, éditer et partager vos documents texte. 
           Simple, rapide et puissant.
         </p>
         <div class="hero-actions">
-          <button class="btn btn-primary btn-large">Essayer gratuitement</button>
-          <button class="btn btn-secondary btn-large">Voir la démo</button>
+          <template v-if="!isAuthenticated">
+            <router-link to="/register" class="btn btn-primary btn-large">Essayer gratuitement</router-link>
+            <router-link to="/login" class="btn btn-secondary btn-large">Se connecter</router-link>
+          </template>
+          <template v-else>
+            <button class="btn btn-primary btn-large">Accéder au tableau de bord</button>
+            <button class="btn btn-secondary btn-large">Voir mes analyses</button>
+          </template>
         </div>
         <div class="hero-stats">
           <div class="stat">
@@ -195,22 +208,48 @@
 </template>
 
 <script>
+import { ref, onMounted } from 'vue'
+import authService from '../services/auth.js'
+
 export default {
   name: 'Home',
-  mounted() {
-    // Smooth scrolling pour les liens d'ancrage
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function (e) {
-        e.preventDefault()
-        const target = document.querySelector(this.getAttribute('href'))
-        if (target) {
-          target.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
-          })
-        }
+  setup() {
+    const isAuthenticated = ref(false)
+    const user = ref(null)
+
+    const checkAuth = () => {
+      isAuthenticated.value = authService.isAuthenticated()
+      user.value = authService.getCurrentUser()
+    }
+
+    const logout = async () => {
+      await authService.logout()
+      checkAuth()
+    }
+
+    onMounted(() => {
+      checkAuth()
+      
+      // Smooth scrolling pour les liens d'ancrage
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          e.preventDefault()
+          const target = document.querySelector(this.getAttribute('href'))
+          if (target) {
+            target.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start'
+            })
+          }
+        })
       })
     })
+
+    return {
+      isAuthenticated,
+      user,
+      logout
+    }
   }
 }
 </script>

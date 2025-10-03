@@ -154,8 +154,8 @@ export default {
           // Notification de succès
           success(`Connexion réussie ! Bienvenue ${result.data.user.displayName}`)
           
-          // Rediriger vers la page d'accueil
-          router.push('/')
+          // Rediriger vers la page d'application
+          router.push('/application')
         } else {
           errorMessage.value = result.message || 'Erreur de connexion'
           error(result.message || 'Erreur de connexion')

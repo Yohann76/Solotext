@@ -2,8 +2,6 @@
 
 ## V1
 
-- after login/registration, redirect in application (not in landing page (/))
-
 - put text analyse in database (with text)
 - create analysis from text 
 - add worker -> for cut text in sentence, and update sentance database

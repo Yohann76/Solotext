@@ -206,9 +206,9 @@ export default {
           successMessage.value = 'Compte créé avec succès ! Redirection...'
           success(`Compte créé avec succès ! Bienvenue ${result.data.user.displayName}`)
           
-          // Rediriger vers la page d'accueil après 2 secondes
+          // Rediriger vers la page d'application après 2 secondes
           setTimeout(() => {
-            router.push('/')
+            router.push('/application')
           }, 2000)
         } else {
           errorMessage.value = result.message || 'Erreur lors de la création du compte'

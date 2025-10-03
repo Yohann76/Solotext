@@ -3,8 +3,9 @@
 ## V1
 
 - after login/registration, redirect in application (not in landing page (/))
-- create form text for analyse 
+
 - put text analyse in database (with text)
+- create analysis from text 
 - add worker -> for cut text in sentence, and update sentance database
 - add worker -> analyse each sentence with first method (AI)
 - add historie of different text research (link semantixio, historie in left naviguation)

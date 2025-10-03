@@ -5,139 +5,39 @@
     
     <!-- Contenu principal -->
     <main class="main-content">
-      <!-- Hero Section -->
-      <section class="hero">
-        <div class="hero-content">
-          <h1 class="hero-title">
-            Bienvenue dans votre espace SoloText
-          </h1>
-          <p class="hero-subtitle">
-            Analysez vos textes, détectez le plagiat et améliorez votre écriture
-          </p>
-          <div class="hero-actions">
-            <button @click="startAnalysis" class="btn btn-primary btn-large">
-              🚀 Nouvelle analyse
-            </button>
-            <button @click="viewHistory" class="btn btn-outline btn-large">
-              📊 Historique
-            </button>
-          </div>
+      <div class="container">
+        <div class="analysis-form-container">
+          <h1 class="page-title">Analyse de texte</h1>
+          <p class="page-subtitle">Collez votre texte ci-dessous pour l'analyser</p>
+          
+          <form @submit.prevent="analyzeText" class="analysis-form">
+            <div class="form-group">
+              <label for="text" class="form-label">Texte à analyser</label>
+              <textarea
+                id="text"
+                v-model="form.text"
+                class="form-textarea"
+                :class="{ 'error': errors.text }"
+                placeholder="Collez votre texte ici..."
+                rows="10"
+                required
+              ></textarea>
+              <span v-if="errors.text" class="error-message">{{ errors.text }}</span>
+            </div>
+            
+            <div class="form-actions">
+              <button 
+                type="submit" 
+                class="btn btn-primary btn-large"
+                :disabled="loading"
+              >
+                <span v-if="loading">Analyse en cours...</span>
+                <span v-else>🔍 Analyser</span>
+              </button>
+            </div>
+          </form>
         </div>
-      </section>
-
-      <!-- Dashboard Section -->
-      <section class="dashboard">
-        <div class="container">
-          <div class="dashboard-grid">
-            <!-- Statistiques rapides -->
-            <div class="stats-card">
-              <div class="stats-icon">📈</div>
-              <div class="stats-content">
-                <h3>{{ userStats.totalAnalyses }}</h3>
-                <p>Analyses effectuées</p>
-              </div>
-            </div>
-            
-            <div class="stats-card">
-              <div class="stats-icon">📝</div>
-              <div class="stats-content">
-                <h3>{{ userStats.totalWords }}</h3>
-                <p>Mots analysés</p>
-              </div>
-            </div>
-            
-            <div class="stats-card">
-              <div class="stats-icon">⚠️</div>
-              <div class="stats-content">
-                <h3>{{ userStats.riskDetections }}</h3>
-                <p>Risques détectés</p>
-              </div>
-            </div>
-            
-            <div class="stats-card">
-              <div class="stats-icon">⭐</div>
-              <div class="stats-content">
-                <h3>{{ userStats.avgScore }}%</h3>
-                <p>Score moyen</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Fonctionnalités principales -->
-          <div class="features-section">
-            <h2 class="section-title">Fonctionnalités disponibles</h2>
-            <div class="features-grid">
-              <div class="feature-card" @click="startAnalysis">
-                <div class="feature-icon">🔍</div>
-                <h3>Analyse de texte</h3>
-                <p>Analysez vos textes pour détecter le plagiat et améliorer la qualité</p>
-                <div class="feature-action">Commencer →</div>
-              </div>
-              
-              <div class="feature-card" @click="viewHistory">
-                <div class="feature-icon">📊</div>
-                <h3>Historique</h3>
-                <p>Consultez toutes vos analyses précédentes et leurs résultats</p>
-                <div class="feature-action">Voir →</div>
-              </div>
-              
-              <div class="feature-card" @click="manageAccount">
-                <div class="feature-icon">⚙️</div>
-                <h3>Paramètres</h3>
-                <p>Gérez votre compte et vos préférences d'analyse</p>
-                <div class="feature-action">Configurer →</div>
-              </div>
-              
-              <div class="feature-card" @click="viewHelp">
-                <div class="feature-icon">❓</div>
-                <h3>Aide</h3>
-                <p>Guide d'utilisation et support technique</p>
-                <div class="feature-action">Aide →</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Analyses récentes -->
-          <div class="recent-section">
-            <h2 class="section-title">Analyses récentes</h2>
-            <div class="recent-list">
-              <div v-if="recentAnalyses.length === 0" class="empty-state">
-                <div class="empty-icon">📄</div>
-                <h3>Aucune analyse récente</h3>
-                <p>Commencez par analyser votre premier texte</p>
-                <button @click="startAnalysis" class="btn btn-primary">
-                  Première analyse
-                </button>
-              </div>
-              
-              <div v-else class="analyses-list">
-                <div 
-                  v-for="analysis in recentAnalyses" 
-                  :key="analysis.id"
-                  class="analysis-item"
-                  @click="viewAnalysis(analysis.id)"
-                >
-                  <div class="analysis-info">
-                    <h4>{{ analysis.title || 'Analyse sans titre' }}</h4>
-                    <p>{{ analysis.textPreview }}...</p>
-                    <div class="analysis-meta">
-                      <span class="analysis-date">{{ formatDate(analysis.createdAt) }}</span>
-                      <span class="analysis-score" :class="getScoreClass(analysis.score)">
-                        Score: {{ analysis.score }}%
-                      </span>
-                    </div>
-                  </div>
-                  <div class="analysis-status">
-                    <span class="status-badge" :class="getStatusClass(analysis.status)">
-                      {{ getStatusText(analysis.status) }}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      </div>
     </main>
 
     <!-- Notifications -->
@@ -171,18 +71,16 @@ export default {
   },
   setup() {
     const router = useRouter()
-    const { isAuthenticated, user } = useAuthStore()
+    const { isAuthenticated } = useAuthStore()
     const { notifications, removeNotification, success, error } = useNotifications()
 
-    // Données de l'utilisateur
-    const userStats = ref({
-      totalAnalyses: 0,
-      totalWords: 0,
-      riskDetections: 0,
-      avgScore: 0
+    // État du formulaire
+    const form = ref({
+      text: ''
     })
 
-    const recentAnalyses = ref([])
+    const errors = ref({})
+    const loading = ref(false)
 
     // Vérifier l'authentification
     onMounted(() => {
@@ -190,113 +88,44 @@ export default {
         router.push('/login')
         return
       }
-      
-      loadUserData()
     })
 
-    const loadUserData = async () => {
+    const analyzeText = async () => {
+      // Validation
+      errors.value = {}
+      
+      if (!form.value.text.trim()) {
+        errors.value.text = 'Veuillez saisir un texte à analyser'
+        return
+      }
+
+      if (form.value.text.trim().length < 10) {
+        errors.value.text = 'Le texte doit contenir au moins 10 caractères'
+        return
+      }
+
+      loading.value = true
+
       try {
-        // TODO: Charger les vraies données de l'utilisateur
-        // Pour l'instant, on simule des données
-        userStats.value = {
-          totalAnalyses: 12,
-          totalWords: 2450,
-          riskDetections: 3,
-          avgScore: 87
-        }
-
-        recentAnalyses.value = [
-          {
-            id: 1,
-            title: "Rapport de stage",
-            textPreview: "Ce rapport présente les activités réalisées durant mon stage...",
-            createdAt: new Date('2024-01-15'),
-            score: 92,
-            status: 'completed'
-          },
-          {
-            id: 2,
-            title: "Mémoire de fin d'études",
-            textPreview: "Introduction à l'analyse des données...",
-            createdAt: new Date('2024-01-10'),
-            score: 78,
-            status: 'completed'
-          }
-        ]
+        // TODO: Appeler l'API d'analyse
+        await new Promise(resolve => setTimeout(resolve, 2000)) // Simulation
+        
+        success('Analyse terminée ! (Fonctionnalité en cours de développement)')
+        form.value.text = '' // Vider le formulaire après analyse
       } catch (err) {
-        error('Erreur lors du chargement des données')
+        error('Erreur lors de l\'analyse du texte')
+      } finally {
+        loading.value = false
       }
-    }
-
-    const startAnalysis = () => {
-      success('Fonctionnalité d\'analyse en cours de développement')
-      // TODO: Rediriger vers la page d'analyse
-    }
-
-    const viewHistory = () => {
-      success('Historique des analyses en cours de développement')
-      // TODO: Rediriger vers l'historique
-    }
-
-    const manageAccount = () => {
-      success('Paramètres du compte en cours de développement')
-      // TODO: Rediriger vers les paramètres
-    }
-
-    const viewHelp = () => {
-      success('Page d\'aide en cours de développement')
-      // TODO: Rediriger vers l'aide
-    }
-
-    const viewAnalysis = (id) => {
-      success(`Analyse ${id} en cours de développement`)
-      // TODO: Rediriger vers les détails de l'analyse
-    }
-
-    const formatDate = (date) => {
-      return new Intl.DateTimeFormat('fr-FR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      }).format(date)
-    }
-
-    const getScoreClass = (score) => {
-      if (score >= 90) return 'score-excellent'
-      if (score >= 70) return 'score-good'
-      if (score >= 50) return 'score-average'
-      return 'score-poor'
-    }
-
-    const getStatusClass = (status) => {
-      return `status-${status}`
-    }
-
-    const getStatusText = (status) => {
-      const statusMap = {
-        'completed': 'Terminé',
-        'processing': 'En cours',
-        'error': 'Erreur'
-      }
-      return statusMap[status] || 'Inconnu'
     }
 
     return {
-      isAuthenticated,
-      user,
-      userStats,
-      recentAnalyses,
+      form,
+      errors,
+      loading,
       notifications,
       removeNotification,
-      startAnalysis,
-      viewHistory,
-      manageAccount,
-      viewHelp,
-      viewAnalysis,
-      formatDate,
-      getScoreClass,
-      getStatusClass,
-      getStatusText
+      analyzeText
     }
   }
 }
@@ -310,247 +139,129 @@ export default {
 
 .main-content {
   padding-top: 70px; /* Hauteur du header fixe */
-}
-
-.hero {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 4rem 2rem;
-  text-align: center;
-}
-
-.hero-content {
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.hero-title {
-  font-size: 3rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  line-height: 1.2;
-}
-
-.hero-subtitle {
-  font-size: 1.2rem;
-  margin-bottom: 2rem;
-  opacity: 0.9;
-  line-height: 1.6;
-}
-
-.hero-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.btn-large {
-  padding: 1rem 2rem;
-  font-size: 1.1rem;
-}
-
-.dashboard {
   padding: 4rem 0;
+  margin-top: 2rem; /* Marge supplémentaire pour séparer du menu */
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 0 2rem;
 }
 
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-  margin-bottom: 4rem;
-}
-
-.stats-card {
+.analysis-form-container {
   background: white;
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  transition: transform 0.3s ease;
-}
-
-.stats-card:hover {
-  transform: translateY(-4px);
-}
-
-.stats-icon {
-  font-size: 2.5rem;
-  flex-shrink: 0;
-}
-
-.stats-content h3 {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #2d3748;
-  margin: 0 0 0.5rem 0;
-}
-
-.stats-content p {
-  color: #718096;
-  margin: 0;
-  font-size: 0.9rem;
-}
-
-.section-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #2d3748;
-  margin-bottom: 2rem;
+  padding: 3rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   text-align: center;
 }
 
-.features-section {
-  margin-bottom: 4rem;
-}
-
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
-}
-
-.feature-card {
-  background: white;
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 2px solid transparent;
-}
-
-.feature-card:hover {
-  transform: translateY(-4px);
-  border-color: #667eea;
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
-}
-
-.feature-icon {
+.page-title {
   font-size: 2.5rem;
-  margin-bottom: 1rem;
-}
-
-.feature-card h3 {
-  font-size: 1.3rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #2d3748;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.feature-card p {
+.page-subtitle {
+  font-size: 1.1rem;
   color: #718096;
-  margin-bottom: 1rem;
+  margin-bottom: 2rem;
   line-height: 1.6;
 }
 
-.feature-action {
-  color: #667eea;
-  font-weight: 600;
-  font-size: 0.9rem;
+.analysis-form {
+  text-align: left;
 }
 
-.recent-section {
-  margin-bottom: 4rem;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 4rem 2rem;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.empty-icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
-}
-
-.empty-state h3 {
-  font-size: 1.5rem;
-  color: #2d3748;
-  margin-bottom: 0.5rem;
-}
-
-.empty-state p {
-  color: #718096;
+.form-group {
   margin-bottom: 2rem;
 }
 
-.analyses-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.analysis-item {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.analysis-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.analysis-info h4 {
-  font-size: 1.1rem;
+.form-label {
+  display: block;
   font-weight: 600;
   color: #2d3748;
   margin-bottom: 0.5rem;
+  font-size: 1rem;
 }
 
-.analysis-info p {
-  color: #718096;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
+.form-textarea {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  line-height: 1.6;
+  resize: vertical;
+  min-height: 200px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
 }
 
-.analysis-meta {
-  display: flex;
-  gap: 1rem;
-  font-size: 0.8rem;
+.form-textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-.analysis-date {
-  color: #a0aec0;
+.form-textarea.error {
+  border-color: #e53e3e;
+  box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1);
 }
 
-.analysis-score {
+.error-message {
+  color: #e53e3e;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  display: block;
+}
+
+.form-actions {
+  text-align: center;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  text-decoration: none;
   font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  cursor: pointer;
+  min-width: 160px;
 }
 
-.score-excellent { color: #48bb78; }
-.score-good { color: #38b2ac; }
-.score-average { color: #ed8936; }
-.score-poor { color: #f56565; }
-
-.status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.status-completed { background: #c6f6d5; color: #22543d; }
-.status-processing { background: #bee3f8; color: #2a4365; }
-.status-error { background: #fed7d7; color: #742a2a; }
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: transparent;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.btn-large {
+  padding: 1.2rem 2.5rem;
+  font-size: 1.1rem;
+}
 
 .notifications-container {
   position: fixed;
@@ -561,27 +272,39 @@ export default {
 
 /* Responsive */
 @media (max-width: 768px) {
-  .hero-title {
+  .main-content {
+    padding: 2rem 0;
+  }
+  
+  .container {
+    padding: 0 1rem;
+  }
+  
+  .analysis-form-container {
+    padding: 2rem;
+  }
+  
+  .page-title {
     font-size: 2rem;
   }
   
-  .hero-actions {
-    flex-direction: column;
-    align-items: center;
+  .btn-large {
+    padding: 1rem 2rem;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .analysis-form-container {
+    padding: 1.5rem;
   }
   
-  .dashboard-grid {
-    grid-template-columns: 1fr;
+  .page-title {
+    font-size: 1.8rem;
   }
   
-  .features-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .analysis-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
+  .form-textarea {
+    min-height: 150px;
   }
 }
 </style>

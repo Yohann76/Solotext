@@ -2,6 +2,7 @@ const API_BASE_URL = 'http://localhost:3000/api'
 
 class AnalysisService {
   constructor() {
+    this.baseURL = API_BASE_URL
     this.token = null
     if (typeof window !== 'undefined') {
       this.token = localStorage.getItem('token')
@@ -134,6 +135,30 @@ class AnalysisService {
       return data
     } catch (error) {
       console.error('Erreur AnalysisService.deleteAnalysis:', error)
+      throw error
+    }
+  }
+
+  // Récupérer les phrases d'une analyse
+  async getAnalysisSentences(analysisId) {
+    try {
+      const response = await fetch(`${this.baseURL}/analyses/${analysisId}/sentences`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.token}`
+        }
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Erreur lors de la récupération des phrases')
+      }
+
+      return data.sentences || []
+    } catch (error) {
+      console.error('Erreur AnalysisService.getAnalysisSentences:', error)
       throw error
     }
   }

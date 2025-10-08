@@ -6,6 +6,7 @@ import Login from './views/Login.vue'
 import Register from './views/Register.vue'
 import Application from './views/Application.vue'
 import './style.css'
+import './assets/highlight.css'
 
 const routes = [
   { path: '/', component: Home },

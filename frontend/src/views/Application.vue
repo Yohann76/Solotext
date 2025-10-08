@@ -33,35 +33,73 @@
         <!-- Zone principale -->
         <div class="main-zone">
           <div class="analysis-form-container">
-            <h1 class="page-title">Analyse de texte</h1>
-            <p class="page-subtitle">Collez votre texte ci-dessous pour l'analyser</p>
-            
-            <form @submit.prevent="analyzeText" class="analysis-form">
-              <div class="form-group">
-                <label for="text" class="form-label">Texte à analyser</label>
-                <textarea
-                  id="text"
-                  v-model="form.text"
-                  class="form-textarea"
-                  :class="{ 'error': errors.text }"
-                  placeholder="Collez votre texte ici..."
-                  rows="10"
-                  required
-                ></textarea>
-                <span v-if="errors.text" class="error-message">{{ errors.text }}</span>
+            <!-- Mode création d'analyse -->
+            <div v-if="!selectedAnalysis">
+              <h1 class="page-title">Analyse de texte</h1>
+              <p class="page-subtitle">Collez votre texte ci-dessous pour l'analyser</p>
+              
+              <form @submit.prevent="analyzeText" class="analysis-form">
+                <div class="form-group">
+                  <label for="text" class="form-label">Texte à analyser</label>
+                  <textarea
+                    id="text"
+                    v-model="form.text"
+                    class="form-textarea"
+                    :class="{ 'error': errors.text }"
+                    placeholder="Collez votre texte ici..."
+                    rows="10"
+                    required
+                  ></textarea>
+                  <span v-if="errors.text" class="error-message">{{ errors.text }}</span>
+                </div>
+                
+                <div class="form-actions">
+                  <button 
+                    type="submit" 
+                    class="btn btn-primary btn-large"
+                    :disabled="loading"
+                  >
+                    <span v-if="loading">Analyse en cours...</span>
+                    <span v-else>🔍 Analyser</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Mode visualisation d'analyse -->
+            <div v-else class="analysis-viewer">
+              <div class="viewer-header">
+                <h1 class="page-title">Analyse #{{ selectedAnalysis.id }}</h1>
+                <div class="viewer-actions">
+                  <button @click="clearSelection" class="btn btn-secondary">
+                    ← Retour à l'analyse
+                  </button>
+                </div>
               </div>
               
-              <div class="form-actions">
-                <button 
-                  type="submit" 
-                  class="btn btn-primary btn-large"
-                  :disabled="loading"
-                >
-                  <span v-if="loading">Analyse en cours...</span>
-                  <span v-else>🔍 Analyser</span>
-                </button>
+              <div class="analysis-stats">
+                <div class="stat-item">
+                  <span class="stat-label">Duplication:</span>
+                  <span class="stat-value" :class="getDuplicateClass(selectedAnalysis.duplicate_percent)">
+                    {{ selectedAnalysis.duplicate_percent }}%
+                  </span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Date:</span>
+                  <span class="stat-value">{{ formatDate(selectedAnalysis.analyzed_at) }}</span>
+                </div>
               </div>
-            </form>
+
+                  <div class="form-group">
+                    <label class="form-label">Texte analysé (phrases surlignées selon leur statut)</label>
+                    <div class="analysis-text-display">
+                      <div 
+                        class="text-content"
+                        v-html="highlightedText"
+                      ></div>
+                    </div>
+                  </div>
+            </div>
           </div>
         </div>
       </div>
@@ -83,7 +121,7 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import CommonHeader from '../components/CommonHeader.vue'
 import Notification from '../components/Notification.vue'
@@ -113,6 +151,7 @@ export default {
     const loading = ref(false)
     const analyses = ref([])
     const selectedAnalysis = ref(null)
+    const selectedAnalysisSentences = ref([])
 
     // Vérifier l'authentification et charger les analyses
     onMounted(async () => {
@@ -136,11 +175,6 @@ export default {
       }
     }
 
-    const selectAnalysis = (analysis) => {
-      selectedAnalysis.value = analysis
-      // TODO: Afficher les détails de l'analyse sélectionnée
-      console.log('Analyse sélectionnée:', analysis)
-    }
 
     const analyzeText = async () => {
       // Validation
@@ -178,16 +212,86 @@ export default {
       }
     }
 
+    // Sélectionner une analyse pour la visualiser
+    const selectAnalysis = async (analysis) => {
+      selectedAnalysis.value = analysis
+      try {
+        // Charger les phrases de cette analyse
+        const sentences = await analysisService.getAnalysisSentences(analysis.id)
+        selectedAnalysisSentences.value = sentences
+      } catch (err) {
+        console.error('Erreur lors du chargement des phrases:', err)
+        error('Erreur lors du chargement des détails de l\'analyse')
+      }
+    }
+
+    // Effacer la sélection
+    const clearSelection = () => {
+      selectedAnalysis.value = null
+      selectedAnalysisSentences.value = []
+    }
+
+    // Formater la date
+    const formatDate = (dateString) => {
+      return new Date(dateString).toLocaleDateString('fr-FR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    }
+
+    // Obtenir la classe CSS pour le pourcentage de duplication
+    const getDuplicateClass = (percent) => {
+      if (percent === null || percent === undefined) return 'pending'
+      if (percent === 0) return 'original'
+      if (percent < 15) return 'low'
+      if (percent < 50) return 'medium'
+      return 'high'
+    }
+
+    // Créer le texte avec surlignage des phrases
+    const highlightedText = computed(() => {
+      if (!selectedAnalysis.value || !selectedAnalysisSentences.value.length) {
+        return selectedAnalysis.value?.source_text || ''
+      }
+
+      let text = selectedAnalysis.value.source_text
+      const sentences = selectedAnalysisSentences.value
+
+      // Remplacer chaque phrase par sa version surlignée
+      sentences.forEach(sentence => {
+        const sentenceText = sentence.sentence_text.trim()
+        if (sentenceText && text.includes(sentenceText)) {
+          const className = sentence.is_duplicate ? 'sentence-duplicate' : 'sentence-original'
+          const title = sentence.is_duplicate 
+            ? `Source: ${sentence.source_url || 'Non spécifiée'}` 
+            : 'Phrase originale'
+          
+          const highlightedSentence = `<span class="sentence-highlight ${className}" title="${title}">${sentenceText}</span>`
+          text = text.replace(sentenceText, highlightedSentence)
+        }
+      })
+
+      return text
+    })
+
     return {
       form,
       errors,
       loading,
       analyses,
       selectedAnalysis,
+      selectedAnalysisSentences,
+      highlightedText,
       notifications,
       removeNotification,
       analyzeText,
       selectAnalysis,
+      clearSelection,
+      formatDate,
+      getDuplicateClass,
       loadAnalyses
     }
   }
@@ -392,6 +496,138 @@ export default {
   top: 20px;
   right: 20px;
   z-index: 1001;
+}
+
+/* Styles pour la visualisation d'analyse */
+.analysis-viewer {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.viewer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.viewer-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+  transform: translateY(-1px);
+}
+
+.analysis-stats {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.stat-value {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.stat-value.pending {
+  color: #ffc107;
+}
+
+.stat-value.original {
+  color: #28a745;
+}
+
+.stat-value.low {
+  color: #17a2b8;
+}
+
+.stat-value.medium {
+  color: #fd7e14;
+}
+
+.stat-value.high {
+  color: #dc3545;
+}
+
+.analysis-text-display {
+  background: #f8f9fa;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1.5rem;
+  min-height: 200px;
+  line-height: 1.8;
+  font-size: 1rem;
+}
+
+.sentence {
+  display: inline;
+  margin-right: 0.5rem;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  cursor: help;
+}
+
+.sentence.duplicate {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+  color: white;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+}
+
+.sentence.duplicate:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+}
+
+.sentence:not(.duplicate) {
+  background: transparent;
+  color: #333;
+}
+
+.sentence:not(.duplicate):hover {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+/* Styles pour le texte surligné */
+.text-content {
+  line-height: 1.8;
+  font-size: 1rem;
+  white-space: pre-wrap;
 }
 
 /* Responsive */

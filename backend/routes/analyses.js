@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Analysis = require('../models/Analysis');
+const Sentence = require('../models/Sentence');
 const { authenticateToken } = require('../middleware/auth');
 const queueService = require('../services/queueService');
 
@@ -101,6 +102,51 @@ router.get('/', authenticateToken, async (req, res) => {
 
   } catch (error) {
     console.error('Erreur lors de la récupération des analyses:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur interne du serveur',
+      code: 'INTERNAL_ERROR'
+    });
+  }
+});
+
+// GET /api/analyses/:id/sentences - Récupérer les phrases d'une analyse
+router.get('/:id/sentences', authenticateToken, async (req, res) => {
+  try {
+    const analysisId = parseInt(req.params.id);
+    const userId = req.user.id;
+
+    // Vérifier que l'analyse appartient à l'utilisateur
+    const analysis = await Analysis.findOne({
+      where: {
+        id: analysisId,
+        user_id: userId
+      }
+    });
+
+    if (!analysis) {
+      return res.status(404).json({
+        success: false,
+        message: 'Analyse non trouvée',
+        code: 'ANALYSIS_NOT_FOUND'
+      });
+    }
+
+    // Récupérer les phrases de l'analyse
+    const sentences = await Sentence.findAll({
+      where: {
+        analysis_id: analysisId
+      },
+      order: [['id', 'ASC']]
+    });
+
+    res.json({
+      success: true,
+      sentences: sentences
+    });
+
+  } catch (error) {
+    console.error('Error fetching analysis sentences:', error);
     res.status(500).json({
       success: false,
       message: 'Erreur interne du serveur',

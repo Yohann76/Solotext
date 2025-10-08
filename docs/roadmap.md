@@ -11,6 +11,18 @@
 
 - for each history analyse, display text and result analyse in textarea (and highlight the duplicated sentences)(Below the main textarea form, display the different sources, as well as the total duplication percentage)
 
+- add analyse status in database (and define different status validation in model)
+    - Waiting for process
+    - Insufficient user credit 
+    - Sentence segmentation in progress
+    - Sentence segmentation completed
+    - Sentence segmentation error
+    - Sentence analysis in progress
+    - Sentence analysis completed
+    - Sentence analysis error
+    - Analysis completed
+
+
 ## V1.1
 
 - Add stripe paiement (with différent subscription, active etc...)

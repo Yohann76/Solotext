@@ -2,18 +2,13 @@
 
 ## V1
 
-- same existing worker -> analyse each sentence with first method (AI)
-- Analyse sentence worker:
-    - add credential for GPT (in docker environement and .env)
-    - add request for each sentance, in paralel?
+- Add administrator board (with user list section )
+- Count API call perplexity by user 
 
 - Improve history analyse (small card, and color from analysis, add nbr sentence in card)
 
-- for each history analyse, display text and result analyse in textarea (and highlight the duplicated sentences)(Below the main textarea form, display the different sources, as well as the total duplication percentage)
-
 - Create "is_test" in sentance database for get information test (boolean t/f)
-
-- add analyse status in database (and define different status validation in model)
+- Add analyse status in database (and define different status validation in model)
     - Waiting for process
     - Insufficient user credit 
     - Sentence segmentation in progress
@@ -29,8 +24,8 @@
 
 - Add stripe paiement (with différent subscription, active etc...)
 - Add 3 analyse demo (free analyse) (add counter per user)
-- After 3 analayse, display message -> your free version is end, you can pay for unlimited analysis
-- add different role (admin, prenium, user)
+- After 3 analayse, display message -> your free version is end, you can pay for  analysis
+- add different role (admin, prenium6000, prenium3000, prenium1000, user)
 
 ## V1.2
 

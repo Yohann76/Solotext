@@ -101,6 +101,44 @@
                       ></div>
                     </div>
                   </div>
+
+                  <!-- Section des sources détectées -->
+                  <div v-if="duplicateSources.length > 0" class="sources-section">
+                    <div class="sources-header">
+                      <h3 class="sources-title">
+                        <span class="sources-icon">🔗</span>
+                        Sources détectées
+                        <span class="sources-count">({{ duplicateSources.length }})</span>
+                      </h3>
+                      <p class="sources-subtitle">Liens vers les contenus dupliqués identifiés</p>
+                    </div>
+                    
+                    <div class="sources-grid">
+                      <div 
+                        v-for="(source, index) in duplicateSources" 
+                        :key="index"
+                        class="source-card"
+                      >
+                        <div class="source-header">
+                          <span class="source-number">#{{ index + 1 }}</span>
+                          <span class="source-domain">{{ getDomainFromUrl(source.url) }}</span>
+                        </div>
+                        <div class="source-body">
+                          <a 
+                            :href="source.url" 
+                            target="_blank" 
+                            class="source-link"
+                            :title="source.url"
+                          >
+                            {{ truncateUrl(source.url) }}
+                          </a>
+                        </div>
+                        <div class="source-footer">
+                          <span class="source-count">{{ source.count }} phrase{{ source.count > 1 ? 's' : '' }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   
                   <!-- Tooltip personnalisé -->
                   <div 
@@ -318,6 +356,46 @@ export default {
       return text
     })
 
+    // Calculer les sources dupliquées uniques
+    const duplicateSources = computed(() => {
+      if (!selectedAnalysisSentences.value.length) {
+        return []
+      }
+
+      const sourceMap = new Map()
+      
+      selectedAnalysisSentences.value.forEach(sentence => {
+        if (sentence.is_duplicate && sentence.source_url) {
+          const url = sentence.source_url
+          if (sourceMap.has(url)) {
+            sourceMap.get(url).count++
+          } else {
+            sourceMap.set(url, {
+              url: url,
+              count: 1
+            })
+          }
+        }
+      })
+
+      return Array.from(sourceMap.values()).sort((a, b) => b.count - a.count)
+    })
+
+    // Fonctions utilitaires pour les URLs
+    const getDomainFromUrl = (url) => {
+      try {
+        const domain = new URL(url).hostname
+        return domain.replace('www.', '')
+      } catch {
+        return 'Source inconnue'
+      }
+    }
+
+    const truncateUrl = (url) => {
+      if (url.length <= 60) return url
+      return url.substring(0, 57) + '...'
+    }
+
     // Gestion du tooltip personnalisé
     const handleTextHover = (event) => {
       const target = event.target
@@ -397,6 +475,7 @@ export default {
       selectedAnalysis,
       selectedAnalysisSentences,
       highlightedText,
+      duplicateSources,
       tooltip,
       notifications,
       removeNotification,
@@ -405,6 +484,8 @@ export default {
       clearSelection,
       formatDate,
       getDuplicateClass,
+      getDomainFromUrl,
+      truncateUrl,
       loadAnalyses,
       handleTextHover,
       hideTooltip,
@@ -820,6 +901,131 @@ export default {
   }
 }
 
+/* Section des sources détectées */
+.sources-section {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border-radius: 12px;
+  border: 1px solid #dee2e6;
+}
+
+.sources-header {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.sources-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0 0 0.5rem 0;
+}
+
+.sources-icon {
+  font-size: 1.6rem;
+}
+
+.sources-count {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.sources-subtitle {
+  color: #6c757d;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.sources-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.source-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.source-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  border-color: #3498db;
+}
+
+.source-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.source-number {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.source-domain {
+  background: #f8f9fa;
+  color: #495057;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border: 1px solid #dee2e6;
+}
+
+.source-body {
+  margin-bottom: 0.75rem;
+}
+
+.source-link {
+  color: #3498db;
+  text-decoration: none;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  word-break: break-all;
+  transition: color 0.2s ease;
+}
+
+.source-link:hover {
+  color: #2980b9;
+  text-decoration: underline;
+}
+
+.source-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.source-count {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .sidebar {
@@ -841,6 +1047,16 @@ export default {
   
   .main-zone {
     padding: 1rem;
+  }
+  
+  .sources-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .sources-title {
+    font-size: 1.2rem;
+    flex-direction: column;
+    gap: 0.3rem;
   }
   
   .analysis-form-container {

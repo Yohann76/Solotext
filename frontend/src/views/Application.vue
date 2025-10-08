@@ -96,7 +96,30 @@
                       <div 
                         class="text-content"
                         v-html="highlightedText"
+                        @mouseover="handleTextHover"
+                        @mouseout="hideTooltip"
                       ></div>
+                    </div>
+                  </div>
+                  
+                  <!-- Tooltip personnalisé -->
+                  <div 
+                    v-if="tooltip.visible" 
+                    class="custom-tooltip"
+                    :style="{ left: tooltip.x + 'px', top: tooltip.y + 'px' }"
+                    @mouseenter="keepTooltipVisible"
+                    @mouseleave="hideTooltip"
+                  >
+                    <div class="tooltip-content">
+                      <div class="tooltip-header">
+                        <span class="tooltip-icon">🔗</span>
+                        <span class="tooltip-title">Source détectée</span>
+                      </div>
+                      <div class="tooltip-body">
+                        <a :href="tooltip.url" target="_blank" class="tooltip-link">
+                          {{ tooltip.url }}
+                        </a>
+                      </div>
                     </div>
                   </div>
             </div>
@@ -121,7 +144,7 @@
 </template>
 
 <script>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import CommonHeader from '../components/CommonHeader.vue'
 import Notification from '../components/Notification.vue'
@@ -152,6 +175,17 @@ export default {
     const analyses = ref([])
     const selectedAnalysis = ref(null)
     const selectedAnalysisSentences = ref([])
+    
+    // État du tooltip
+    const tooltip = ref({
+      visible: false,
+      x: 0,
+      y: 0,
+      url: ''
+    })
+    
+    // Timer pour le délai de disparition
+    let hideTimer = null
 
     // Vérifier l'authentification et charger les analyses
     onMounted(async () => {
@@ -161,6 +195,13 @@ export default {
       }
       
       await loadAnalyses()
+    })
+
+    // Nettoyer le timer à la destruction du composant
+    onUnmounted(() => {
+      if (hideTimer) {
+        clearTimeout(hideTimer)
+      }
     })
 
     const loadAnalyses = async () => {
@@ -277,6 +318,77 @@ export default {
       return text
     })
 
+    // Gestion du tooltip personnalisé
+    const handleTextHover = (event) => {
+      const target = event.target
+      
+      // Vérifier que c'est bien une phrase dupliquée
+      if (target.classList.contains('sentence-highlight') && target.classList.contains('sentence-duplicate')) {
+        const title = target.getAttribute('title')
+        if (title && title.startsWith('Source: ')) {
+          const url = title.replace('Source: ', '')
+          
+          // Annuler le timer de disparition s'il existe
+          if (hideTimer) {
+            clearTimeout(hideTimer)
+            hideTimer = null
+          }
+          
+          // Éviter de recréer le tooltip s'il est déjà visible avec la même URL
+          if (tooltip.value.visible && tooltip.value.url === url) {
+            return
+          }
+          
+          // Position fixe par rapport à l'élément, pas à la souris
+          const rect = target.getBoundingClientRect()
+          const tooltipWidth = 300
+          const tooltipHeight = 80
+          
+          // Calculer la position optimale
+          let x = rect.left + rect.width / 2 - tooltipWidth / 2
+          let y = rect.top - tooltipHeight - 10
+          
+          // Éviter que le tooltip sorte de l'écran
+          if (x < 10) x = 10
+          if (x + tooltipWidth > window.innerWidth - 10) {
+            x = window.innerWidth - tooltipWidth - 10
+          }
+          
+          // Si pas assez de place en haut, mettre en bas
+          if (y < 10) {
+            y = rect.bottom + 10
+          }
+          
+          tooltip.value = {
+            visible: true,
+            x: x,
+            y: y,
+            url: url
+          }
+        }
+      } else {
+        // Si on survole autre chose qu'une phrase dupliquée, déclencher le timer de disparition
+        if (tooltip.value.visible) {
+          hideTooltip()
+        }
+      }
+    }
+
+    const hideTooltip = () => {
+      // Délai avant de cacher le tooltip
+      hideTimer = setTimeout(() => {
+        tooltip.value.visible = false
+      }, 500) // 500ms de délai pour plus de stabilité
+    }
+
+    const keepTooltipVisible = () => {
+      // Annuler le timer de disparition quand on survole le tooltip
+      if (hideTimer) {
+        clearTimeout(hideTimer)
+        hideTimer = null
+      }
+    }
+
     return {
       form,
       errors,
@@ -285,6 +397,7 @@ export default {
       selectedAnalysis,
       selectedAnalysisSentences,
       highlightedText,
+      tooltip,
       notifications,
       removeNotification,
       analyzeText,
@@ -292,7 +405,10 @@ export default {
       clearSelection,
       formatDate,
       getDuplicateClass,
-      loadAnalyses
+      loadAnalyses,
+      handleTextHover,
+      hideTooltip,
+      keepTooltipVisible
     }
   }
 }
@@ -628,6 +744,80 @@ export default {
   line-height: 1.8;
   font-size: 1rem;
   white-space: pre-wrap;
+}
+
+/* Tooltip personnalisé */
+.custom-tooltip {
+  position: fixed;
+  z-index: 1000;
+  pointer-events: auto;
+  max-width: 300px;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.tooltip-content {
+  background: linear-gradient(135deg, #2c3e50, #34495e);
+  color: white;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  animation: tooltipFadeIn 0.2s ease-out;
+}
+
+.tooltip-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tooltip-icon {
+  font-size: 16px;
+}
+
+.tooltip-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #ecf0f1;
+}
+
+.tooltip-body {
+  font-size: 13px;
+}
+
+.tooltip-link {
+  color: #3498db;
+  text-decoration: none;
+  word-break: break-all;
+  transition: all 0.2s ease;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(52, 152, 219, 0.1);
+  border: 1px solid rgba(52, 152, 219, 0.3);
+  display: inline-block;
+  margin-top: 4px;
+}
+
+.tooltip-link:hover {
+  color: #5dade2;
+  background: rgba(52, 152, 219, 0.2);
+  border-color: rgba(52, 152, 219, 0.5);
+  transform: translateY(-1px);
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* Responsive */

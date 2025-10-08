@@ -6,6 +6,12 @@
   cursor: help;
   display: inline;
   font-weight: 500;
+  position: relative;
+}
+
+/* Supprimer le tooltip par défaut pour les phrases dupliquées */
+.sentence-highlight.sentence-duplicate {
+  cursor: pointer;
 }
 
 .sentence-original {

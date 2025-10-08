@@ -45,3 +45,11 @@ is_duplicate (booléen, true si cette phrase est détectée dupliquée)
 created_at
 updated_at
 
+## Adminer connexion (dev): 
+
+- DB_HOST=postgres
+- DB_PORT=5432
+- DB_NAME=solotext
+- DB_USER=solotext_user
+- DB_PASSWORD=solotext_password
+

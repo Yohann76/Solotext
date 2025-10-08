@@ -2,17 +2,14 @@
 
 ## V1
 
-
-- add worker -> for cut text in sentence, and update sentance database :check? 
-
-- add worker -> analyse each sentence with first method (AI)
-    - On same worker ? or create second worker ?  -> create second worker?
-
+- same existing worker -> analyse each sentence with first method (AI)
 - Analyse sentence worker:
     - add credential for GPT (in docker environement and .env)
     - add request for each sentance, in paralel?
 
 - Improve history analyse (small card, and color from analysis, add nbr sentence in card)
+
+- for each history analyse, display text and result analyse in textarea (and highlight the duplicated sentences)(Below the main textarea form, display the different sources, as well as the total duplication percentage)
 
 ## V1.1
 

@@ -11,6 +11,8 @@
 
 - for each history analyse, display text and result analyse in textarea (and highlight the duplicated sentences)(Below the main textarea form, display the different sources, as well as the total duplication percentage)
 
+- Create "is_test" in sentance database for get information test (boolean t/f)
+
 - add analyse status in database (and define different status validation in model)
     - Waiting for process
     - Insufficient user credit 

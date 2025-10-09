@@ -219,6 +219,17 @@ class AnalysisWorker {
           reasoning: `Phrase trouvée exactement sur ${result.domain || 'site web'}`
         };
       }
+      
+      // Vérification avec similarité élevée (92%+)
+      const similarity = this.calculateSimilarity(sentenceText, resultText);
+      if (similarity >= 0.92) {
+        return {
+          isDuplicate: true,
+          sourceUrl: result.url || result.link,
+          confidence: similarity,
+          reasoning: `Phrase très similaire trouvée (${Math.round(similarity * 100)}%) sur ${result.domain || 'site web'}`
+        };
+      }
     }
 
     // Aucune correspondance exacte trouvée
@@ -230,6 +241,48 @@ class AnalysisWorker {
     };
   }
 
+
+  // Calculer la similarité entre deux textes (algorithme de Jaccard simplifié)
+  calculateSimilarity(text1, text2) {
+    const normalize = (text) => {
+      return text.toLowerCase()
+        .replace(/[^\w\s«»""''(),]/g, '') // Garder guillemets, parenthèses et virgules
+        .replace(/\s+/g, ' ')            // Normaliser les espaces
+        .trim();
+    };
+
+    const normalized1 = normalize(text1);
+    const normalized2 = normalize(text2);
+
+    // Si l'un des textes est vide
+    if (!normalized1 || !normalized2) return 0;
+
+    // Si l'un contient l'autre exactement
+    if (normalized1.includes(normalized2) || normalized2.includes(normalized1)) {
+      return 1.0;
+    }
+
+    // Vérification de sous-chaînes longues (plus de 20 caractères)
+    const minLength = Math.min(normalized1.length, normalized2.length);
+    if (minLength > 20) {
+      // Chercher des sous-chaînes communes de plus de 20 caractères
+      for (let i = 0; i <= normalized1.length - 20; i++) {
+        const substring = normalized1.substring(i, i + 20);
+        if (normalized2.includes(substring)) {
+          return 0.95; // Très haute similarité pour sous-chaînes longues
+        }
+      }
+    }
+
+    // Calculer la similarité basée sur les mots communs
+    const words1 = new Set(normalized1.split(' '));
+    const words2 = new Set(normalized2.split(' '));
+    
+    const intersection = new Set([...words1].filter(x => words2.has(x)));
+    const union = new Set([...words1, ...words2]);
+    
+    return intersection.size / union.size;
+  }
 
   // Détection de phrases très communes (patterns connus)
   detectCommonPatterns(sentenceText) {

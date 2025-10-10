@@ -32,7 +32,18 @@ CREATE TABLE IF NOT EXISTS analyses (
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     analyzed_at TIMESTAMP NOT NULL,
     source_text TEXT NOT NULL,
-    duplicate_percent DECIMAL(5,2) NOT NULL CHECK (duplicate_percent >= 0 AND duplicate_percent <= 100),
+    duplicate_percent DECIMAL(5,2) CHECK (duplicate_percent >= 0 AND duplicate_percent <= 100),
+    status VARCHAR(50) NOT NULL DEFAULT 'waiting_for_process' CHECK (status IN (
+        'waiting_for_process',
+        'insufficient_user_credit',
+        'sentence_segmentation_in_progress',
+        'sentence_segmentation_completed',
+        'sentence_segmentation_error',
+        'sentence_analysis_in_progress',
+        'sentence_analysis_completed',
+        'sentence_analysis_error',
+        'analysis_completed'
+    )),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -62,5 +73,6 @@ CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status);
 CREATE INDEX IF NOT EXISTS idx_subscriptions_stripe_id ON subscriptions(stripe_subscription_id);
 CREATE INDEX IF NOT EXISTS idx_analyses_user_id ON analyses(user_id);
 CREATE INDEX IF NOT EXISTS idx_analyses_analyzed_at ON analyses(analyzed_at);
+CREATE INDEX IF NOT EXISTS idx_analyses_status ON analyses(status);
 CREATE INDEX IF NOT EXISTS idx_sentences_analysis_id ON sentences(analysis_id);
 CREATE INDEX IF NOT EXISTS idx_sentences_is_duplicate ON sentences(is_duplicate);

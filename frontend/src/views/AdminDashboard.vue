@@ -265,12 +265,13 @@
 </template>
 
 <script>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import CommonHeader from '../components/CommonHeader.vue'
 import Notification from '../components/Notification.vue'
 import { useAuthStore } from '../stores/authStore.js'
 import { useNotifications } from '../composables/useNotifications.js'
+import adminService from '../services/admin.js'
 
 export default {
   name: 'AdminDashboard',
@@ -291,10 +292,22 @@ export default {
     // Données
     const users = ref([])
     const analyses = ref([])
+    const stats = ref({})
     const newUser = ref({
       email: '',
       password: '',
       role: 'user'
+    })
+
+    // Pagination et filtres
+    const pagination = reactive({
+      users: { page: 1, limit: 50, total: 0, pages: 0 },
+      analyses: { page: 1, limit: 50, total: 0, pages: 0 }
+    })
+
+    const filters = reactive({
+      users: { search: '', role: '' },
+      analyses: { status: '', userId: '' }
     })
 
     // Vérifier l'authentification et les droits admin
@@ -309,79 +322,73 @@ export default {
         router.push('/application')
         return
       }
-
-      await loadUsers()
-      await loadAnalyses()
+      await Promise.all([
+        loadUsers(),
+        loadAnalyses(),
+        loadStats()
+      ])
     })
 
     // Charger les utilisateurs
     const loadUsers = async () => {
       try {
-        // TODO: Implémenter l'API pour récupérer les utilisateurs
-        // Pour l'instant, on simule des données
-        users.value = [
-          {
-            id: 1,
-            email: 'admin@solotext.com',
-            displayName: 'Administrateur',
-            role: 'admin',
-            created_at: '2024-01-01T00:00:00Z'
-          },
-          {
-            id: 2,
-            email: 'user1@example.com',
-            displayName: 'Utilisateur 1',
-            role: 'user',
-            created_at: '2024-01-15T10:30:00Z'
-          },
-          {
-            id: 3,
-            email: 'user2@example.com',
-            displayName: 'Utilisateur 2',
-            role: 'user',
-            created_at: '2024-02-01T14:20:00Z'
-          }
-        ]
+        loading.value = true
+        const response = await adminService.getUsers({
+          page: pagination.users.page,
+          limit: pagination.users.limit,
+          search: filters.users.search,
+          role: filters.users.role
+        })
+        
+        users.value = response.data.users.map(user => adminService.formatUserForDisplay(user))
+        pagination.users = response.data.pagination
       } catch (err) {
         console.error('Erreur lors du chargement des utilisateurs:', err)
         error('Erreur lors du chargement des utilisateurs')
+      } finally {
+        loading.value = false
       }
     }
 
     // Charger les analyses
     const loadAnalyses = async () => {
       try {
-        // TODO: Implémenter l'API pour récupérer toutes les analyses
-        analyses.value = [
-          {
-            id: 1,
-            user_id: 2,
-            source_text: 'Ceci est un exemple de texte à analyser...',
-            status: 'completed',
-            duplicate_percent: 25,
-            created_at: '2024-10-10T09:00:00Z'
-          },
-          {
-            id: 2,
-            user_id: 3,
-            source_text: 'Un autre texte pour tester la duplication...',
-            status: 'pending',
-            duplicate_percent: null,
-            created_at: '2024-10-10T10:30:00Z'
-          }
-        ]
+        loading.value = true
+        const response = await adminService.getAnalyses({
+          page: pagination.analyses.page,
+          limit: pagination.analyses.limit,
+          status: filters.analyses.status,
+          userId: filters.analyses.userId
+        })
+        
+        analyses.value = response.data.analyses.map(analysis => adminService.formatAnalysisForDisplay(analysis))
+        pagination.analyses = response.data.pagination
       } catch (err) {
         console.error('Erreur lors du chargement des analyses:', err)
         error('Erreur lors du chargement des analyses')
+      } finally {
+        loading.value = false
+      }
+    }
+
+    // Charger les statistiques
+    const loadStats = async () => {
+      try {
+        const response = await adminService.getStats()
+        stats.value = response.data
+      } catch (err) {
+        console.error('Erreur lors du chargement des statistiques:', err)
       }
     }
 
     // Computed properties
-    const adminUsers = computed(() => users.value.filter(u => u.role === 'admin'))
-    const regularUsers = computed(() => users.value.filter(u => u.role === 'user'))
-    const totalAnalyses = computed(() => analyses.value.length)
-    const pendingAnalyses = computed(() => analyses.value.filter(a => a.status === 'pending').length)
-    const completedAnalyses = computed(() => analyses.value.filter(a => a.status === 'completed').length)
+    const adminUsers = computed(() => stats.value.users?.admins || 0)
+    const regularUsers = computed(() => stats.value.users?.regular || 0)
+    const totalAnalyses = computed(() => stats.value.analyses?.total || 0)
+    const waitingAnalyses = computed(() => stats.value.analyses?.waiting || 0)
+    const inProgressAnalyses = computed(() => stats.value.analyses?.inProgress || 0)
+    const completedAnalyses = computed(() => stats.value.analyses?.completed || 0)
+    const errorAnalyses = computed(() => stats.value.analyses?.error || 0)
 
     // Fonctions utilitaires
     const getUserInitials = (user) => {
@@ -406,10 +413,15 @@ export default {
 
     const getStatusText = (status) => {
       const statusMap = {
-        'pending': '⏳ En attente',
-        'processing': '🔄 En cours',
-        'completed': '✅ Terminée',
-        'error': '❌ Erreur'
+        'waiting_for_process': '⏳ En attente de traitement',
+        'insufficient_user_credit': '💳 Crédits insuffisants',
+        'sentence_segmentation_in_progress': '✂️ Segmentation en cours',
+        'sentence_segmentation_completed': '✅ Segmentation terminée',
+        'sentence_segmentation_error': '❌ Erreur segmentation',
+        'sentence_analysis_in_progress': '🔍 Analyse en cours',
+        'sentence_analysis_completed': '✅ Analyse terminée',
+        'sentence_analysis_error': '❌ Erreur analyse',
+        'analysis_completed': '🎉 Analyse complète'
       }
       return statusMap[status] || status
     }
@@ -418,13 +430,13 @@ export default {
     const createUser = async () => {
       loading.value = true
       try {
-        // TODO: Implémenter l'API pour créer un utilisateur
-        console.log('Création utilisateur:', newUser.value)
+        await adminService.createUser(newUser.value)
         success('Utilisateur créé avec succès')
         closeCreateUserModal()
         await loadUsers()
+        await loadStats()
       } catch (err) {
-        error('Erreur lors de la création de l\'utilisateur')
+        error(err.message || 'Erreur lors de la création de l\'utilisateur')
       } finally {
         loading.value = false
       }
@@ -438,12 +450,15 @@ export default {
     const deleteUser = async (user) => {
       if (confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur ${user.email} ?`)) {
         try {
-          // TODO: Implémenter l'API pour supprimer un utilisateur
-          console.log('Suppression utilisateur:', user)
+          loading.value = true
+          await adminService.deleteUser(user.id)
           success('Utilisateur supprimé avec succès')
           await loadUsers()
+          await loadStats()
         } catch (err) {
-          error('Erreur lors de la suppression de l\'utilisateur')
+          error(err.message || 'Erreur lors de la suppression de l\'utilisateur')
+        } finally {
+          loading.value = false
         }
       }
     }
@@ -457,18 +472,53 @@ export default {
       }
     }
 
+    // Fonctions de navigation et filtres
+    const switchTab = (tab) => {
+      activeTab.value = tab
+      if (tab === 'users') {
+        loadUsers()
+      } else if (tab === 'analyses') {
+        loadAnalyses()
+      }
+    }
+
+    const applyFilters = () => {
+      if (activeTab.value === 'users') {
+        pagination.users.page = 1
+        loadUsers()
+      } else if (activeTab.value === 'analyses') {
+        pagination.analyses.page = 1
+        loadAnalyses()
+      }
+    }
+
+    const changePage = (page, type) => {
+      if (type === 'users') {
+        pagination.users.page = page
+        loadUsers()
+      } else if (type === 'analyses') {
+        pagination.analyses.page = page
+        loadAnalyses()
+      }
+    }
+
     return {
       activeTab,
       loading,
       showCreateUserModal,
       users,
       analyses,
+      stats,
       newUser,
+      pagination,
+      filters,
       adminUsers,
       regularUsers,
       totalAnalyses,
-      pendingAnalyses,
+      waitingAnalyses,
+      inProgressAnalyses,
       completedAnalyses,
+      errorAnalyses,
       notifications,
       removeNotification,
       getUserInitials,
@@ -478,7 +528,11 @@ export default {
       createUser,
       editUser,
       deleteUser,
-      closeCreateUserModal
+      closeCreateUserModal,
+      switchTab,
+      applyFilters,
+      changePage,
+      adminService
     }
   }
 }

@@ -47,6 +47,25 @@ const Analysis = sequelize.define('Analysis', {
         this.setDataValue('duplicate_percent', null);
       }
     }
+  },
+  status: {
+    type: DataTypes.ENUM(
+      'waiting_for_process',
+      'insufficient_user_credit',
+      'sentence_segmentation_in_progress',
+      'sentence_segmentation_completed',
+      'sentence_segmentation_error',
+      'sentence_analysis_in_progress',
+      'sentence_analysis_completed',
+      'sentence_analysis_error',
+      'analysis_completed'
+    ),
+    allowNull: false,
+    defaultValue: 'waiting_for_process',
+    set(value) {
+      // Normalize the status
+      this.setDataValue('status', value ? value.toLowerCase().trim() : 'waiting_for_process');
+    }
   }
 }, {
   tableName: 'analyses',

@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const { Op } = require('sequelize');
 require('dotenv').config();
 
 // Import de la configuration de base de données
@@ -12,6 +13,7 @@ const Sentence = require('./models/Sentence');
 // Import des routes d'authentification
 const authRoutes = require('./routes/auth');
 const analysesRoutes = require('./routes/analyses');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -53,6 +55,9 @@ app.use('/api/auth', authRoutes);
 // Routes des analyses (protégées)
 app.use('/api/analyses', analysesRoutes);
 
+// Routes d'administration (protégées - admin uniquement)
+app.use('/api/admin', adminRoutes);
+
 // Route de santé
 app.get('/api/health', (req, res) => {
   res.json({ 
@@ -62,14 +67,30 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Routes pour les utilisateurs (protégées)
+// Routes pour les utilisateurs (protégées) - Compatible avec le dashboard
 app.get('/api/users', authenticateToken, requireRole(['admin']), async (req, res) => {
   try {
-    const users = await User.findAll();
+    const { page = 1, limit = 50 } = req.query;
+    const offset = (page - 1) * limit;
+    
+    const { count, rows: users } = await User.findAndCountAll({
+      attributes: { exclude: ['password'] },
+      order: [['created_at', 'DESC']],
+      limit: parseInt(limit),
+      offset: parseInt(offset)
+    });
+
     res.json({
       success: true,
-      data: users,
-      count: users.length
+      data: {
+        users,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: count,
+          pages: Math.ceil(count / limit)
+        }
+      }
     });
   } catch (error) {
     res.status(500).json({
@@ -107,7 +128,7 @@ app.get('/api/users/:id', authenticateToken, async (req, res) => {
 
 app.post('/api/users', authenticateToken, requireRole(['admin']), async (req, res) => {
   try {
-    const { email, google_id } = req.body;
+    const { email, password, role = 'user' } = req.body;
     
     if (!email) {
       return res.status(400).json({
@@ -115,19 +136,56 @@ app.post('/api/users', authenticateToken, requireRole(['admin']), async (req, re
         message: 'L\'email est requis'
       });
     }
+
+    if (!password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Le mot de passe est requis'
+      });
+    }
+
+    if (!['admin', 'user'].includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Le rôle doit être "admin" ou "user"'
+      });
+    }
+
+    // Vérifier si l'utilisateur existe déjà
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'Un utilisateur avec cet email existe déjà'
+      });
+    }
+
+    // Hasher le mot de passe
+    const bcrypt = require('bcrypt');
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
     
-    const newUser = await User.create({ email, google_id });
+    const newUser = await User.create({ 
+      email, 
+      password: hashedPassword,
+      role 
+    });
+
+    // Retourner l'utilisateur sans le mot de passe
+    const userResponse = await User.findByPk(newUser.id, {
+      attributes: { exclude: ['password'] }
+    });
     
     res.status(201).json({
       success: true,
-      data: newUser,
+      data: userResponse,
       message: 'Utilisateur créé avec succès'
     });
   } catch (error) {
     if (error.name === 'SequelizeUniqueConstraintError') {
       return res.status(400).json({
         success: false,
-        message: 'Un utilisateur avec cet email ou google_id existe déjà'
+        message: 'Un utilisateur avec cet email existe déjà'
       });
     }
     
@@ -142,7 +200,7 @@ app.post('/api/users', authenticateToken, requireRole(['admin']), async (req, re
 app.put('/api/users/:id', authenticateToken, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const { email, google_id } = req.body;
+    const { email, password, role } = req.body;
     
     const user = await User.findByPk(id);
     
@@ -152,12 +210,49 @@ app.put('/api/users/:id', authenticateToken, async (req, res) => {
         message: 'Utilisateur non trouvé'
       });
     }
+
+    // Mise à jour des données
+    const updateData = {};
     
-    await user.update({ email, google_id });
+    if (email) {
+      // Vérifier si l'email n'est pas déjà utilisé par un autre utilisateur
+      const existingUser = await User.findOne({ 
+        where: { 
+          email, 
+          id: { [Op.ne]: id } 
+        } 
+      });
+      
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: 'Cet email est déjà utilisé par un autre utilisateur'
+        });
+      }
+      
+      updateData.email = email;
+    }
+
+    if (role && ['admin', 'user'].includes(role)) {
+      updateData.role = role;
+    }
+
+    if (password) {
+      const bcrypt = require('bcrypt');
+      const saltRounds = 10;
+      updateData.password = await bcrypt.hash(password, saltRounds);
+    }
+    
+    await user.update(updateData);
+
+    // Retourner l'utilisateur mis à jour sans le mot de passe
+    const updatedUser = await User.findByPk(id, {
+      attributes: { exclude: ['password'] }
+    });
     
     res.json({
       success: true,
-      data: user,
+      data: updatedUser,
       message: 'Utilisateur mis à jour avec succès'
     });
   } catch (error) {
@@ -172,6 +267,15 @@ app.put('/api/users/:id', authenticateToken, async (req, res) => {
 app.delete('/api/users/:id', authenticateToken, requireRole(['admin']), async (req, res) => {
   try {
     const id = parseInt(req.params.id);
+
+    // Empêcher la suppression de son propre compte
+    if (id === req.user.id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vous ne pouvez pas supprimer votre propre compte'
+      });
+    }
+
     const user = await User.findByPk(id);
     
     if (!user) {
@@ -185,7 +289,6 @@ app.delete('/api/users/:id', authenticateToken, requireRole(['admin']), async (r
     
     res.json({
       success: true,
-      data: user,
       message: 'Utilisateur supprimé avec succès'
     });
   } catch (error) {

@@ -5,10 +5,9 @@
 - Add administrator board (with user list section )
 - Count API call perplexity by user 
 
-- Improve history analyse (small card, and color from analysis, add nbr sentence in card)
-
 - Create "is_test" in sentance database for get information test (boolean t/f)
-- Add analyse status in database (and define different status validation in model)
+
+- Update anaalyse status in worker (from analysis model validation)
     - Waiting for process
     - Insufficient user credit 
     - Sentence segmentation in progress
@@ -19,9 +18,9 @@
     - Sentence analysis error
     - Analysis completed
 
-
 ## V1.1
 
+- Improve history analyse (small card, and color from analysis, add nbr sentence in card)
 - Add stripe paiement (with différent subscription, active etc...)
 - Add 3 analyse demo (free analyse) (add counter per user)
 - After 3 analayse, display message -> your free version is end, you can pay for  analysis

@@ -2,27 +2,55 @@ const amqp = require('amqplib');
 const { sequelize } = require('../config/database');
 const Analysis = require('../models/Analysis');
 const Sentence = require('../models/Sentence');
-const axios = require('axios');
 
+// Import des bibliothèques
+const TextProcessor = require('./lib/TextProcessor');
+const SimilarityAnalyzer = require('./lib/SimilarityAnalyzer');
+const PerplexityService = require('./lib/PerplexityService');
+
+/**
+ * WORKER D'ANALYSE DE DUPLICATION DE TEXTE
+ * 
+ * FLUX GLOBAL DU WORKER :
+ * 1. CONNEXION → Se connecte à RabbitMQ et à la base de données
+ * 2. ÉCOUTE → Attend les messages d'analyse dans la queue
+ * 3. DÉCOUPAGE → Divise le texte en phrases individuelles
+ * 4. SAUVEGARDE → Enregistre chaque phrase en base de données
+ * 5. ANALYSE IA → Pour chaque phrase :
+ *    a) Détection de patterns communs (rapide)
+ *    b) Si pas de pattern → Recherche Perplexity (IA)
+ * 6. CALCUL → Détermine le pourcentage de duplication global
+ * 7. FINALISATION → Met à jour l'analyse avec les résultats
+ */
 class AnalysisWorker {
   constructor() {
+    // Configuration des connexions
     this.connection = null;
     this.channel = null;
     this.queueName = process.env.ANALYSIS_QUEUE || 'analysis_queue';
-    // TODO: declare this env in docker-compose.yml and in .env file
     this.rabbitmqUrl = process.env.RABBITMQ_URL || 'amqp://admin:admin123@localhost:5672';
-    this.perplexityApiKey = process.env.PERPLEXITY_API_KEY;
+    
+    // Initialisation des services
+    this.perplexityService = new PerplexityService(process.env.PERPLEXITY_API_KEY);
   }
 
+  // ========================================
+  // SECTION 1 : CONNEXIONS ET CONFIGURATION
+  // ========================================
+
+  /**
+   * ÉTAPE 1 : Connexion à RabbitMQ
+   * Établit la connexion et configure la queue pour recevoir les messages d'analyse
+   */
   async connect() {
     try {
       console.log('🔄 Connexion à RabbitMQ...');
       this.connection = await amqp.connect(this.rabbitmqUrl);
       this.channel = await this.connection.createChannel();
       
-      // Declare the queue
+      // Déclaration de la queue (persistante même après redémarrage)
       await this.channel.assertQueue(this.queueName, {
-        durable: true // Persistent even if RabbitMQ restarts
+        durable: true
       });
       
       console.log('✅ Connecté à RabbitMQ');
@@ -33,23 +61,38 @@ class AnalysisWorker {
     }
   }
 
+  // ========================================
+  // SECTION 2 : TRAITEMENT PRINCIPAL
+  // ========================================
+
+  /**
+   * FONCTION PRINCIPALE : Traitement complet d'une analyse
+   * 
+   * FLUX DÉTAILLÉ :
+   * 1. Mise à jour du statut → "processing"
+   * 2. Découpage du texte → phrases individuelles
+   * 3. Sauvegarde → chaque phrase en base de données
+   * 4. Analyse IA → pour chaque phrase (patterns + Perplexity)
+   * 5. Calcul → pourcentage de duplication global
+   * 6. Finalisation → mise à jour de l'analyse
+   */
   async processAnalysis(analysisData) {
     const { analysisId, sourceText } = analysisData;
     
     try {
       console.log(`🔍 Traitement de l'analyse #${analysisId}...`);
       
-      // Update the status of the analysis
+      // ÉTAPE 1 : Mise à jour du statut de l'analyse
       await Analysis.update(
         { status: 'processing' },
         { where: { id: analysisId } }
       );
       
-      // Split the text into sentences
-      const sentences = this.splitIntoSentences(sourceText);
+      // ÉTAPE 2 : Découpage du texte en phrases
+      const sentences = TextProcessor.splitIntoSentences(sourceText);
       console.log(`📝 ${sentences.length} phrases détectées`);
       
-      // Save each sentence in the database
+      // ÉTAPE 3 : Sauvegarde de chaque phrase en base de données
       const sentencePromises = sentences.map((sentence, index) => {
         return Sentence.create({
           analysis_id: analysisId,
@@ -62,32 +105,32 @@ class AnalysisWorker {
       const savedSentences = await Promise.all(sentencePromises);
       console.log(`✅ ${sentences.length} phrases sauvegardées`);
       
-      // Analyser chaque phrase avec l'IA
+      // ÉTAPE 4 : Analyse IA de chaque phrase
       console.log(`🤖 Début de l'analyse IA des phrases...`);
       let duplicateCount = 0;
       
       for (const sentence of savedSentences) {
         try {
-          // D'abord, vérifier les patterns communs
-          const patternResult = this.detectCommonPatterns(sentence.sentence_text);
+          // 4a) Détection rapide de patterns communs
+          const patternResult = SimilarityAnalyzer.detectCommonPatterns(sentence.sentence_text);
           
           let analysisResult;
           if (patternResult) {
             console.log(`🎯 Pattern détecté: ${patternResult.reasoning}`);
             analysisResult = patternResult;
           } else {
-            // Sinon, analyser avec Perplexity
-            analysisResult = await this.analyzeSentenceWithPerplexity(sentence.sentence_text);
+            // 4b) Analyse approfondie avec Perplexity IA
+            analysisResult = await this.perplexityService.analyzeSentenceWithPerplexity(sentence.sentence_text);
           }
           
-          // Mettre à jour la phrase avec les résultats
+          // Mise à jour de la phrase avec les résultats
           await sentence.update({
             is_duplicate: analysisResult.isDuplicate,
             source_url: analysisResult.sourceUrl,
             confidence: analysisResult.confidence
           });
           
-          // Log du reasoning pour debug
+          // Log du raisonnement pour debug
           if (analysisResult.reasoning) {
             console.log(`💭 Raisonnement: ${analysisResult.reasoning}`);
           }
@@ -100,7 +143,7 @@ class AnalysisWorker {
           
         } catch (error) {
           console.error(`❌ Erreur lors de l'analyse de la phrase #${sentence.id}:`, error);
-          // Marquer la phrase comme non analysée
+          // Marquer la phrase comme non analysée en cas d'erreur
           await sentence.update({
             is_duplicate: false,
             source_url: null,
@@ -109,10 +152,10 @@ class AnalysisWorker {
         }
       }
       
-      // Calculer le pourcentage de duplication
+      // ÉTAPE 5 : Calcul du pourcentage de duplication global
       const duplicatePercent = Math.round((duplicateCount / savedSentences.length) * 100);
       
-      // Update the analysis with final duplicate percentage
+      // ÉTAPE 6 : Finalisation - Mise à jour de l'analyse avec les résultats
       await Analysis.update(
         { 
           duplicate_percent: duplicatePercent
@@ -125,10 +168,10 @@ class AnalysisWorker {
     } catch (error) {
       console.error(`❌ Erreur lors du traitement de l'analyse #${analysisId}:`, error);
       
-      // Mettre à jour le statut en cas d'erreur
+      // Mise à jour du statut en cas d'erreur
       try {
         await Analysis.update(
-          { status: 'error' }, // status is not in database?
+          { status: 'error' },
           { where: { id: analysisId } }
         );
       } catch (updateError) {
@@ -137,203 +180,18 @@ class AnalysisWorker {
     }
   }
 
-  async analyzeSentenceWithPerplexity(sentenceText) {
-    if (!this.perplexityApiKey) {
-      console.warn('⚠️ PERPLEXITY_API_KEY non configurée, simulation d\'analyse...');
-      // Simulation pour les tests
-      // TODO: delete this testing simulation
-      return {
-        isDuplicate: Math.random() > 0.7, // 30% de chance d'être dupliqué
-        sourceUrl: Math.random() > 0.7 ? 'https://example.com/source' : null,
-        confidence: Math.random() * 0.3 + 0.7, // 70-100% de confiance
-        reasoning: "Simulation - pas de clé API"
-      };
-    }
+  // ========================================
+  // SECTION 3 : UTILITAIRES DE CONNEXION
+  // ========================================
 
-    try {
-      console.log(`🔍 Recherche Perplexity pour: "${sentenceText.substring(0, 50)}..."`);
-      
-      // Recherche avec Perplexity Search API
-      const response = await axios.post('https://api.perplexity.ai/search', {
-        query: sentenceText,
-        max_results: 5,
-        max_tokens_per_page: 1024
-      }, {
-        headers: {
-          'Authorization': `Bearer ${this.perplexityApiKey}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      // Analyser les résultats de recherche
-      const searchResults = response.data.results || [];
-      const result = this.analyzeSearchResults(sentenceText, searchResults);
-      
-      console.log(`✅ Recherche terminée: ${result.isDuplicate ? 'DUPLIQUÉE' : 'ORIGINALE'} (confiance: ${result.confidence})`);
-      if (result.sourceUrl) {
-        console.log(`🔗 Source: ${result.sourceUrl}`);
-      }
-      
-      return result;
-      
-    } catch (error) {
-      console.error('❌ Erreur lors de la recherche Perplexity:', error);
-      
-      // Log des détails de l'erreur
-      if (error.response) {
-        console.error('📊 Status:', error.response.status);
-        console.error('📊 Data:', error.response.data);
-      }
-      
-      // En cas d'erreur, retourner une analyse par défaut
-      return {
-        isDuplicate: false,
-        sourceUrl: null,
-        confidence: 0.0,
-        reasoning: `Erreur API: ${error.response?.status || 'Unknown'}`
-      };
-    }
-  }
-
-  // Analyser les résultats de recherche Perplexity - Détection stricte à 100%
-  analyzeSearchResults(sentenceText, searchResults) {
-    if (!searchResults || searchResults.length === 0) {
-      return {
-        isDuplicate: false,
-        sourceUrl: null,
-        confidence: 0.9,
-        reasoning: "Aucun résultat trouvé en ligne"
-      };
-    }
-
-    // Chercher une correspondance EXACTE à 100%
-    for (const result of searchResults) {
-      const resultText = result.text || result.snippet || '';
-      
-      // Vérification exacte (insensible à la casse)
-      if (resultText.toLowerCase().includes(sentenceText.toLowerCase())) {
-        return {
-          isDuplicate: true,
-          sourceUrl: result.url || result.link,
-          confidence: 1.0,
-          reasoning: `Phrase trouvée exactement sur ${result.domain || 'site web'}`
-        };
-      }
-      
-      // Vérification avec similarité élevée (92%+)
-      const similarity = this.calculateSimilarity(sentenceText, resultText);
-      if (similarity >= 0.92) {
-        return {
-          isDuplicate: true,
-          sourceUrl: result.url || result.link,
-          confidence: similarity,
-          reasoning: `Phrase très similaire trouvée (${Math.round(similarity * 100)}%) sur ${result.domain || 'site web'}`
-        };
-      }
-    }
-
-    // Aucune correspondance exacte trouvée
-    return {
-      isDuplicate: false,
-      sourceUrl: null,
-      confidence: 0.9,
-      reasoning: "Aucune correspondance exacte trouvée"
-    };
-  }
-
-
-  // Calculer la similarité entre deux textes (algorithme de Jaccard simplifié)
-  calculateSimilarity(text1, text2) {
-    const normalize = (text) => {
-      return text.toLowerCase()
-        .replace(/[^\w\s«»""''(),]/g, '') // Garder guillemets, parenthèses et virgules
-        .replace(/\s+/g, ' ')            // Normaliser les espaces
-        .trim();
-    };
-
-    const normalized1 = normalize(text1);
-    const normalized2 = normalize(text2);
-
-    // Si l'un des textes est vide
-    if (!normalized1 || !normalized2) return 0;
-
-    // Si l'un contient l'autre exactement
-    if (normalized1.includes(normalized2) || normalized2.includes(normalized1)) {
-      return 1.0;
-    }
-
-    // Vérification de sous-chaînes longues (plus de 20 caractères)
-    const minLength = Math.min(normalized1.length, normalized2.length);
-    if (minLength > 20) {
-      // Chercher des sous-chaînes communes de plus de 20 caractères
-      for (let i = 0; i <= normalized1.length - 20; i++) {
-        const substring = normalized1.substring(i, i + 20);
-        if (normalized2.includes(substring)) {
-          return 0.95; // Très haute similarité pour sous-chaînes longues
-        }
-      }
-    }
-
-    // Calculer la similarité basée sur les mots communs
-    const words1 = new Set(normalized1.split(' '));
-    const words2 = new Set(normalized2.split(' '));
-    
-    const intersection = new Set([...words1].filter(x => words2.has(x)));
-    const union = new Set([...words1, ...words2]);
-    
-    return intersection.size / union.size;
-  }
-
-  // Détection de phrases très communes (patterns connus)
-  detectCommonPatterns(sentenceText) {
-    const commonPatterns = [
-      // Patterns de sites web
-      { pattern: /abonnez-vous|découvrez|en savoir plus|cliquez ici/i, type: 'web_content', confidence: 0.9 },
-      { pattern: /dictionnaire|encyclopédie|définition/i, type: 'reference_content', confidence: 0.8 },
-      
-      // Patterns de contenu factuel
-      { pattern: /sont des.*que l'on trouve|appartiennent à la famille|font partie de/i, type: 'encyclopedic', confidence: 0.7 },
-      { pattern: /selon.*étude|d'après.*recherche|il a été démontré/i, type: 'academic', confidence: 0.8 },
-      
-      // Patterns de marketing
-      { pattern: /obtenez|gratuit|sans publicité|milliers de/i, type: 'marketing', confidence: 0.9 }
-    ];
-
-    for (const pattern of commonPatterns) {
-      if (pattern.pattern.test(sentenceText)) {
-        return {
-          isDuplicate: true,
-          sourceUrl: `${pattern.type}.com`,
-          confidence: pattern.confidence,
-          reasoning: `Détecté pattern: ${pattern.type}`
-        };
-      }
-    }
-
-    return null; // Pas de pattern détecté
-  }
-
-  splitIntoSentences(text) {
-    if (!text || typeof text !== 'string') {
-      return [];
-    }
-
-    // Clean the text
-    const cleanedText = text
-      .replace(/\s+/g, ' ') // Replace multiple spaces by one
-      .trim();
-
-    // Split into sentences using dots, exclamation marks, question marks
-    // but avoiding common abbreviations
-    const sentences = cleanedText
-      .split(/(?<=[.!?])\s+/)
-      .map(sentence => sentence.trim())
-      .filter(sentence => sentence.length > 0);
-
-    // Filter sentences too short (less than 3 characters)
-    return sentences.filter(sentence => sentence.length >= 3); // TODO: clarify, why 3?
-  }
-
+  /**
+   * ATTENTE DE LA BASE DE DONNÉES : Attente que la DB soit prête
+   * 
+   * UTILITÉ :
+   * - Évite les erreurs de connexion au démarrage
+   * - Permet au conteneur DB de s'initialiser
+   * - Retry automatique avec délai
+   */
   async waitForDatabase(maxRetries = 30, delay = 2000) {
     for (let i = 0; i < maxRetries; i++) {
       try {
@@ -350,40 +208,56 @@ class AnalysisWorker {
     }
   }
 
+  // ========================================
+  // SECTION 4 : DÉMARRAGE ET GESTION
+  // ========================================
+
+  /**
+   * DÉMARRAGE DU WORKER : Initialisation complète du système
+   * 
+   * SÉQUENCE DE DÉMARRAGE :
+   * 1. Attente de la base de données
+   * 2. Connexion à la base de données
+   * 3. Synchronisation des modèles
+   * 4. Connexion à RabbitMQ
+   * 5. Configuration du consommateur
+   * 6. Démarrage de l'écoute des messages
+   */
   async start() {
     try {
-      // Wait a bit for the database to be ready
+      // ÉTAPE 1 : Attente de la base de données
       console.log('⏳ Attente de la base de données...');
       await this.waitForDatabase();
       
-      // Connect to the database
+      // ÉTAPE 2 : Connexion à la base de données
       await sequelize.authenticate();
       console.log('✅ Connexion à la base de données établie');
       
-      // Synchronize models
+      // ÉTAPE 3 : Synchronisation des modèles
       await sequelize.sync();
       console.log('✅ Modèles synchronisés avec la base de données');
       
-      // Connect to RabbitMQ
+      // ÉTAPE 4 : Connexion à RabbitMQ
       await this.connect();
       
-      // Configure the consumer
-      await this.channel.prefetch(1); // Process one task at a time
+      // ÉTAPE 5 : Configuration du consommateur (une tâche à la fois)
+      await this.channel.prefetch(1);
       
-      // Start listening to messages
+      // ÉTAPE 6 : Démarrage de l'écoute des messages
       await this.channel.consume(this.queueName, async (msg) => {
         if (msg !== null) {
           try {
             const analysisData = JSON.parse(msg.content.toString());
             console.log(`📨 Nouveau message reçu:`, analysisData);
             
+            // Traitement de l'analyse
             await this.processAnalysis(analysisData);
             
-            // Confirmer le traitement du message
+            // Confirmation du traitement du message
             this.channel.ack(msg);
           } catch (error) {
             console.error('❌ Erreur lors du traitement du message:', error);
-            // Reject the message and put it back in the queue
+            // Rejet du message et remise en queue
             this.channel.nack(msg, false, true);
           }
         }
@@ -397,6 +271,14 @@ class AnalysisWorker {
     }
   }
 
+  /**
+   * ARRÊT DU WORKER : Fermeture propre des connexions
+   * 
+   * PROCESSUS :
+   * 1. Fermeture du canal RabbitMQ
+   * 2. Fermeture de la connexion RabbitMQ
+   * 3. Log de confirmation
+   */
   async stop() {
     try {
       if (this.channel) {
@@ -412,9 +294,14 @@ class AnalysisWorker {
   }
 }
 
-// Handle stop signals
+// ========================================
+// SECTION 5 : GESTION DES SIGNAUX ET DÉMARRAGE
+// ========================================
+
+// Création de l'instance du worker
 const worker = new AnalysisWorker();
 
+// Gestion des signaux d'arrêt pour fermeture propre
 process.on('SIGINT', async () => {
   console.log('\n🛑 Signal d\'arrêt reçu...');
   await worker.stop();
@@ -427,7 +314,7 @@ process.on('SIGTERM', async () => {
   process.exit(0);
 });
 
-// Start the worker
+// Démarrage du worker
 worker.start().catch(error => {
   console.error('❌ Erreur fatale:', error);
   process.exit(1);

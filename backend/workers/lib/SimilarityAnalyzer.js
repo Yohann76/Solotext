@@ -29,11 +29,14 @@ class SimilarityAnalyzer {
    * @returns {number} - Score de similarité entre 0 et 1
    */
   static calculateSimilarity(text1, text2) {
-    // Normalisation des textes pour comparaison
+    // Normalisation simple des textes pour comparaison
     const normalize = (text) => {
       return text.toLowerCase()
-        .replace(/[^\w\s«»""''(),]/g, '') // Garder guillemets, parenthèses et virgules
-        .replace(/\s+/g, ' ')            // Normaliser les espaces
+        .replace(/\s+/g, ' ')  // Normaliser les espaces
+        .replace(/(\d)\s+(\d)/g, '$1$2')  // Supprimer espaces dans nombres (48 700 → 48700)
+        .replace(/(\d+)[\s,]*%/g, '$1%')  // Normaliser pourcentages (48 700% → 48700%)
+        .replace(/[^\w\s%()]/g, ' ')  // Supprimer ponctuation sauf parenthèses et %
+        .replace(/\s+/g, ' ')  // Normaliser espaces après suppression ponctuation
         .trim();
     };
 

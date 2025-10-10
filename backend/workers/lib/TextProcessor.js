@@ -112,6 +112,7 @@ class TextProcessor {
       .trim();
   }
 
+
   /**
    * NETTOYAGE DU TEXTE : Suppression des éléments indésirables
    * 

@@ -153,7 +153,9 @@ class AnalysisWorker {
       }
       
       // ÉTAPE 5 : Calcul du pourcentage de duplication global
-      const duplicatePercent = Math.round((duplicateCount / savedSentences.length) * 100);
+      const duplicatePercent = savedSentences.length > 0 
+        ? Math.round((duplicateCount / savedSentences.length) * 100)
+        : 0;
       
       // ÉTAPE 6 : Finalisation - Mise à jour de l'analyse avec les résultats
       await Analysis.update(

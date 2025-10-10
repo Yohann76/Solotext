@@ -30,6 +30,14 @@
           <button @click="goToSettings" class="dropdown-action">
             ⚙️ Paramètres
           </button>
+          <!-- Lien admin pour les administrateurs -->
+          <button 
+            v-if="user?.role === 'admin'" 
+            @click="goToDashboard" 
+            class="dropdown-action admin-action"
+          >
+            🛠️ Administration
+          </button>
           <div class="user-dropdown-divider"></div>
           <button @click="logout" class="dropdown-action logout">
             🚪 Déconnexion
@@ -73,6 +81,11 @@ export default {
       console.log('Aller aux paramètres')
     }
 
+    const goToDashboard = () => {
+      closeMenu()
+      router.push('/dashboard')
+    }
+
     const handleLogout = async () => {
       closeMenu()
       await logout()
@@ -99,6 +112,7 @@ export default {
       toggleMenu,
       goToProfile,
       goToSettings,
+      goToDashboard,
       logout: handleLogout
     }
   }
@@ -274,6 +288,16 @@ export default {
 
 .dropdown-action.logout:hover {
   background: #fed7d7;
+}
+
+.dropdown-action.admin-action {
+  color: #667eea;
+  font-weight: 600;
+}
+
+.dropdown-action.admin-action:hover {
+  background: #e6f3ff;
+  color: #4c51bf;
 }
 
 @keyframes dropdownIn {

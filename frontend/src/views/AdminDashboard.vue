@@ -31,6 +31,20 @@
               📊 Analyses
             </button>
             <button 
+              @click="activeTab = 'links'" 
+              class="nav-item"
+              :class="{ active: activeTab === 'links' }"
+            >
+              🔗 Liens utiles
+            </button>
+            <button 
+              @click="activeTab = 'support'" 
+              class="nav-item"
+              :class="{ active: activeTab === 'support' }"
+            >
+              🎧 Support
+            </button>
+            <button 
               @click="activeTab = 'settings'" 
               class="nav-item"
               :class="{ active: activeTab === 'settings' }"
@@ -166,6 +180,91 @@
                     </span>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Onglet Liens utiles -->
+          <div v-if="activeTab === 'links'" class="tab-content">
+            <div class="content-header">
+              <h1 class="page-title">Liens utiles</h1>
+            </div>
+            
+            <div class="links-container">
+              <!-- Section Outils de monitoring -->
+              <div class="links-section">
+                <h2 class="section-title">🔧 Outils de monitoring</h2>
+                <div class="links-grid">
+                  <div class="link-card">
+                    <div class="link-icon">🐛</div>
+                    <div class="link-content">
+                      <h3>Sentry</h3>
+                      <p>Monitoring des erreurs et performance</p>
+                      <a href="#" class="link-btn" target="_blank">
+                        Ouvrir Sentry →
+                      </a>
+                    </div>
+                  </div>
+                  <div class="link-card">
+                    <div class="link-icon">📈</div>
+                    <div class="link-content">
+                      <h3>Google Analytics</h3>
+                      <p>Analyse du trafic et des utilisateurs</p>
+                      <a href="#" class="link-btn" target="_blank">
+                        Ouvrir Analytics →
+                      </a>
+                    </div>
+                  </div>
+                  <div class="link-card">
+                    <div class="link-icon">🤖</div>
+                    <div class="link-content">
+                      <h3>Perplexity API</h3>
+                      <p>Gestion de l'API et utilisation</p>
+                      <a href="#" class="link-btn" target="_blank">
+                        Ouvrir Dashboard →
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Section Réseaux sociaux -->
+              <div class="links-section">
+                <h2 class="section-title">📱 Réseaux sociaux</h2>
+                <div class="social-links">
+                  <a href="#" class="social-link facebook" target="_blank">
+                    <div class="social-icon">📘</div>
+                    <span>Facebook</span>
+                  </a>
+                  <a href="#" class="social-link instagram" target="_blank">
+                    <div class="social-icon">📷</div>
+                    <span>Instagram</span>
+                  </a>
+                  <a href="#" class="social-link linkedin" target="_blank">
+                    <div class="social-icon">💼</div>
+                    <span>LinkedIn</span>
+                  </a>
+                  <a href="#" class="social-link tiktok" target="_blank">
+                    <div class="social-icon">🎵</div>
+                    <span>TikTok</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Onglet Support -->
+          <div v-if="activeTab === 'support'" class="tab-content">
+            <div class="content-header">
+              <h1 class="page-title">Support client</h1>
+            </div>
+            
+            <div class="support-container">
+              <div class="empty-state">
+                <div class="empty-icon">🎧</div>
+                <h2>Section Support</h2>
+                <p>Cette section sera utilisée pour gérer les demandes des clients.</p>
+                <p class="empty-subtitle">Fonctionnalité à venir...</p>
               </div>
             </div>
           </div>
@@ -1128,5 +1227,180 @@ export default {
     width: 95%;
     margin: 1rem;
   }
+}
+
+/* Styles pour l'onglet Liens utiles */
+.links-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.links-section {
+  margin-bottom: 3rem;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.links-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.link-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.link-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  border-color: #667eea;
+}
+
+.link-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.link-content h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0 0 0.5rem 0;
+}
+
+.link-content p {
+  color: #718096;
+  margin: 0 0 1rem 0;
+  line-height: 1.5;
+}
+
+.link-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: #667eea;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease;
+}
+
+.link-btn:hover {
+  background: #5a67d8;
+  color: white;
+  text-decoration: none;
+}
+
+/* Styles pour les réseaux sociaux */
+.social-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.social-link {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #2d3748;
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.social-link:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+  color: #2d3748;
+}
+
+.social-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.social-link span {
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+.social-link.facebook:hover {
+  border-color: #1877f2;
+  background: #f0f2f5;
+}
+
+.social-link.instagram:hover {
+  border-color: #e4405f;
+  background: #fdf2f8;
+}
+
+.social-link.linkedin:hover {
+  border-color: #0077b5;
+  background: #f0f8ff;
+}
+
+.social-link.tiktok:hover {
+  border-color: #000000;
+  background: #f8f9fa;
+}
+
+/* Styles pour l'onglet Support */
+.support-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.empty-state {
+  text-align: center;
+  max-width: 400px;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.6;
+}
+
+.empty-state h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 1rem;
+}
+
+.empty-state p {
+  color: #718096;
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+.empty-subtitle {
+  font-style: italic;
+  color: #a0aec0;
 }
 </style>

@@ -84,7 +84,7 @@ class AnalysisWorker {
       
       // ÉTAPE 1 : Mise à jour du statut de l'analyse
       await Analysis.update(
-        { status: 'processing' },
+        { status: 'sentence_segmentation_in_progress' },
         { where: { id: analysisId } }
       );
       
@@ -97,16 +97,28 @@ class AnalysisWorker {
         return Sentence.create({
           analysis_id: analysisId,
           sentence_text: sentence.trim(),
-          position: index + 1,
-          status: 'pending'
+          position: index + 1
         });
       });
       
       const savedSentences = await Promise.all(sentencePromises);
       console.log(`✅ ${sentences.length} phrases sauvegardées`);
       
+      // Mettre à jour le statut de l'analyse
+      await Analysis.update(
+        { status: 'sentence_segmentation_completed' },
+        { where: { id: analysisId } }
+      );
+      
       // ÉTAPE 4 : Analyse IA de chaque phrase
       console.log(`🤖 Début de l'analyse IA des phrases...`);
+      
+      // Mettre à jour le statut pour indiquer que l'analyse des phrases commence
+      await Analysis.update(
+        { status: 'sentence_analysis_in_progress' },
+        { where: { id: analysisId } }
+      );
+      
       let duplicateCount = 0;
       
       for (const sentence of savedSentences) {
@@ -127,7 +139,8 @@ class AnalysisWorker {
           await sentence.update({
             is_duplicate: analysisResult.isDuplicate,
             source_url: analysisResult.sourceUrl,
-            confidence: analysisResult.confidence
+            confidence: analysisResult.confidence,
+            is_test: true  // Marquer comme testée car l'analyse est terminée
           });
           
           // Log du raisonnement pour debug
@@ -143,11 +156,12 @@ class AnalysisWorker {
           
         } catch (error) {
           console.error(`❌ Erreur lors de l'analyse de la phrase #${sentence.id}:`, error);
-          // Marquer la phrase comme non analysée en cas d'erreur
+          // Marquer la phrase comme testée mais non analysée en cas d'erreur
           await sentence.update({
             is_duplicate: false,
             source_url: null,
-            confidence: 0
+            confidence: 0,
+            is_test: true  // Marquer comme testée même en cas d'erreur
           });
         }
       }
@@ -160,7 +174,8 @@ class AnalysisWorker {
       // ÉTAPE 6 : Finalisation - Mise à jour de l'analyse avec les résultats
       await Analysis.update(
         { 
-          duplicate_percent: duplicatePercent
+          duplicate_percent: duplicatePercent,
+          status: 'analysis_completed'
         },
         { where: { id: analysisId } }
       );
@@ -173,7 +188,7 @@ class AnalysisWorker {
       // Mise à jour du statut en cas d'erreur
       try {
         await Analysis.update(
-          { status: 'error' },
+          { status: 'sentence_analysis_error' },
           { where: { id: analysisId } }
         );
       } catch (updateError) {

@@ -115,10 +115,10 @@ router.get('/users/:id', async (req, res) => {
     // Statistiques de l'utilisateur
     const analysisCount = await Analysis.count({ where: { user_id: userId } });
     const completedAnalyses = await Analysis.count({ 
-      where: { user_id: userId, status: 'completed' } 
+      where: { user_id: userId, status: 'analysis_completed' } 
     });
     const pendingAnalyses = await Analysis.count({ 
-      where: { user_id: userId, status: 'pending' } 
+      where: { user_id: userId, status: 'waiting_for_process' } 
     });
 
     res.json({

@@ -2,21 +2,8 @@
 
 ## V1
 
-- Add administrator board (with user list section )
-- Count API call perplexity by user 
-
-- Create "is_test" in sentance database for get information test (boolean t/f)
-
-- Update anaalyse status in worker (from analysis model validation)
-    - Waiting for process
-    - Insufficient user credit 
-    - Sentence segmentation in progress
-    - Sentence segmentation completed
-    - Sentence segmentation error
-    - Sentence analysis in progress
-    - Sentence analysis completed
-    - Sentence analysis error
-    - Analysis completed
+- Add button for create new analysis
+- Count API call perplexity by user (in administration)
 
 ## V1.1
 

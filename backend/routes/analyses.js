@@ -33,7 +33,7 @@ router.post('/', authenticateToken, async (req, res) => {
       user_id: userId,
       source_text: source_text.trim(),
       // duplicate_percent null by default // must be update with worker
-      status: 'pending', // Status initial // TODO: clarify, not use in database?
+      status: 'waiting_for_process', // Status initial
       analyzed_at: new Date() // Date of analysis
     });
 

@@ -45,6 +45,12 @@ const Sentence = sequelize.define('Sentence', {
     type: DataTypes.BOOLEAN,
     allowNull: false,
     defaultValue: false
+  },
+  is_test: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+    comment: 'Indique si la phrase a été testée par le worker et qu\'une réponse a été reçue'
   }
 }, {
   tableName: 'sentences',
@@ -110,6 +116,27 @@ const Sentence = sequelize.define('Sentence', {
     // Getter to get the status icon
     statusIcon() {
       return this.is_duplicate ? '⚠️' : '✅';
+    },
+    
+    // Getter to check if the sentence has been tested
+    hasBeenTested() {
+      return this.is_test === true;
+    },
+    
+    // Getter to get the test status formatted
+    testStatus() {
+      return this.is_test ? 'Testée' : 'Non testée';
+    },
+    
+    // Getter to get the test status icon
+    testStatusIcon() {
+      return this.is_test ? '🧪' : '⏳';
+    },
+    
+    // Getter to get the overall status (test + duplicate)
+    overallStatus() {
+      if (!this.is_test) return 'En attente de test';
+      return this.is_duplicate ? 'Dupliquée (testée)' : 'Originale (testée)';
     }
   },
   setterMethods: {
@@ -150,6 +177,32 @@ const Sentence = sequelize.define('Sentence', {
       if (url) {
         this.is_duplicate = true;
       }
+    },
+    
+    // Setter to mark a sentence as tested
+    markAsTested() {
+      this.is_test = true;
+    },
+    
+    // Setter to mark a sentence as not tested
+    markAsNotTested() {
+      this.is_test = false;
+    },
+    
+    // Setter to complete the testing process (test + result)
+    completeTest(isDuplicate = false, sourceUrl = null) {
+      this.is_test = true;
+      this.is_duplicate = isDuplicate;
+      if (sourceUrl) {
+        this.source_url = sourceUrl;
+      }
+    },
+    
+    // Setter to reset the sentence for retesting
+    resetForRetest() {
+      this.is_test = false;
+      this.is_duplicate = false;
+      this.source_url = null;
     }
   }
 });

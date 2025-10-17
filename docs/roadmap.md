@@ -2,7 +2,10 @@
 
 ## V1
 
-- Count API call perplexity by user (in administration)
+- Add cost by request perplexity (et définir le cout total du client)
+- le % dans l’historique doit se rafraîchir automatique a chaque changement
+- Les phrases non tester/dupliquer, doivent etre en surligné/gris
+- le / (home), doit renvoyer une page d'acceuil normalement
 
 ## V1.1
 

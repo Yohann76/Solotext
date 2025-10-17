@@ -60,6 +60,19 @@ CREATE TABLE IF NOT EXISTS sentences (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Table API Calls (comptage des appels API par utilisateur)
+CREATE TABLE IF NOT EXISTS api_calls (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    api_provider VARCHAR(50) NOT NULL,
+    api_endpoint VARCHAR(100),
+    call_count INTEGER NOT NULL DEFAULT 1,
+    call_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, api_provider, call_date)
+);
+
 -- Insérer des données d'exemple
 INSERT INTO users (email, google_id) VALUES 
     ('jean@example.com', 'google_123456789'),
@@ -77,3 +90,7 @@ CREATE INDEX IF NOT EXISTS idx_analyses_analyzed_at ON analyses(analyzed_at);
 CREATE INDEX IF NOT EXISTS idx_analyses_status ON analyses(status);
 CREATE INDEX IF NOT EXISTS idx_sentences_analysis_id ON sentences(analysis_id);
 CREATE INDEX IF NOT EXISTS idx_sentences_is_duplicate ON sentences(is_duplicate);
+CREATE INDEX IF NOT EXISTS idx_api_calls_user_id ON api_calls(user_id);
+CREATE INDEX IF NOT EXISTS idx_api_calls_provider ON api_calls(api_provider);
+CREATE INDEX IF NOT EXISTS idx_api_calls_date ON api_calls(call_date);
+CREATE INDEX IF NOT EXISTS idx_api_calls_user_provider_date ON api_calls(user_id, api_provider, call_date);

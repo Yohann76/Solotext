@@ -5,6 +5,7 @@ const { authenticateToken, requireRole } = require('../middleware/auth');
 const User = require('../models/User');
 const Analysis = require('../models/Analysis');
 const Sentence = require('../models/Sentence');
+const ApiCall = require('../models/ApiCall');
 
 const router = express.Router();
 
@@ -56,6 +57,32 @@ router.get('/users', async (req, res) => {
       attributes: { exclude: ['password'] } // Exclure les mots de passe
     });
 
+    // Récupérer les appels API Perplexity pour chaque utilisateur
+    const userIds = users.map(user => user.id);
+    const perplexityCalls = await ApiCall.findAll({
+      where: {
+        user_id: userIds,
+        api_provider: 'perplexity'
+      },
+      attributes: [
+        'user_id',
+        [fn('SUM', col('call_count')), 'total_calls']
+      ],
+      group: ['user_id']
+    });
+
+    // Créer un map des appels par utilisateur
+    const callsByUser = {};
+    perplexityCalls.forEach(call => {
+      callsByUser[call.user_id] = parseInt(call.dataValues.total_calls) || 0;
+    });
+
+    // Ajouter les données d'appels API aux utilisateurs
+    const usersWithApiCalls = users.map(user => ({
+      ...user.toJSON(),
+      perplexityCalls: callsByUser[user.id] || 0
+    }));
+
     // Calcul des statistiques
     const totalUsers = await User.count();
     const adminUsers = await User.count({ where: { role: 'admin' } });
@@ -64,7 +91,7 @@ router.get('/users', async (req, res) => {
     res.json({
       success: true,
       data: {
-        users,
+        users: usersWithApiCalls,
         pagination: {
           page: parseInt(page),
           limit: parseInt(limit),
@@ -513,6 +540,54 @@ router.get('/stats', async (req, res) => {
       } 
     });
     
+    // Statistiques des appels API Perplexity
+    const totalPerplexityCalls = await ApiCall.sum('call_count', {
+      where: { api_provider: 'perplexity' }
+    }) || 0;
+    
+    const todayPerplexityCalls = await ApiCall.sum('call_count', {
+      where: { 
+        api_provider: 'perplexity',
+        call_date: new Date().toISOString().split('T')[0]
+      }
+    }) || 0;
+    
+    const perplexityCallsByDay = await ApiCall.findAll({
+      where: {
+        api_provider: 'perplexity',
+        call_date: {
+          [Op.gte]: thirtyDaysAgo
+        }
+      },
+      attributes: [
+        'call_date',
+        [fn('SUM', col('call_count')), 'total_calls']
+      ],
+      group: ['call_date'],
+      order: [['call_date', 'ASC']]
+    });
+    
+    // Top utilisateurs Perplexity (derniers 30 jours)
+    const topPerplexityUsers = await ApiCall.findAll({
+      where: {
+        api_provider: 'perplexity',
+        call_date: {
+          [Op.gte]: thirtyDaysAgo
+        }
+      },
+      attributes: [
+        'user_id',
+        [fn('SUM', col('call_count')), 'total_calls']
+      ],
+      group: ['user_id'],
+      order: [[fn('SUM', col('call_count')), 'DESC']],
+      limit: 10,
+      include: [{
+        model: User,
+        attributes: ['id', 'email', 'role']
+      }]
+    });
+    
     // Analyses par jour (derniers 30 jours)
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -552,6 +627,12 @@ router.get('/stats', async (req, res) => {
           inProgress: inProgressAnalyses,
           completed: completedAnalyses,
           error: errorAnalyses
+        },
+        perplexity: {
+          totalCalls: totalPerplexityCalls,
+          todayCalls: todayPerplexityCalls,
+          callsByDay: perplexityCallsByDay,
+          topUsers: topPerplexityUsers
         },
         charts: {
           analysesByDay,

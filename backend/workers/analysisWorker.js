@@ -2,6 +2,7 @@ const amqp = require('amqplib');
 const { sequelize } = require('../config/database');
 const Analysis = require('../models/Analysis');
 const Sentence = require('../models/Sentence');
+const ApiCall = require('../models/ApiCall');
 
 // Import des bibliothèques
 const TextProcessor = require('./lib/TextProcessor');
@@ -37,6 +38,45 @@ class AnalysisWorker {
   // ========================================
   // SECTION 1 : CONNEXIONS ET CONFIGURATION
   // ========================================
+
+  /**
+   * Enregistrer un appel API Perplexity pour un utilisateur
+   * @param {number} userId - ID de l'utilisateur
+   * @param {string} endpoint - Endpoint de l'API appelé
+   */
+  async recordPerplexityCall(userId, endpoint = 'analyze') {
+    try {
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+      
+      // Chercher un enregistrement existant pour aujourd'hui
+      const existingCall = await ApiCall.findOne({
+        where: {
+          user_id: userId,
+          api_provider: 'perplexity',
+          call_date: today
+        }
+      });
+
+      if (existingCall) {
+        // Incrémenter le compteur existant
+        await existingCall.increment('call_count');
+        console.log(`📊 Appel Perplexity enregistré pour l'utilisateur ${userId} (total: ${existingCall.call_count + 1})`);
+      } else {
+        // Créer un nouvel enregistrement
+        await ApiCall.create({
+          user_id: userId,
+          api_provider: 'perplexity',
+          api_endpoint: endpoint,
+          call_count: 1,
+          call_date: today
+        });
+        console.log(`📊 Premier appel Perplexity enregistré pour l'utilisateur ${userId}`);
+      }
+    } catch (error) {
+      console.error('❌ Erreur lors de l\'enregistrement de l\'appel Perplexity:', error);
+      // Ne pas faire échouer l'analyse pour une erreur de comptage
+    }
+  }
 
   /**
    * ÉTAPE 1 : Connexion à RabbitMQ
@@ -104,6 +144,12 @@ class AnalysisWorker {
       const savedSentences = await Promise.all(sentencePromises);
       console.log(`✅ ${sentences.length} phrases sauvegardées`);
       
+      // Récupérer l'analyse pour avoir accès au user_id
+      const analysis = await Analysis.findByPk(analysisId);
+      if (!analysis) {
+        throw new Error(`Analyse #${analysisId} non trouvée`);
+      }
+      
       // Mettre à jour le statut de l'analyse
       await Analysis.update(
         { status: 'sentence_segmentation_completed' },
@@ -133,6 +179,9 @@ class AnalysisWorker {
           } else {
             // 4b) Analyse approfondie avec Perplexity IA
             analysisResult = await this.perplexityService.analyzeSentenceWithPerplexity(sentence.sentence_text);
+            
+            // Enregistrer l'appel API Perplexity
+            await this.recordPerplexityCall(analysis.user_id, 'analyze');
           }
           
           // Mise à jour de la phrase avec les résultats

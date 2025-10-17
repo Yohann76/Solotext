@@ -97,6 +97,7 @@
                     <th>Email</th>
                     <th>Rôle</th>
                     <th>Inscription</th>
+                    <th>Appels API</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -118,6 +119,12 @@
                       </span>
                     </td>
                     <td class="date-cell">{{ formatDate(user.created_at) }}</td>
+                    <td class="api-calls-cell">
+                      <div class="api-calls-info">
+                        <span class="api-calls-count">{{ user.perplexityCalls || 0 }}</span>
+                        <span class="api-calls-label">Perplexity</span>
+                      </div>
+                    </td>
                     <td class="actions-cell">
                       <button @click="editUser(user)" class="btn-action edit">
                         ✏️
@@ -158,6 +165,34 @@
                 <div class="stat-content">
                   <div class="stat-number">{{ completedAnalyses }}</div>
                   <div class="stat-label">Terminées</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Statistiques Perplexity -->
+            <div class="perplexity-stats">
+              <h3 class="section-title">🤖 Appels API Perplexity</h3>
+              <div class="stats-grid">
+                <div class="stat-card">
+                  <div class="stat-icon">📞</div>
+                  <div class="stat-content">
+                    <div class="stat-number">{{ totalPerplexityCalls }}</div>
+                    <div class="stat-label">Total appels</div>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-icon">📅</div>
+                  <div class="stat-content">
+                    <div class="stat-number">{{ todayPerplexityCalls }}</div>
+                    <div class="stat-label">Aujourd'hui</div>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-icon">💰</div>
+                  <div class="stat-content">
+                    <div class="stat-number">${{ estimatedCost }}</div>
+                    <div class="stat-label">Coût estimé</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -488,6 +523,14 @@ export default {
     const inProgressAnalyses = computed(() => stats.value.analyses?.inProgress || 0)
     const completedAnalyses = computed(() => stats.value.analyses?.completed || 0)
     const errorAnalyses = computed(() => stats.value.analyses?.error || 0)
+    
+    // Statistiques Perplexity
+    const totalPerplexityCalls = computed(() => stats.value.perplexity?.totalCalls || 0)
+    const todayPerplexityCalls = computed(() => stats.value.perplexity?.todayCalls || 0)
+    const estimatedCost = computed(() => {
+      const costPerCall = 0.01 // $0.01 par appel
+      return (totalPerplexityCalls.value * costPerCall).toFixed(2)
+    })
 
     // Fonctions utilitaires
     const getUserInitials = (user) => {
@@ -618,6 +661,9 @@ export default {
       inProgressAnalyses,
       completedAnalyses,
       errorAnalyses,
+      totalPerplexityCalls,
+      todayPerplexityCalls,
+      estimatedCost,
       notifications,
       removeNotification,
       getUserInitials,
@@ -792,6 +838,23 @@ export default {
   margin-bottom: 2rem;
 }
 
+.perplexity-stats {
+  margin-bottom: 2rem;
+}
+
+.section-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 1rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
 .stat-card {
   background: white;
   padding: 1.5rem;
@@ -922,6 +985,31 @@ export default {
 .date-cell {
   color: #718096;
   font-size: 0.9rem;
+}
+
+.api-calls-cell {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.api-calls-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.api-calls-count {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.api-calls-label {
+  font-size: 0.75rem;
+  color: #718096;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .actions-cell {

@@ -2,7 +2,6 @@
 
 ## V1
 
-- Add button for create new analysis
 - Count API call perplexity by user (in administration)
 
 ## V1.1

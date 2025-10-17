@@ -9,7 +9,12 @@
         <!-- Sidebar avec historique -->
         <aside class="sidebar">
           <div class="sidebar-header">
-            <h2 class="sidebar-title">Historique des analyses</h2>
+            <div class="sidebar-title-row">
+              <h2 class="sidebar-title">Historique des analyses</h2>
+              <button @click="startNewAnalysis" class="btn-new-analysis" title="Nouvelle analyse">
+                +
+              </button>
+            </div>
             <div class="analysis-count">{{ analyses.length }} analyse{{ analyses.length > 1 ? 's' : '' }}</div>
           </div>
           
@@ -71,8 +76,8 @@
               <div class="viewer-header">
                 <h1 class="page-title">Analyse #{{ selectedAnalysis.id }}</h1>
                 <div class="viewer-actions">
-                  <button @click="clearSelection" class="btn btn-secondary">
-                    ← Retour à l'analyse
+                  <button @click="startNewAnalysis" class="btn btn-primary">
+                    + Nouvelle analyse
                   </button>
                 </div>
               </div>
@@ -310,6 +315,16 @@ export default {
       selectedAnalysisSentences.value = []
     }
 
+    // Commencer une nouvelle analyse
+    const startNewAnalysis = () => {
+      clearSelection()
+      // Scroll vers le formulaire d'analyse
+      const formElement = document.querySelector('.analysis-form-container')
+      if (formElement) {
+        formElement.scrollIntoView({ behavior: 'smooth' })
+      }
+    }
+
     // Formater la date
     const formatDate = (dateString) => {
       return new Date(dateString).toLocaleDateString('fr-FR', {
@@ -482,6 +497,7 @@ export default {
       analyzeText,
       selectAnalysis,
       clearSelection,
+      startNewAnalysis,
       formatDate,
       getDuplicateClass,
       getDomainFromUrl,
@@ -528,11 +544,45 @@ export default {
   background: white;
 }
 
+.sidebar-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
 .sidebar-title {
   font-size: 1.2rem;
   font-weight: 600;
   color: #2d3748;
-  margin: 0 0 0.5rem 0;
+  margin: 0;
+}
+
+.btn-new-analysis {
+  background: #374151;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(55, 65, 81, 0.2);
+}
+
+.btn-new-analysis:hover {
+  background: #1f2937;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(55, 65, 81, 0.3);
+}
+
+.btn-new-analysis:active {
+  transform: translateY(0);
 }
 
 .analysis-count {
@@ -715,6 +765,7 @@ export default {
 .viewer-actions {
   display: flex;
   gap: 1rem;
+  align-items: center;
 }
 
 .btn-secondary {

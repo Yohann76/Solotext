@@ -7,7 +7,7 @@ multy-provider:
 - Define total cost by customer (all request with all provider)(array under line)
 - Add service for feature flag (from admin_config_provider database)(in worker) (if config.perplexity = 1 use this lib..)
  
- improve base:
+ Improve base:
 - Le % dans l’historique doit se rafraîchir automatique a chaque changement
 - Les phrases non tester/dupliquer, doivent etre en surligné/gris
 - Le / (home), doit renvoyer une page d'acceuil normalement
@@ -30,6 +30,15 @@ multy-provider:
 - add page : "politique de confidentialité"  
 - add backup DB (and testing)
 - add red banner on top website if GPT API is not available
+
+## V /Maintenance
+
+- x 
+
+## V /prblm
+
+- Migration/evolution DB -> need to create migration folder with sequelize 
+
 
 
 

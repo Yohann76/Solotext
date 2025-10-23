@@ -6,9 +6,9 @@ services:
     image: postgres:15-alpine
     container_name: solotext-postgres
     environment:
-      - POSTGRES_DB=solotext
-      - POSTGRES_USER=solotext_user
-      - POSTGRES_PASSWORD=solotext_password
+      - POSTGRES_DB=${DB_NAME:-solotext_db}
+      - POSTGRES_USER=${DB_USER:-solotext_user}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-solotext_password}
     ports:
       - "5432:5432"
     volumes:
@@ -18,7 +18,7 @@ services:
       - solotext-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U solotext_user -d solotext"]
+      test: ["CMD-SHELL", "pg_isready -U solotext_user -d solotext"] #use entrypoint for env variable
       interval: 10s
       timeout: 5s
       retries: 5
@@ -31,13 +31,13 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=production
-      - PORT=3000
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_NAME=solotext
-      - DB_USER=solotext_user
-      - DB_PASSWORD=solotext_password
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=${PORT:-3000} #just port ?
+      - DB_HOST=${DB_HOST:-postgres}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_NAME=${DB_NAME:-solotext_db}
+      - DB_USER=${DB_USER:-solotext_user}
+      - DB_PASSWORD=${DB_PASSWORD:-solotext_password}
       - RABBITMQ_URL=amqp://admin:admin123@rabbitmq:5672
       - ANALYSIS_QUEUE=analysis_queue
     volumes:
@@ -50,7 +50,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"] #use entrypoint for env variable
       interval: 30s
       timeout: 10s
       retries: 3
@@ -89,7 +89,7 @@ services:
       - solotext-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080"] #use entrypoint for env variable
       interval: 30s
       timeout: 10s
       retries: 3
@@ -103,9 +103,9 @@ services:
       - "5672:5672"   # AMQP port
       - "15672:15672" # Management UI
     environment:
-      - RABBITMQ_DEFAULT_USER=admin
-      - RABBITMQ_DEFAULT_PASS=admin123
-      - RABBITMQ_DEFAULT_VHOST=/
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER:-admin}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS:-admin123}
+      - RABBITMQ_DEFAULT_VHOST=${RABBITMQ_DEFAULT_VHOST:-/}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:
@@ -124,13 +124,13 @@ services:
       dockerfile: Dockerfile.worker
     container_name: solotext-analysis-worker
     environment:
-      - NODE_ENV=production
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_NAME=solotext
-      - DB_USER=solotext_user
-      - DB_PASSWORD=solotext_password
-      - RABBITMQ_URL=amqp://admin:admin123@rabbitmq:5672
+      - NODE_ENV=${NODE_ENV:-production}
+      - DB_HOST=${DB_HOST:-postgres}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_NAME=${DB_NAME:-solotext_db}
+      - DB_USER=${DB_USER:-solotext_user}
+      - DB_PASSWORD=${DB_PASSWORD:-solotext_password}
+      - RABBITMQ_URL=${RABBITMQ_URL:-amqp://admin:admin123@rabbitmq:5672}
       - ANALYSIS_QUEUE=analysis_queue
       - OPENAI_API_KEY=${OPENAI_API_KEY} # not use 
       - OPENAI_MODEL=gpt-3.5-turbo # TODO: .env # not use

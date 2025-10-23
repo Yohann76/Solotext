@@ -14,6 +14,8 @@
  * - Configuration flexible
  */
 
+/** Need TextProcessor Lib to normalize text */
+
 const axios = require('axios');
 
 class PerplexityService {

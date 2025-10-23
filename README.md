@@ -35,6 +35,8 @@ http://localhost:8080/  # frontend
 http://localhost:8081/  # adminer
 ```
 
+yohanndurand76@gmail.com & devdev (test user)
+
 ### Manual run
 
 Backend 

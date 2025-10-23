@@ -177,11 +177,23 @@ class AnalysisWorker {
             console.log(`🎯 Pattern détecté: ${patternResult.reasoning}`);
             analysisResult = patternResult;
           } else {
-            // 4b) Analyse approfondie avec Perplexity IA
+        
+            /////////////////////////////////////////////////
+            // Create Service/... for request different providers (feature flag)
+            /////////////////////////////////////////////////
+
+            /////////////////////////////////////////////////
+            // Perplexity Flag (Default Flag)
             analysisResult = await this.perplexityService.analyzeSentenceWithPerplexity(sentence.sentence_text);
-            
-            // Enregistrer l'appel API Perplexity
+            // Record call to Perplexity API
             await this.recordPerplexityCall(analysis.user_id, 'analyze');
+            /////////////////////////////////////////////////
+
+            /////////////////////////////////////////////////
+            // Bing Flag
+
+            /////////////////////////////////////////////////
+            // Apify Flag
           }
           
           // Mise à jour de la phrase avec les résultats

@@ -14,6 +14,7 @@ const User = require('../models/User');
 const Subscription = require('../models/Subscription');
 const Analysis = require('../models/Analysis');
 const Sentence = require('../models/Sentence');
+const AdminConfigProvider = require('../models/AdminConfigProvider');
 
 // Configuration des données de test
 const FIXTURES = {
@@ -87,6 +88,14 @@ const FIXTURES = {
       sentence_text: 'Une phrase de démonstration pour tester le système.',
       source_url: null,
       is_duplicate: false
+    }
+  ],
+  adminConfigProviders: [
+    {
+      provider_name: 'perplexity_search',
+      api_url: 'https://api.perplexity.ai/search',
+      cost_per_request: 0.005,
+      is_used: true
     }
   ]
 };
@@ -233,6 +242,24 @@ async function createFixtures() {
       
       console.log(`   ✅ Phrase: "${sentence.preview}" (${sentence.duplicateStatus})`);
     }
+
+    // Créer les configurations de provider
+    console.log('\n⚙️ Création des configurations de provider...');
+    for (const providerData of FIXTURES.adminConfigProviders) {
+      console.log(`   ⚙️ Création de la configuration pour ${providerData.provider_name}...`);
+      let provider = await AdminConfigProvider.findOne({ where: { provider_name: providerData.provider_name } });
+      if (provider) {
+        console.log(`   ⚠️  Configuration existante, mise à jour...`);
+        provider.api_url = providerData.api_url;
+        provider.cost_per_request = providerData.cost_per_request;
+        provider.is_used = providerData.is_used;
+        await provider.save();
+      } else {
+        provider = new AdminConfigProvider(providerData);
+        await provider.save();
+      }
+      console.log(`   ✅ Configuration ${provider.provider_name} créée/mise à jour.`);
+    }
     
     // Afficher le résumé
     console.log('\n📊 Résumé de l\'initialisation:');
@@ -241,6 +268,7 @@ async function createFixtures() {
     console.log(`💳 Abonnements créés: ${FIXTURES.subscriptions.length}`);
     console.log(`📝 Analyses créées: ${Object.keys(createdAnalyses).length}`);
     console.log(`🔤 Phrases créées: ${FIXTURES.sentences.length}`);
+    console.log(`⚙️ Configurations de provider créées: ${FIXTURES.adminConfigProviders.length}`);
     
     console.log('\n🎉 Initialisation des fixtures terminée avec succès !');
     console.log('\n📋 Comptes de test disponibles:');
@@ -281,6 +309,7 @@ function showHelp() {
   console.log('  💳 2 abonnements Stripe');
   console.log('  📝 2 analyses de texte');
   console.log('  🔤 3 phrases analysées');
+  console.log('  ⚙️ 1 configuration de provider');
   console.log('');
   console.log('Variables d\'environnement requises:');
   console.log('  DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD');

@@ -3,11 +3,9 @@
 ## V1
 
 multy-provider:
-- add config_provider (provider_name, api_url, cost_per_request, is_used) 
-- add fixtures for this config table
-- in api_calls table, replace api_provider per config_provider relation
-- Add cost by request perplexity (et définir le cout total du client) (0,005 per request)(fixture config_provider)
-- Add service for feature flag (from config_provider database)(in worker) (if config.perplexity = 1 use this...)
+- in api_calls table, replace api_provider per admin_config_provider relation
+- Define total cost by customer (all request with all provider)(array under line)
+- Add service for feature flag (from admin_config_provider database)(in worker) (if config.perplexity = 1 use this lib..)
  
  improve base:
 - Le % dans l’historique doit se rafraîchir automatique a chaque changement

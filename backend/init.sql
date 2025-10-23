@@ -73,6 +73,17 @@ CREATE TABLE IF NOT EXISTS api_calls (
     UNIQUE(user_id, api_provider, call_date)
 );
 
+-- Table Admin Config Provider
+CREATE TABLE IF NOT EXISTS admin_config_provider (
+    id SERIAL PRIMARY KEY,
+    provider_name VARCHAR(255) UNIQUE NOT NULL,
+    api_url TEXT NOT NULL,
+    cost_per_request DECIMAL(10, 5) NOT NULL,
+    is_used BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Insérer des données d'exemple
 INSERT INTO users (email, google_id) VALUES 
     ('jean@example.com', 'google_123456789'),

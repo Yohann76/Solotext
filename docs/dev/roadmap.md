@@ -3,8 +3,8 @@
 ## V1 Base Saas, and short therm option
 
 Multy-provider:
-- in api_calls table, replace api_provider per admin_config_provider relation
-- Define total cost by customer (all request with all provider)(array under line)
+- Define total cost by customer (all request with all provider)(array under line)(x perplexity request customer x cost per request in admin_config_provider)(dropdown per month (each month display all provider and total))
+
 - Add service for feature flag (from admin_config_provider database)(in worker) (if config.perplexity = 1 use this lib..)
  
 Improve base:

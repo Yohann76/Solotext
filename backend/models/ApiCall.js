@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/database');
+const AdminConfigProvider = require('./AdminConfigProvider');
 
 const ApiCall = sequelize.define('ApiCall', {
   id: {
@@ -15,20 +16,12 @@ const ApiCall = sequelize.define('ApiCall', {
       key: 'id'
     }
   },
-  api_provider: {
-    type: DataTypes.STRING(50),
+  admin_config_provider_id: {
+    type: DataTypes.INTEGER,
     allowNull: false,
-    set(value) {
-      // Normalize the API provider name
-      this.setDataValue('api_provider', value ? value.toLowerCase().trim() : value);
-    }
-  },
-  api_endpoint: {
-    type: DataTypes.STRING(100),
-    allowNull: true,
-    set(value) {
-      // Normalize the API endpoint
-      this.setDataValue('api_endpoint', value ? value.trim() : value);
+    references: {
+      model: 'admin_config_provider',
+      key: 'id'
     }
   },
   call_count: {
@@ -108,6 +101,14 @@ const ApiCall = sequelize.define('ApiCall', {
       }
     }
   }
+});
+
+ApiCall.belongsTo(AdminConfigProvider, {
+  foreignKey: 'admin_config_provider_id',
+  as: 'provider'
+});
+AdminConfigProvider.hasMany(ApiCall, {
+  foreignKey: 'admin_config_provider_id'
 });
 
 module.exports = ApiCall;

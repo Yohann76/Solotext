@@ -66,7 +66,7 @@ Stripe:
 
 ## V /prblm
 
-- Migration/evolution DB -> need to create migration folder with sequelize 
+- no problem
 
 
 

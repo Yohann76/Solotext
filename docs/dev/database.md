@@ -49,7 +49,31 @@ updated_at
 
 - DB_HOST=postgres
 - DB_PORT=5432
-- DB_NAME=solotext
+- DB_NAME=solotext_db
 - DB_USER=solotext_user
 - DB_PASSWORD=solotext_password
 
+
+## Sequelize migration (TODO: clean and clarify)
+
+## Install and init
+cd backend 
+npm install --save-dev sequelize-cli
+npx sequelize-cli init  (create migration folder)
+
+## sequelize-cli usage
+cd backend
+npx sequelize-cli db:migrate (apply migration)
+npx sequelize-cli db:seed:all (Generate seed/fixtures)
+npx sequelize-cli db:migrate:undo (Back migration)
+
+npx sequelize-cli migration:generate --name create-initial-tables (generate file)
+npx sequelize-cli seed:generate --name initial-users (generate seed)
+
+## run in container
+docker-compose exec backend npm run db:undo:all (delete all table)
+docker-compose exec backend npm run db:migrate (apply all migration)
+docker-compose exec backend npm run db:seed:all (add fixtures)
+
+docker-compose exec backend npm run migration:generate (create new migration)
+docker-compose exec backend npm run seed:generate (create new seed/fixtures)

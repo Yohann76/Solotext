@@ -1,5 +1,7 @@
 const { Sequelize } = require('sequelize');
 
+// file for database in application 
+
 // Database configuration
 const sequelize = new Sequelize({
   host: process.env.DB_HOST || 'localhost',

@@ -3,7 +3,6 @@
 ## V1 Base Saas, and short therm option
 
 Multy-provider:
-- Add posibility (in parameter page) -> activate or desactivate provider
 - Add service for feature flag (from admin_config_provider database)(in worker) (if config.perplexity = 1 use this lib..)
 - Create Second service with APIFY, or google content search..
  

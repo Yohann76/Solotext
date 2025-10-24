@@ -169,6 +169,35 @@ class AdminService {
     return this.handleResponse(response)
   }
 
+  async getProviders() {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${this.baseURL}/providers`, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return this.handleResponse(response);
+    } catch (error) {
+      // Assuming handleError is defined elsewhere or will be added
+      // this.handleError(error); 
+    }
+  }
+
+  async updateProvider(id, data) {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${this.baseURL}/providers/${id}`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      return this.handleResponse(response);
+    } catch (error) {
+      // Assuming handleError is defined elsewhere or will be added
+      // this.handleError(error); 
+    }
+  }
+
   // ========================================
   // STATISTIQUES
   // ========================================

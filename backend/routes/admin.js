@@ -362,4 +362,33 @@ router.get('/costs/users', async (req, res) => {
   }
 });
 
+// ========================================
+// ROUTES DE GESTION DES PROVIDERS
+// ========================================
+
+router.get('/providers', async (req, res) => {
+  try {
+    const providers = await adminService.getAllProviders();
+    res.json({ success: true, data: providers });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des fournisseurs:', error);
+    res.status(500).json({ success: false, message: 'Erreur serveur lors de la récupération des fournisseurs' });
+  }
+});
+
+router.put('/providers/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { is_used } = req.body;
+    const updatedProvider = await adminService.toggleProviderStatus(id, is_used);
+    res.json({ success: true, message: 'Statut du fournisseur mis à jour', data: updatedProvider });
+  } catch (error) {
+    console.error(`Erreur lors de la mise à jour du fournisseur ${req.params.id}:`, error);
+    res.status(error.statusCode || 500).json({ 
+      success: false, 
+      message: error.message || 'Erreur lors de la mise à jour du fournisseur'
+    });
+  }
+});
+
 module.exports = router;

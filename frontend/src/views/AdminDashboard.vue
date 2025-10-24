@@ -337,6 +337,29 @@
                 <button class="btn btn-secondary">Voir les logs</button>
               </div>
             </div>
+
+            <div class="provider-management">
+              <h2 class="section-title">Management des provider</h2>
+              <div class="providers-grid">
+                <div 
+                  v-for="provider in providers" 
+                  :key="provider.id" 
+                  class="provider-card"
+                  :class="provider.is_used ? 'provider-active' : 'provider-inactive'"
+                >
+                  <div class="provider-info">
+                    <h3 class="provider-name">{{ provider.provider_name }}</h3>
+                    <p class="provider-endpoint">{{ provider.api_endpoint }}</p>
+                  </div>
+                  <div class="provider-actions">
+                    <span class="status-indicator"></span>
+                    <button @click="toggleProviderStatus(provider)" class="btn btn-toggle">
+                      {{ provider.is_used ? 'Désactiver' : 'Activer' }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -442,6 +465,7 @@ export default {
     const analyses = ref([])
     const stats = ref({})
     const userStats = ref({}) // Ajout pour les stats utilisateurs
+    const providers = ref([]) // Ajout pour les fournisseurs
     const newUser = ref({
       email: '',
       password: '',
@@ -475,7 +499,8 @@ export default {
         loadUsers(),
         loadAnalyses(),
         loadStats(),
-        loadUserCosts()
+        loadUserCosts(),
+        loadProviders() // Charger les fournisseurs
       ])
     })
 
@@ -545,6 +570,35 @@ export default {
         loading.value = false
       }
     }
+
+    // Charger les fournisseurs
+    const loadProviders = async () => {
+      try {
+        const response = await adminService.getProviders();
+        providers.value = response.data;
+      } catch (err) {
+        console.error('Erreur lors du chargement des fournisseurs:', err);
+        error('Erreur lors du chargement des fournisseurs');
+      }
+    };
+
+    // Changer le statut d'un fournisseur
+    const toggleProviderStatus = async (provider) => {
+      try {
+        const newStatus = !provider.is_used;
+        const updatedProvider = await adminService.updateProvider(provider.id, { is_used: newStatus });
+        
+        // Mettre à jour la liste locale
+        const index = providers.value.findIndex(p => p.id === provider.id);
+        if (index !== -1) {
+          providers.value[index] = updatedProvider.data;
+        }
+
+        success(`Fournisseur ${provider.provider_name} ${newStatus ? 'activé' : 'désactivé'}`);
+      } catch (err) {
+        error(err.message || 'Erreur lors de la mise à jour du fournisseur');
+      }
+    };
 
     // Computed properties
     const adminUsers = computed(() => userStats.value?.admins || 0)
@@ -707,6 +761,7 @@ export default {
       newUser,
       pagination,
       filters,
+      providers,
       adminUsers,
       regularUsers,
       totalAnalyses,
@@ -729,6 +784,7 @@ export default {
       deleteUser,
       closeCreateUserModal,
       toggleDropdown,
+      toggleProviderStatus,
       switchTab,
       applyFilters,
       changePage,
@@ -1198,6 +1254,104 @@ export default {
     color: #718096;
     margin-bottom: 1.5rem;
     line-height: 1.6;
+  }
+
+  .provider-management {
+    margin-top: 3rem;
+  }
+
+  .providers-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .provider-card {
+    background: white;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 5px solid;
+    transition: all 0.3s ease;
+  }
+
+  .provider-card.provider-active {
+    border-left-color: #48bb78; /* green */
+  }
+
+  .provider-card.provider-inactive {
+    border-left-color: #f56565; /* red */
+  }
+  
+  .provider-card.provider-inactive .provider-name {
+    text-decoration: line-through;
+    color: #a0aec0;
+  }
+
+  .provider-info {
+    flex: 1;
+  }
+
+  .provider-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin: 0;
+  }
+
+  .provider-endpoint {
+    font-family: monospace;
+    color: #718096;
+    font-size: 0.85rem;
+    margin: 0.25rem 0 0 0;
+  }
+
+  .provider-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .btn-toggle {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid #e2e8f0;
+    background-color: #f7fafc;
+    color: #4a5568;
+    transition: all 0.2s ease;
+  }
+
+  .btn-toggle:hover {
+    background-color: #e2e8f0;
+    border-color: #cbd5e0;
+  }
+
+  .provider-active .btn-toggle {
+    background-color: #fed7d7;
+    border-color: #f56565;
+    color: #c53030;
+  }
+  
+  .provider-active .btn-toggle:hover {
+    background-color: #f56565;
+    color: white;
+  }
+
+  .provider-inactive .btn-toggle {
+    background-color: #c6f6d5;
+    border-color: #68d391;
+    color: #2f855a;
+  }
+
+  .provider-inactive .btn-toggle:hover {
+    background-color: #48bb78;
+    color: white;
   }
 
   /* Modal */

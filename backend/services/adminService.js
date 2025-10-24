@@ -1,5 +1,6 @@
 const userRepository = require('../repositories/userRepository');
 const apiCallRepository = require('../repositories/apiCallRepository');
+const providerRepository = require('../repositories/providerRepository');
 const { subDays } = require('date-fns');
 
 const getUsers = async (queryParams) => {
@@ -180,6 +181,20 @@ const calculateUserCosts = async () => {
   return result;
 };
 
+const getAllProviders = async () => {
+  return await providerRepository.findAllProviders();
+};
+
+const toggleProviderStatus = async (providerId, is_used) => {
+  const updatedProvider = await providerRepository.updateProviderStatus(providerId, is_used);
+  if (!updatedProvider) {
+    const error = new Error('Fournisseur non trouvé');
+    error.statusCode = 404;
+    throw error;
+  }
+  return updatedProvider;
+};
+
 module.exports = {
   getUsers,
   getUserById,
@@ -187,4 +202,6 @@ module.exports = {
   deleteUser,
   getDashboardStats,
   calculateUserCosts,
+  getAllProviders,
+  toggleProviderStatus,
 };

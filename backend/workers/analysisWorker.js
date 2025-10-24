@@ -3,6 +3,7 @@ const { sequelize } = require('../config/database');
 const Analysis = require('../models/Analysis');
 const Sentence = require('../models/Sentence');
 const ApiCall = require('../models/ApiCall');
+const AdminConfigProvider = require('../models/AdminConfigProvider');
 
 // Import des bibliothèques
 const TextProcessor = require('./lib/TextProcessor');
@@ -44,37 +45,38 @@ class AnalysisWorker {
    * @param {number} userId - ID de l'utilisateur
    * @param {string} endpoint - Endpoint de l'API appelé
    */
-  async recordPerplexityCall(userId, endpoint = 'analyze') {
+  async recordPerplexityCall(userId) {
     try {
-      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-      
-      // Chercher un enregistrement existant pour aujourd'hui
-      const existingCall = await ApiCall.findOne({
+      const today = new Date().toISOString().split('T')[0];
+
+      const perplexityProvider = await AdminConfigProvider.findOne({
+        where: { provider_name: 'perplexity_search' }
+      });
+
+      if (!perplexityProvider) {
+        console.error('❌ Fournisseur Perplexity non trouvé dans la configuration.');
+        return;
+      }
+
+      const [apiCall, created] = await ApiCall.findOrCreate({
         where: {
           user_id: userId,
-          api_provider: 'perplexity',
+          admin_config_provider_id: perplexityProvider.id,
           call_date: today
+        },
+        defaults: {
+          call_count: 1
         }
       });
 
-      if (existingCall) {
-        // Incrémenter le compteur existant
-        await existingCall.increment('call_count');
-        console.log(`📊 Appel Perplexity enregistré pour l'utilisateur ${userId} (total: ${existingCall.call_count + 1})`);
+      if (!created) {
+        await apiCall.increment('call_count');
+        console.log(`📊 Appel Perplexity enregistré pour l'utilisateur ${userId} (total: ${apiCall.call_count + 1})`);
       } else {
-        // Créer un nouvel enregistrement
-        await ApiCall.create({
-          user_id: userId,
-          api_provider: 'perplexity',
-          api_endpoint: endpoint,
-          call_count: 1,
-          call_date: today
-        });
         console.log(`📊 Premier appel Perplexity enregistré pour l'utilisateur ${userId}`);
       }
     } catch (error) {
       console.error('❌ Erreur lors de l\'enregistrement de l\'appel Perplexity:', error);
-      // Ne pas faire échouer l'analyse pour une erreur de comptage
     }
   }
 
@@ -186,7 +188,7 @@ class AnalysisWorker {
             // Perplexity Flag (Default Flag)
             analysisResult = await this.perplexityService.analyzeSentenceWithPerplexity(sentence.sentence_text);
             // Record call to Perplexity API
-            await this.recordPerplexityCall(analysis.user_id, 'analyze');
+            await this.recordPerplexityCall(analysis.user_id);
             /////////////////////////////////////////////////
 
             /////////////////////////////////////////////////

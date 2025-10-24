@@ -8,6 +8,7 @@ Multy-provider:
 - Create Second service with APIFY, or google content search..
  
 Improve base:
+- Currently, api_calls is updated by simply adding to call_count; the row is modified. I would like to make it so that new rows are added with each call, which will allow us to know the user's monthly cost (and verify stats in /dashboard)
 - Le % dans l’historique doit se rafraîchir automatique a chaque changement
 - Les phrases non tester/dupliquer, doivent etre en surligné/gris
 - Le / (home), must be return home page (with / and without /)

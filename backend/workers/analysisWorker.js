@@ -5,10 +5,11 @@ const Sentence = require('../models/Sentence');
 const ApiCall = require('../models/ApiCall');
 const AdminConfigProvider = require('../models/AdminConfigProvider');
 
-// Import des bibliothèques
+// Import libraries and services
 const TextProcessor = require('./lib/TextProcessor');
 const SimilarityAnalyzer = require('./lib/SimilarityAnalyzer');
 const PerplexityService = require('./lib/PerplexityService');
+const ProviderService = require('./lib/ProviderService');
 
 class AnalysisWorker {
   constructor() {
@@ -17,16 +18,17 @@ class AnalysisWorker {
     this.queueName = process.env.ANALYSIS_QUEUE || 'analysis_queue';
     this.rabbitmqUrl = process.env.RABBITMQ_URL || 'amqp://admin:admin123@localhost:5672';
     this.perplexityService = new PerplexityService(process.env.PERPLEXITY_API_KEY);
+    this.providerService = new ProviderService();
   }
 
   // ========================================
-  // SECTION 1 : CONNEXIONS ET CONFIGURATION
+  // SECTION 1 : CONNECTIONS AND CONFIGURATION
   // ========================================
 
   /**
-   * Enregistrer un appel API Perplexity pour un utilisateur
-   * @param {number} userId - ID de l'utilisateur
-   * @param {string} endpoint - Endpoint de l'API appelé
+   * Record a Perplexity API call for a user
+   * @param {number} userId - User ID
+   * @param {string} endpoint - Endpoint of the API called
    */
   async recordPerplexityCall(userId) {
     try {
@@ -35,7 +37,7 @@ class AnalysisWorker {
       });
 
       if (!perplexityProvider) {
-        console.error('❌ Fournisseur Perplexity non trouvé dans la configuration.');
+        console.error('❌ Perplexity provider not found in configuration.');
         return;
       }
 
@@ -46,57 +48,52 @@ class AnalysisWorker {
         call_count: 1
       });
 
-      console.log(`📊 Nouvel appel Perplexity enregistré pour l'utilisateur ${userId}`);
+      console.log(`📊 New Perplexity call recorded for user ${userId}`);
 
     } catch (error) {
-      console.error('❌ Erreur lors de l\'enregistrement de l\'appel Perplexity:', error);
+      console.error('❌ Error recording Perplexity call:', error);
     }
   }
 
-  /**
-   * ÉTAPE 1 : Connexion à RabbitMQ
-   * Établit la connexion et configure la queue pour recevoir les messages d'analyse
-   */
   async connect() {
     try {
-      console.log('🔄 Connexion à RabbitMQ...');
+      console.log('🔄 Connecting to RabbitMQ...');
       this.connection = await amqp.connect(this.rabbitmqUrl);
       this.channel = await this.connection.createChannel();
       
-      // Déclaration de la queue (persistante même après redémarrage)
+      // declare queue (persistent even after restart)
       await this.channel.assertQueue(this.queueName, {
         durable: true
       });
       
-      console.log('✅ Connecté à RabbitMQ');
-      console.log(`📋 En attente de messages sur la queue: ${this.queueName}`);
+      console.log('✅ Connected to RabbitMQ');
+      console.log(`📋 Waiting for messages on queue: ${this.queueName}`);
     } catch (error) {
-      console.error('❌ Erreur de connexion à RabbitMQ:', error);
+      console.error('❌ Error connecting to RabbitMQ:', error);
       throw error;
     }
   }
 
   // ========================================
-  // SECTION 2 : TRAITEMENT PRINCIPAL
+  // SECTION 2 : MAIN PROCESSING
   // ========================================
 
   async processAnalysis(analysisData) {
     const { analysisId, sourceText } = analysisData;
     
     try {
-      console.log(`🔍 Traitement de l'analyse #${analysisId}...`);
+      console.log(`🔍 Processing analysis #${analysisId}...`);
       
-      // ÉTAPE 1 : Mise à jour du statut de l'analyse
       await Analysis.update(
         { status: 'sentence_segmentation_in_progress' },
         { where: { id: analysisId } }
       );
       
-      // ÉTAPE 2 : Découpage du texte en phrases
+      // split text into sentences
       const sentences = TextProcessor.splitIntoSentences(sourceText);
-      console.log(`📝 ${sentences.length} phrases détectées`);
-      
-      // ÉTAPE 3 : Sauvegarde de chaque phrase en base de données
+      console.log(`📝 ${sentences.length} sentences detected`);
+    
+      // save each sentence to database
       const sentencePromises = sentences.map((sentence, index) => {
         return Sentence.create({
           analysis_id: analysisId,
@@ -106,24 +103,20 @@ class AnalysisWorker {
       });
       
       const savedSentences = await Promise.all(sentencePromises);
-      console.log(`✅ ${sentences.length} phrases sauvegardées`);
+      console.log(`✅ ${sentences.length} sentences saved`);
       
-      // Récupérer l'analyse pour avoir accès au user_id
+      // get analysis to get user_id
       const analysis = await Analysis.findByPk(analysisId);
       if (!analysis) {
-        throw new Error(`Analyse #${analysisId} non trouvée`);
+        throw new Error(`Analysis #${analysisId} not found`);
       }
       
-      // Mettre à jour le statut de l'analyse
       await Analysis.update(
         { status: 'sentence_segmentation_completed' },
         { where: { id: analysisId } }
       );
       
-      // ÉTAPE 4 : Analyse IA de chaque phrase
-      console.log(`🤖 Début de l'analyse IA des phrases...`);
-      
-      // Mettre à jour le statut pour indiquer que l'analyse des phrases commence
+      console.log(`🤖 Start AI analysis of sentences...`);
       await Analysis.update(
         { status: 'sentence_analysis_in_progress' },
         { where: { id: analysisId } }
@@ -133,34 +126,43 @@ class AnalysisWorker {
       
       for (const sentence of savedSentences) {
         try {
-          // 4a) Détection rapide de patterns communs
+          // 4a) Détection rapide de patterns communs // TODO : why?
           const patternResult = SimilarityAnalyzer.detectCommonPatterns(sentence.sentence_text);
           
           let analysisResult;
           if (patternResult) {
-            console.log(`🎯 Pattern détecté: ${patternResult.reasoning}`);
+            console.log(`🎯 Pattern detected: ${patternResult.reasoning}`);
             analysisResult = patternResult;
           } else {
-        
-            /////////////////////////////////////////////////
-            // Create Service/... for request different providers (feature flag)
-            /////////////////////////////////////////////////
+            // Use ProviderService to decide which service to call
+            const activeProviders = this.providerService.getActiveProviders();
 
-            /////////////////////////////////////////////////
-            // Perplexity Flag (Default Flag)
-            analysisResult = await this.perplexityService.analyzeSentenceWithPerplexity(sentence.sentence_text);
-            // Record call to Perplexity API
-            await this.recordPerplexityCall(analysis.user_id);
-            /////////////////////////////////////////////////
+            // Feature flagging logic
+            if (this.providerService.isProviderActive('perplexity_search')) {
+              console.log('🤖 Utilisation de Perplexity...');
+              // TODO: define input/output for reproduct with different providers
+              analysisResult = await this.perplexityService.analyzeSentenceWithPerplexity(sentence.sentence_text);
+              // TODO: replace recordPerplexityCall with recordProviderCall or service (uncharge function in this worker file)
+              await this.recordPerplexityCall(analysis.user_id);
+            } 
+            // You can add other providers here
+            // else if (this.providerService.isProviderActive('bing_search')) {
+            //   console.log('🤖 Using Bing...');
+            //   // analysisResult = await this.bingService.analyze(...);
+            //   // await this.recordBingCall(...);
+            // } 
 
-            /////////////////////////////////////////////////
-            // Bing Flag
-
-            /////////////////////////////////////////////////
-            // Apify Flag
+            // Bing, Apify, DataForSEO, Google content search, etc... (not implemented yet)
+            else {
+              console.warn('⚠️ No provider active. Using default provider (Perplexity).');
+              console.log('⚠️ No provider active. Using default provider (Perplexity) for sentence #${sentence.id}');
+              // perplexity is a default provider
+              analysisResult = await this.perplexityService.analyzeSentenceWithPerplexity(sentence.sentence_text);
+              await this.recordPerplexityCall(analysis.user_id);
+            }
           }
           
-          // Mise à jour de la phrase avec les résultats
+          // Update sentence with results
           await sentence.update({
             is_duplicate: analysisResult.isDuplicate,
             source_url: analysisResult.sourceUrl,
@@ -168,35 +170,35 @@ class AnalysisWorker {
             is_test: true  // Marquer comme testée car l'analyse est terminée
           });
           
-          // Log du raisonnement pour debug
+          // Log reasoning for debug
           if (analysisResult.reasoning) {
-            console.log(`💭 Raisonnement: ${analysisResult.reasoning}`);
+            console.log(`💭 Reasoning: ${analysisResult.reasoning}`);
           }
           
           if (analysisResult.isDuplicate) {
             duplicateCount++;
           }
           
-          console.log(`✅ Phrase #${sentence.id} analysée: ${analysisResult.isDuplicate ? 'DUPLIQUÉE' : 'ORIGINALE'}`);
+          console.log(`✅ Sentence #${sentence.id} analyzed: ${analysisResult.isDuplicate ? 'DUPLICATED' : 'ORIGINAL'}`);
           
         } catch (error) {
-          console.error(`❌ Erreur lors de l'analyse de la phrase #${sentence.id}:`, error);
-          // Marquer la phrase comme testée mais non analysée en cas d'erreur
+          console.error(`❌ Error analyzing sentence #${sentence.id}:`, error);
+          // Mark sentence as tested but not analyzed in case of error
           await sentence.update({
             is_duplicate: false,
             source_url: null,
             confidence: 0,
-            is_test: true  // Marquer comme testée même en cas d'erreur
+            is_test: true  // Mark sentence as tested but not analyzed in case of error // ? 
           });
         }
       }
       
-      // ÉTAPE 5 : Calcul du pourcentage de duplication global
+      // Calculate global duplication percentage
       const duplicatePercent = savedSentences.length > 0 
         ? Math.round((duplicateCount / savedSentences.length) * 100)
         : 0;
       
-      // ÉTAPE 6 : Finalisation - Mise à jour de l'analyse avec les résultats
+      // Finalization - Update analysis with results
       await Analysis.update(
         { 
           duplicate_percent: duplicatePercent,
@@ -205,37 +207,37 @@ class AnalysisWorker {
         { where: { id: analysisId } }
       );
       
-      console.log(`🎉 Analyse #${analysisId} terminée: ${duplicatePercent}% de duplication (${duplicateCount}/${savedSentences.length} phrases dupliquées)`);
+      console.log(`🎉 Analysis #${analysisId} completed: ${duplicatePercent}% of duplication (${duplicateCount}/${savedSentences.length} sentences duplicated)`);
       
     } catch (error) {
-      console.error(`❌ Erreur lors du traitement de l'analyse #${analysisId}:`, error);
+      console.error(`❌ Error processing analysis #${analysisId}:`, error);
       
-      // Mise à jour du statut en cas d'erreur
+      // Update status in case of error
       try {
         await Analysis.update(
           { status: 'sentence_analysis_error' },
           { where: { id: analysisId } }
         );
       } catch (updateError) {
-        console.error('❌ Erreur lors de la mise à jour du statut:', updateError);
+        console.error('❌ Error updating status:', updateError);
       }
     }
   }
 
   // ========================================
-  // SECTION 3 : UTILITAIRES DE CONNEXION
+  // SECTION 3 : CONNECTION UTILITIES
   // ========================================
 
   async waitForDatabase(maxRetries = 30, delay = 2000) {
     for (let i = 0; i < maxRetries; i++) {
       try {
         await sequelize.authenticate();
-        console.log('✅ Base de données prête');
+        console.log('✅ Database ready');
         return;
       } catch (error) {
-        console.log(`⏳ Tentative ${i + 1}/${maxRetries} - Base de données pas encore prête...`);
+        console.log(`⏳ Attempt ${i + 1}/${maxRetries} - Database not ready...`);
         if (i === maxRetries - 1) {
-          throw new Error(`Impossible de se connecter à la base de données après ${maxRetries} tentatives`);
+          throw new Error(`Unable to connect to database after ${maxRetries} attempts`);
         }
         await new Promise(resolve => setTimeout(resolve, delay));
       }
@@ -243,35 +245,38 @@ class AnalysisWorker {
   }
 
   // ========================================
-  // SECTION 4 : DÉMARRAGE ET GESTION
+  // SECTION 4 : START AND MANAGEMENT
   // ========================================
 
   async start() {
     try {
       // ÉTAPE 1 : Attente de la base de données
-      console.log('⏳ Attente de la base de données...');
+      console.log('⏳ Waiting for database...');
       await this.waitForDatabase();
       
       // ÉTAPE 2 : Connexion à la base de données
       await sequelize.authenticate();
-      console.log('✅ Connexion à la base de données établie');
+      console.log('✅ Database connection established');
       
       // ÉTAPE 3 : Synchronisation des modèles
       await sequelize.sync();
-      console.log('✅ Modèles synchronisés avec la base de données');
+      console.log('✅ Models synchronized with database');
+
+      // Load active providers
+      await this.providerService.loadProviders();
       
-      // ÉTAPE 4 : Connexion à RabbitMQ
+      // Connect to RabbitMQ
       await this.connect();
       
-      // ÉTAPE 5 : Configuration du consommateur (une tâche à la fois)
+      // Configure consumer (one task at a time)
       await this.channel.prefetch(1);
       
-      // ÉTAPE 6 : Démarrage de l'écoute des messages
+      // Start listening for messages
       await this.channel.consume(this.queueName, async (msg) => {
         if (msg !== null) {
           try {
             const analysisData = JSON.parse(msg.content.toString());
-            console.log(`📨 Nouveau message reçu:`, analysisData);
+            console.log(`📨 New message received:`, analysisData);
             
             // Traitement de l'analyse
             await this.processAnalysis(analysisData);
@@ -279,17 +284,17 @@ class AnalysisWorker {
             // Confirmation du traitement du message
             this.channel.ack(msg);
           } catch (error) {
-            console.error('❌ Erreur lors du traitement du message:', error);
+            console.error('❌ Error processing message:', error);
             // Rejet du message et remise en queue
             this.channel.nack(msg, false, true);
           }
         }
       });
       
-      console.log('🚀 Analysis Worker démarré et en écoute...');
+      console.log('🚀 Analysis Worker started and listening...');
       
     } catch (error) {
-      console.error('❌ Erreur lors du démarrage du worker:', error);
+      console.error('❌ Error starting worker:', error);
       process.exit(1);
     }
   }
@@ -302,35 +307,35 @@ class AnalysisWorker {
       if (this.connection) {
         await this.connection.close();
       }
-      console.log('🛑 Analysis Worker arrêté proprement');
+      console.log('🛑 Analysis Worker stopped properly');
     } catch (error) {
-      console.error('❌ Erreur lors de l\'arrêt du worker:', error);
+      console.error('❌ Error stopping worker:', error);
     }
   }
 }
 
 // ========================================
-// SECTION 5 : GESTION DES SIGNAUX ET DÉMARRAGE
+// SECTION 5 : SIGNAL MANAGEMENT AND START
 // ========================================
 
-// Création de l'instance du worker
+// Create instance of worker
 const worker = new AnalysisWorker();
 
-// Gestion des signaux d'arrêt pour fermeture propre
+// Handle shutdown signals for proper shutdown
 process.on('SIGINT', async () => {
-  console.log('\n🛑 Signal d\'arrêt reçu...');
+  console.log('\n🛑 Shutdown signal received...');
   await worker.stop();
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
-  console.log('\n🛑 Signal de terminaison reçu...');
+  console.log('\n🛑 Termination signal received...');
   await worker.stop();
   process.exit(0);
 });
 
-// Démarrage du worker
+// Start worker
 worker.start().catch(error => {
-  console.error('❌ Erreur fatale:', error);
+  console.error('❌ Fatal error:', error);
   process.exit(1);
 });

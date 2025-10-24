@@ -3,7 +3,7 @@
 ## V1 Base Saas, and short therm option
 
 Multy-provider:
-- Add service for feature flag (from admin_config_provider database)(in worker) (if config.perplexity = 1 use this lib..)
+- Study input/output perplexity service for have same parameter in different provider
 - Create Second service with APIFY, or google content search..
  
 Improve base:
@@ -47,7 +47,8 @@ Stripe:
 - Add mailer informations (connexion, forget password, register)
 
 ## V1.3.1 Worker test
-- Write test worker and lib
+- Write test worker and lib (Unit test)
+- Add 5 text corpus, and create script for test different provider on this corpus text for comparate result
 
 ## V1.3.2 Blog
 - Add blog page

@@ -130,4 +130,13 @@ const User = sequelize.define('User', {
   }
 });
 
+const Analysis = require('../models/Analysis');
+const Sentence = require('../models/Sentence');
+
+Analysis.belongsTo(User, { foreignKey: 'user_id' });
+User.hasMany(Analysis, { foreignKey: 'user_id' });
+
+Analysis.hasMany(Sentence, { foreignKey: 'analysis_id' });
+Sentence.belongsTo(Analysis, { foreignKey: 'analysis_id' });
+
 module.exports = User;

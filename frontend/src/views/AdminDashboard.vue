@@ -95,9 +95,10 @@
                   <tr>
                     <th>Utilisateur</th>
                     <th>Email</th>
-                    <th>Rôle</th>
+                    <th>Rôle</th><!-- Role is a subscription level??-->
                     <th>Inscription</th>
-                    <th>Appels API</th>
+                    <th>Analyses</th>
+                    <th>Phrases testées</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -120,12 +121,8 @@
                         </span>
                       </td>
                       <td class="date-cell">{{ formatDate(user.created_at) }}</td>
-                      <td class="api-calls-cell">
-                        <div class="api-calls-info">
-                          <span class="api-calls-count">{{ user.perplexityCalls || 0 }}</span>
-                          <span class="api-calls-label">Perplexity</span>
-                        </div>
-                      </td>
+                      <td class="text-center">{{ user.analysisCount || 0 }}</td>
+                      <td class="text-center">{{ user.sentenceCount || 0 }}</td>
                       <td class="actions-cell">
                         <button @click="toggleDropdown(user.id)" class="btn-action costs">
                           💰
@@ -1045,6 +1042,10 @@ export default {
 .date-cell {
   color: #718096;
   font-size: 0.9rem;
+}
+
+.text-center {
+  text-align: center;
 }
 
 .api-calls-cell {

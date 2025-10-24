@@ -58,35 +58,42 @@ router.get('/users', async (req, res) => {
       attributes: { exclude: ['password'] } // Exclure les mots de passe
     });
 
-    // Récupérer les appels API Perplexity pour chaque utilisateur
+    // Récupérer le nombre d'analyses et de phrases pour chaque utilisateur
     const userIds = users.map(user => user.id);
-    const perplexityCalls = await ApiCall.findAll({
-      where: {
-        user_id: userIds,
-      },
-      include: [{
-        model: AdminConfigProvider,
-        as: 'provider',
-        where: { provider_name: 'perplexity' },
-        attributes: []
-      }],
-      attributes: [
-        'user_id',
-        [fn('SUM', col('call_count')), 'total_calls']
-      ],
-      group: ['user_id']
+
+    const analysisCounts = await Analysis.findAll({
+      where: { user_id: userIds },
+      attributes: ['user_id', [fn('COUNT', 'id'), 'analysisCount']],
+      group: ['user_id'],
+      raw: true,
     });
 
-    // Créer un map des appels par utilisateur
-    const callsByUser = {};
-    perplexityCalls.forEach(call => {
-      callsByUser[call.user_id] = parseInt(call.dataValues.total_calls) || 0;
+    const sentenceCounts = await Sentence.findAll({
+      attributes: [[col('Analysis.user_id'), 'user_id'], [fn('COUNT', col('Sentence.id')), 'sentenceCount']],
+      include: [{
+        model: Analysis,
+        attributes: [],
+        where: { user_id: userIds },
+      }],
+      group: [col('Analysis.user_id')],
+      raw: true,
     });
+
+    const analysisMap = analysisCounts.reduce((acc, count) => {
+      acc[count.user_id] = parseInt(count.analysisCount, 10);
+      return acc;
+    }, {});
+
+    const sentenceMap = sentenceCounts.reduce((acc, count) => {
+      acc[count.user_id] = parseInt(count.sentenceCount, 10);
+      return acc;
+    }, {});
 
     // Ajouter les données d'appels API aux utilisateurs
-    const usersWithApiCalls = users.map(user => ({
+    const usersWithData = users.map(user => ({
       ...user.toJSON(),
-      perplexityCalls: callsByUser[user.id] || 0
+      analysisCount: analysisMap[user.id] || 0,
+      sentenceCount: sentenceMap[user.id] || 0,
     }));
 
     // Calcul des statistiques
@@ -97,7 +104,7 @@ router.get('/users', async (req, res) => {
     res.json({
       success: true,
       data: {
-        users: usersWithApiCalls,
+        users: usersWithData,
         pagination: {
           page: parseInt(page),
           limit: parseInt(limit),

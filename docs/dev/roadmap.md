@@ -3,11 +3,9 @@
 ## V1 Base Saas, and short therm option
 
 Multy-provider:
-- Define total cost by customer (all request with all provider)(array under line)(xNbr perplexity request customer x cost per request in admin_config_provider)(dropdown per month (each month display all provider and total))
-
 - Add posibility (in parameter page) -> activate or desactivate provider
-
 - Add service for feature flag (from admin_config_provider database)(in worker) (if config.perplexity = 1 use this lib..)
+- Create Second service with APIFY, or google content search..
  
 Improve base:
 - Le % dans l’historique doit se rafraîchir automatique a chaque changement
@@ -71,7 +69,7 @@ Stripe:
 
 ## V /prblm
 
-- no problem
+- Improve database queries (a folder/repository in the backend) to separate database calls that are in files like routes, for example, sorted by model.
 
 
 

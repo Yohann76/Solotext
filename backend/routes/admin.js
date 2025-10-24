@@ -6,6 +6,7 @@ const User = require('../models/User');
 const Analysis = require('../models/Analysis');
 const Sentence = require('../models/Sentence');
 const ApiCall = require('../models/ApiCall');
+const AdminConfigProvider = require('../models/AdminConfigProvider');
 
 const router = express.Router();
 
@@ -62,8 +63,13 @@ router.get('/users', async (req, res) => {
     const perplexityCalls = await ApiCall.findAll({
       where: {
         user_id: userIds,
-        api_provider: 'perplexity'
       },
+      include: [{
+        model: AdminConfigProvider,
+        as: 'provider',
+        where: { provider_name: 'perplexity' },
+        attributes: []
+      }],
       attributes: [
         'user_id',
         [fn('SUM', col('call_count')), 'total_calls']
@@ -520,6 +526,9 @@ router.delete('/analyses/:id', async (req, res) => {
  */
 router.get('/stats', async (req, res) => {
   try {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
     // Statistiques des utilisateurs
     const totalUsers = await User.count();
     const adminUsers = await User.count({ where: { role: 'admin' } });
@@ -542,23 +551,38 @@ router.get('/stats', async (req, res) => {
     
     // Statistiques des appels API Perplexity
     const totalPerplexityCalls = await ApiCall.sum('call_count', {
-      where: { api_provider: 'perplexity' }
+      include: [{
+        model: AdminConfigProvider,
+        as: 'provider',
+        where: { provider_name: 'perplexity' },
+        attributes: []
+      }]
     }) || 0;
     
     const todayPerplexityCalls = await ApiCall.sum('call_count', {
       where: { 
-        api_provider: 'perplexity',
         call_date: new Date().toISOString().split('T')[0]
-      }
+      },
+      include: [{
+        model: AdminConfigProvider,
+        as: 'provider',
+        where: { provider_name: 'perplexity' },
+        attributes: []
+      }]
     }) || 0;
     
     const perplexityCallsByDay = await ApiCall.findAll({
       where: {
-        api_provider: 'perplexity',
         call_date: {
           [Op.gte]: thirtyDaysAgo
         }
       },
+      include: [{
+        model: AdminConfigProvider,
+        as: 'provider',
+        where: { provider_name: 'perplexity' },
+        attributes: []
+      }],
       attributes: [
         'call_date',
         [fn('SUM', col('call_count')), 'total_calls']
@@ -570,16 +594,27 @@ router.get('/stats', async (req, res) => {
     // Top utilisateurs Perplexity (derniers 30 jours)
     const topPerplexityUsers = await ApiCall.findAll({
       where: {
-        api_provider: 'perplexity',
         call_date: {
           [Op.gte]: thirtyDaysAgo
         }
       },
+      include: [
+        {
+          model: AdminConfigProvider,
+          as: 'provider',
+          where: { provider_name: 'perplexity' },
+          attributes: []
+        },
+        {
+          model: User,
+          attributes: ['id', 'email', 'role']
+        }
+      ],
       attributes: [
         'user_id',
         [fn('SUM', col('call_count')), 'total_calls']
       ],
-      group: ['user_id'],
+      group: ['user_id', 'User.id'],
       order: [[fn('SUM', col('call_count')), 'DESC']],
       limit: 10,
       include: [{
@@ -589,9 +624,6 @@ router.get('/stats', async (req, res) => {
     });
     
     // Analyses par jour (derniers 30 jours)
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    
     const analysesByDay = await Analysis.findAll({
       where: {
         created_at: {
@@ -646,6 +678,88 @@ router.get('/stats', async (req, res) => {
       success: false,
       message: 'Erreur lors de la récupération des statistiques',
       error: error.message
+    });
+  }
+});
+
+router.get('/costs/users', async (req, res) => {
+  try {
+    const userCosts = await ApiCall.findAll({
+      attributes: [
+        'user_id',
+        [fn('date_trunc', 'month', col('call_date')), 'month'],
+        [fn('sum', col('call_count')), 'total_calls'],
+      ],
+      include: [
+        {
+          model: User,
+          attributes: ['id', 'email'],
+        },
+        {
+          model: AdminConfigProvider,
+          as: 'provider',
+          attributes: ['provider_name', 'cost_per_request'],
+        },
+      ],
+      group: [
+        'user_id',
+        'month',
+        'User.id',
+        'provider.id'
+      ],
+      order: [['user_id', 'ASC'], [fn('date_trunc', 'month', col('call_date')), 'DESC']],
+      raw: true,
+    });
+
+    const formattedCosts = userCosts.reduce((acc, cost) => {
+      const { user_id, 'User.email': email, month, total_calls } = cost;
+      const providerName = cost['provider.provider_name'];
+      const costPerRequest = parseFloat(cost['provider.cost_per_request']);
+      const totalCost = total_calls * costPerRequest;
+      const monthFormatted = new Date(month).toISOString().slice(0, 7);
+
+      let userEntry = acc.find(u => u.userId === user_id);
+      if (!userEntry) {
+        userEntry = {
+          userId: user_id,
+          email: email,
+          monthlyCosts: [],
+        };
+        acc.push(userEntry);
+      }
+
+      let monthEntry = userEntry.monthlyCosts.find(m => m.month === monthFormatted);
+      if (!monthEntry) {
+        monthEntry = {
+          month: monthFormatted,
+          providers: [],
+          totalMonthCost: 0,
+        };
+        userEntry.monthlyCosts.push(monthEntry);
+      }
+
+      monthEntry.providers.push({
+        providerName,
+        requestCount: parseInt(total_calls),
+        costPerRequest,
+        totalCost,
+      });
+      
+      monthEntry.totalMonthCost += totalCost;
+
+      return acc;
+    }, []);
+
+    res.json({
+      success: true,
+      data: formattedCosts,
+    });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des coûts par utilisateur:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la récupération des coûts par utilisateur',
+      error: error.message,
     });
   }
 });

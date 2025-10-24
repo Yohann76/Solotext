@@ -102,38 +102,48 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="user in users" :key="user.id" class="user-row">
-                    <td class="user-cell">
-                      <div class="user-avatar">
-                        <span class="user-initials">{{ getUserInitials(user) }}</span>
-                      </div>
-                      <div class="user-info">
-                        <div class="user-name">{{ user.displayName || 'Utilisateur' }}</div>
-                        <div class="user-id">ID: {{ user.id }}</div>
-                      </div>
-                    </td>
-                    <td class="email-cell">{{ user.email }}</td>
-                    <td class="role-cell">
-                      <span class="role-badge" :class="user.role">
-                        {{ user.role === 'admin' ? '👑 Admin' : '👤 Utilisateur' }}
-                      </span>
-                    </td>
-                    <td class="date-cell">{{ formatDate(user.created_at) }}</td>
-                    <td class="api-calls-cell">
-                      <div class="api-calls-info">
-                        <span class="api-calls-count">{{ user.perplexityCalls || 0 }}</span>
-                        <span class="api-calls-label">Perplexity</span>
-                      </div>
-                    </td>
-                    <td class="actions-cell">
-                      <button @click="editUser(user)" class="btn-action edit">
-                        ✏️
-                      </button>
-                      <button @click="deleteUser(user)" class="btn-action delete">
-                        🗑️
-                      </button>
-                    </td>
-                  </tr>
+                  <template v-for="user in usersWithCosts" :key="user.id">
+                    <tr class="user-row">
+                      <td class="user-cell">
+                        <div class="user-avatar">
+                          <span class="user-initials">{{ getUserInitials(user) }}</span>
+                        </div>
+                        <div class="user-info">
+                          <div class="user-name">{{ user.displayName || 'Utilisateur' }}</div>
+                          <div class="user-id">ID: {{ user.id }}</div>
+                        </div>
+                      </td>
+                      <td class="email-cell">{{ user.email }}</td>
+                      <td class="role-cell">
+                        <span class="role-badge" :class="user.role">
+                          {{ user.role === 'admin' ? '👑 Admin' : '👤 Utilisateur' }}
+                        </span>
+                      </td>
+                      <td class="date-cell">{{ formatDate(user.created_at) }}</td>
+                      <td class="api-calls-cell">
+                        <div class="api-calls-info">
+                          <span class="api-calls-count">{{ user.perplexityCalls || 0 }}</span>
+                          <span class="api-calls-label">Perplexity</span>
+                        </div>
+                      </td>
+                      <td class="actions-cell">
+                        <button @click="toggleDropdown(user.id)" class="btn-action costs">
+                          💰
+                        </button>
+                        <button @click="editUser(user)" class="btn-action edit">
+                          ✏️
+                        </button>
+                        <button @click="deleteUser(user)" class="btn-action delete">
+                          🗑️
+                        </button>
+                      </td>
+                    </tr>
+                    <tr v-if="activeDropdown === user.id">
+                      <td colspan="6">
+                        <UserCostsDropdown :costs="user.monthlyCosts" :visible="true" />
+                      </td>
+                    </tr>
+                  </template>
                 </tbody>
               </table>
             </div>
@@ -395,6 +405,13 @@
         @close="removeNotification(notification.id)"
       />
     </div>
+
+    <!-- User Costs Dropdown -->
+    <UserCostsDropdown
+      v-if="activeDropdown"
+      :user-id="activeDropdown"
+      @close="activeDropdown = null"
+    />
   </div>
 </template>
 
@@ -406,12 +423,14 @@ import Notification from '../components/Notification.vue'
 import { useAuthStore } from '../stores/authStore.js'
 import { useNotifications } from '../composables/useNotifications.js'
 import adminService from '../services/admin.js'
+import UserCostsDropdown from '../components/UserCostsDropdown.vue'
 
 export default {
   name: 'AdminDashboard',
   components: {
     CommonHeader,
-    Notification
+    Notification,
+    UserCostsDropdown,
   },
   setup() {
     const router = useRouter()
@@ -422,6 +441,8 @@ export default {
     const activeTab = ref('users')
     const loading = ref(false)
     const showCreateUserModal = ref(false)
+    const userCosts = ref([])
+    const activeDropdown = ref(null)
 
     // Données
     const users = ref([])
@@ -459,7 +480,8 @@ export default {
       await Promise.all([
         loadUsers(),
         loadAnalyses(),
-        loadStats()
+        loadStats(),
+        loadUserCosts()
       ])
     })
 
@@ -515,6 +537,20 @@ export default {
       }
     }
 
+    // Charger les coûts des utilisateurs
+    const loadUserCosts = async () => {
+      try {
+        loading.value = true
+        const response = await adminService.getUserCosts()
+        userCosts.value = response.data
+      } catch (err) {
+        console.error('Erreur lors du chargement des coûts:', err)
+        error('Erreur lors du chargement des coûts des utilisateurs')
+      } finally {
+        loading.value = false
+      }
+    }
+
     // Computed properties
     const adminUsers = computed(() => stats.value.users?.admins || 0)
     const regularUsers = computed(() => stats.value.users?.regular || 0)
@@ -531,6 +567,16 @@ export default {
       const costPerCall = 0.01 // $0.01 par appel
       return (totalPerplexityCalls.value * costPerCall).toFixed(2)
     })
+    
+    const usersWithCosts = computed(() => {
+      return users.value.map(user => {
+        const costData = userCosts.value.find(cost => cost.userId === user.id);
+        return {
+          ...user,
+          monthlyCosts: costData ? costData.monthlyCosts : [],
+        };
+      });
+    });
 
     // Fonctions utilitaires
     const getUserInitials = (user) => {
@@ -569,6 +615,14 @@ export default {
     }
 
     // Actions sur les utilisateurs
+    const toggleDropdown = (userId) => {
+      if (activeDropdown.value === userId) {
+        activeDropdown.value = null;
+      } else {
+        activeDropdown.value = userId;
+      }
+    };
+
     const createUser = async () => {
       loading.value = true
       try {
@@ -614,6 +668,8 @@ export default {
       }
     }
 
+    // Computed properties for costs
+    
     // Fonctions de navigation et filtres
     const switchTab = (tab) => {
       activeTab.value = tab
@@ -648,6 +704,8 @@ export default {
       activeTab,
       loading,
       showCreateUserModal,
+      userCosts,
+      activeDropdown,
       users,
       analyses,
       stats,
@@ -664,6 +722,7 @@ export default {
       totalPerplexityCalls,
       todayPerplexityCalls,
       estimatedCost,
+      usersWithCosts,
       notifications,
       removeNotification,
       getUserInitials,
@@ -674,6 +733,7 @@ export default {
       editUser,
       deleteUser,
       closeCreateUserModal,
+      toggleDropdown,
       switchTab,
       applyFilters,
       changePage,
@@ -1036,459 +1096,487 @@ export default {
   background: #fed7d7;
   color: #e53e3e;
 }
-
-/* Analyses list */
-.analyses-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.analysis-card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
-}
-
-.analysis-card:hover {
-  transform: translateY(-2px);
-}
-
-.analysis-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.analysis-id {
-  font-weight: 700;
-  color: #667eea;
-  font-size: 1.1rem;
-}
-
-.analysis-status {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.analysis-status.completed {
-  background: #c6f6d5;
-  color: #22543d;
-}
-
-.analysis-status.pending {
-  background: #fef5e7;
-  color: #744210;
-}
-
-.analysis-content {
-  margin-bottom: 1rem;
-}
-
-.analysis-text {
-  color: #4a5568;
-  line-height: 1.6;
-  margin-bottom: 0.75rem;
-}
-
-.analysis-meta {
-  display: flex;
-  gap: 1rem;
-  font-size: 0.85rem;
-  color: #718096;
-}
-
-/* Settings grid */
-.settings-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-}
-
-.setting-card {
-  background: white;
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  transition: transform 0.3s ease;
-}
-
-.setting-card:hover {
-  transform: translateY(-2px);
-}
-
-.setting-card h3 {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #2d3748;
-  margin-bottom: 0.5rem;
-}
-
-.setting-card p {
-  color: #718096;
-  margin-bottom: 1.5rem;
-  line-height: 1.6;
-}
-
-/* Modal */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
-  max-width: 500px;
-  width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.modal-header h3 {
-  margin: 0;
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: #2d3748;
-}
-
-.modal-close {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #718096;
-  padding: 0.25rem;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-}
-
-.modal-close:hover {
-  background: #f7fafc;
-  color: #2d3748;
-}
-
-.modal-body {
-  padding: 1.5rem;
-}
-
-.user-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.form-group label {
-  font-weight: 600;
-  color: #2d3748;
-  font-size: 0.9rem;
-}
-
-.form-input,
-.form-select {
-  padding: 0.75rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.3s ease;
-}
-
-.form-input:focus,
-.form-select:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.form-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  margin-top: 1rem;
-}
-
-/* Notifications */
-.notifications-container {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 1001;
-}
-
-/* Responsive */
-@media (max-width: 1024px) {
-  .admin-sidebar {
-    width: 250px;
-  }
   
-  .main-zone {
-    padding: 1.5rem;
+  .btn-action.costs:hover {
+    background: #fefcbf;
+    color: #d69e2e;
   }
-}
 
-@media (max-width: 768px) {
-  .dashboard-layout {
-    flex-direction: column;
-  }
-  
-  .admin-sidebar {
-    width: 100%;
-    height: auto;
-  }
-  
-  .sidebar-nav {
+  /* Analyses list */
+  .analyses-list {
     display: flex;
-    padding: 0;
-  }
-  
-  .nav-item {
-    flex: 1;
-    text-align: center;
-    border-left: none;
-    border-bottom: 3px solid transparent;
-  }
-  
-  .nav-item.active {
-    border-left: none;
-    border-bottom-color: #667eea;
-  }
-  
-  .main-zone {
-    padding: 1rem;
-  }
-  
-  .users-stats,
-  .analyses-stats {
-    grid-template-columns: 1fr;
-  }
-  
-  .users-table-container {
-    overflow-x: auto;
-  }
-  
-  .users-table {
-    min-width: 600px;
-  }
-}
-
-@media (max-width: 480px) {
-  .content-header {
     flex-direction: column;
     gap: 1rem;
-    align-items: flex-start;
   }
-  
-  .page-title {
-    font-size: 1.5rem;
+
+  .analysis-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
   }
-  
+
+  .analysis-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .analysis-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .analysis-id {
+    font-weight: 700;
+    color: #667eea;
+    font-size: 1.1rem;
+  }
+
+  .analysis-status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .analysis-status.completed {
+    background: #c6f6d5;
+    color: #22543d;
+  }
+
+  .analysis-status.pending {
+    background: #fef5e7;
+    color: #744210;
+  }
+
+  .analysis-content {
+    margin-bottom: 1rem;
+  }
+
+  .analysis-text {
+    color: #4a5568;
+    line-height: 1.6;
+    margin-bottom: 0.75rem;
+  }
+
+  .analysis-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.85rem;
+    color: #718096;
+  }
+
+  /* Settings grid */
+  .settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .setting-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    transition: transform 0.3s ease;
+  }
+
+  .setting-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .setting-card h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+  }
+
+  .setting-card p {
+    color: #718096;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
   .modal {
-    width: 95%;
-    margin: 1rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
   }
-}
 
-/* Styles pour l'onglet Liens utiles */
-.links-container {
-  max-width: 1200px;
-  margin: 0 auto;
-}
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
 
-.links-section {
-  margin-bottom: 3rem;
-}
+  .modal-header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #2d3748;
+  }
 
-.section-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #2d3748;
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #e2e8f0;
-}
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #718096;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+  }
 
-.links-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
+  .modal-close:hover {
+    background: #f7fafc;
+    color: #2d3748;
+  }
 
-.link-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-}
+  .modal-body {
+    padding: 1.5rem;
+  }
 
-.link-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  border-color: #667eea;
-}
+  .user-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
 
-.link-icon {
-  font-size: 2rem;
-  flex-shrink: 0;
-}
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
 
-.link-content h3 {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #2d3748;
-  margin: 0 0 0.5rem 0;
-}
+  .form-group label {
+    font-weight: 600;
+    color: #2d3748;
+    font-size: 0.9rem;
+  }
 
-.link-content p {
-  color: #718096;
-  margin: 0 0 1rem 0;
-  line-height: 1.5;
-}
+  .form-input,
+  .form-select {
+    padding: 0.75rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+  }
 
-.link-btn {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.5rem 1rem;
-  background: #667eea;
-  color: white;
-  text-decoration: none;
-  border-radius: 6px;
-  font-weight: 500;
-  font-size: 0.9rem;
-  transition: background-color 0.3s ease;
-}
+  .form-input:focus,
+  .form-select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
 
-.link-btn:hover {
-  background: #5a67d8;
-  color: white;
-  text-decoration: none;
-}
+  .form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 1rem;
+  }
 
-/* Styles pour les réseaux sociaux */
-.social-links {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
+  .costs-details {
+    margin-top: 1.5rem;
+  }
 
-.social-link {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: white;
-  border-radius: 8px;
-  text-decoration: none;
-  color: #2d3748;
-  border: 1px solid #e2e8f0;
-  transition: all 0.3s ease;
-}
+  .provider-costs-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1rem 0;
+  }
 
-.social-link:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  text-decoration: none;
-  color: #2d3748;
-}
+  .provider-costs-list li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e2e8f0;
+  }
 
-.social-icon {
-  font-size: 1.5rem;
-  flex-shrink: 0;
-}
+  .total-cost {
+    font-weight: bold;
+    font-size: 1.1rem;
+    text-align: right;
+    margin-top: 1rem;
+  }
 
-.social-link span {
-  font-weight: 500;
-  font-size: 1rem;
-}
+  /* Notifications */
+  .notifications-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1001;
+  }
 
-.social-link.facebook:hover {
-  border-color: #1877f2;
-  background: #f0f2f5;
-}
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .admin-sidebar {
+      width: 250px;
+    }
+    
+    .main-zone {
+      padding: 1.5rem;
+    }
+  }
 
-.social-link.instagram:hover {
-  border-color: #e4405f;
-  background: #fdf2f8;
-}
+  @media (max-width: 768px) {
+    .dashboard-layout {
+      flex-direction: column;
+    }
+    
+    .admin-sidebar {
+      width: 100%;
+      height: auto;
+    }
+    
+    .sidebar-nav {
+      display: flex;
+      padding: 0;
+    }
+    
+    .nav-item {
+      flex: 1;
+      text-align: center;
+      border-left: none;
+      border-bottom: 3px solid transparent;
+    }
+    
+    .nav-item.active {
+      border-left: none;
+      border-bottom-color: #667eea;
+    }
+    
+    .main-zone {
+      padding: 1rem;
+    }
+    
+    .users-stats,
+    .analyses-stats {
+      grid-template-columns: 1fr;
+    }
+    
+    .users-table-container {
+      overflow-x: auto;
+    }
+    
+    .users-table {
+      min-width: 600px;
+    }
+  }
 
-.social-link.linkedin:hover {
-  border-color: #0077b5;
-  background: #f0f8ff;
-}
+  @media (max-width: 480px) {
+    .content-header {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+    
+    .page-title {
+      font-size: 1.5rem;
+    }
+    
+    .modal {
+      width: 95%;
+      margin: 1rem;
+    }
+  }
 
-.social-link.tiktok:hover {
-  border-color: #000000;
-  background: #f8f9fa;
-}
+  /* Styles pour l'onglet Liens utiles */
+  .links-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
 
-/* Styles pour l'onglet Support */
-.support-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-}
+  .links-section {
+    margin-bottom: 3rem;
+  }
 
-.empty-state {
-  text-align: center;
-  max-width: 400px;
-}
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e2e8f0;
+  }
 
-.empty-icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
-  opacity: 0.6;
-}
+  .links-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
 
-.empty-state h2 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #2d3748;
-  margin-bottom: 1rem;
-}
+  .link-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+  }
 
-.empty-state p {
-  color: #718096;
-  margin-bottom: 0.5rem;
-  line-height: 1.5;
-}
+  .link-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    border-color: #667eea;
+  }
 
-.empty-subtitle {
-  font-style: italic;
-  color: #a0aec0;
-}
+  .link-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+  }
+
+  .link-content h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .link-content p {
+    color: #718096;
+    margin: 0 0 1rem 0;
+    line-height: 1.5;
+  }
+
+  .link-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background: #667eea;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: background-color 0.3s ease;
+  }
+
+  .link-btn:hover {
+    background: #5a67d8;
+    color: white;
+    text-decoration: none;
+  }
+
+  /* Styles pour les réseaux sociaux */
+  .social-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .social-link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #2d3748;
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+  }
+
+  .social-link:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+    color: #2d3748;
+  }
+
+  .social-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+  }
+
+  .social-link span {
+    font-weight: 500;
+    font-size: 1rem;
+  }
+
+  .social-link.facebook:hover {
+    border-color: #1877f2;
+    background: #f0f2f5;
+  }
+
+  .social-link.instagram:hover {
+    border-color: #e4405f;
+    background: #fdf2f8;
+  }
+
+  .social-link.linkedin:hover {
+    border-color: #0077b5;
+    background: #f0f8ff;
+  }
+
+  .social-link.tiktok:hover {
+    border-color: #000000;
+    background: #f8f9fa;
+  }
+
+  /* Styles pour l'onglet Support */
+  .support-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+  }
+
+  .empty-state {
+    text-align: center;
+    max-width: 400px;
+  }
+
+  .empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.6;
+  }
+
+  .empty-state h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 1rem;
+  }
+
+  .empty-state p {
+    color: #718096;
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+  }
+
+  .empty-subtitle {
+    font-style: italic;
+    color: #a0aec0;
+  }
 </style>

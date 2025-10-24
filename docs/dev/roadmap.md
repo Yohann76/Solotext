@@ -3,15 +3,18 @@
 ## V1 Base Saas, and short therm option
 
 Multy-provider:
-- Define total cost by customer (all request with all provider)(array under line)(x perplexity request customer x cost per request in admin_config_provider)(dropdown per month (each month display all provider and total))
+- Define total cost by customer (all request with all provider)(array under line)(xNbr perplexity request customer x cost per request in admin_config_provider)(dropdown per month (each month display all provider and total))
+
+- Add posibility (in parameter page) -> activate or desactivate provider
 
 - Add service for feature flag (from admin_config_provider database)(in worker) (if config.perplexity = 1 use this lib..)
  
 Improve base:
 - Le % dans l’historique doit se rafraîchir automatique a chaque changement
 - Les phrases non tester/dupliquer, doivent etre en surligné/gris
-- Le / (home), doit renvoyer une page d'acceuil normalement
+- Le / (home), must be return home page (with / and without /)
 - Improve history analyse (small card, and color from analysis, add nbr sentence in card)
+- Each phrase textarea must be display test in realt-time
 
 ## V1.1 Payment Interface
 Stripe: 
@@ -46,6 +49,8 @@ Stripe:
 - Add blog page
 - Add Single blog page
 - Add structur for SEO
+- Add robots.txt
+- add sitemap.xml
 
 ## V1.4 Deploy Saas - Saas is online!
 

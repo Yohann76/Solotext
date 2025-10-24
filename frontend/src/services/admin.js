@@ -105,6 +105,20 @@ class AdminService {
     return this.handleResponse(response)
   }
 
+  async getUserCosts() {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${this.baseURL}/costs/users`, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return this.handleResponse(response);
+    } catch (error) {
+      // Assuming handleError is defined elsewhere or will be added
+      // this.handleError(error); 
+    }
+  }
+
   // ========================================
   // GESTION DES ANALYSES
   // ========================================

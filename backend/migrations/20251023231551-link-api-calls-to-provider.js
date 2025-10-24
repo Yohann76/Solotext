@@ -39,24 +39,34 @@ module.exports = {
   },
 
   async down (queryInterface, Sequelize) {
-    await queryInterface.addColumn('api_calls', 'api_provider', {
-      type: Sequelize.STRING(50),
-      allowNull: true
-    });
+    const tableDescription = await queryInterface.describeTable('api_calls');
 
-    const providers = await queryInterface.sequelize.query(
-      `SELECT id, provider_name from admin_config_provider;`,
-      { type: queryInterface.sequelize.QueryTypes.SELECT }
-    );
-    
-    for (const provider of providers) {
-      await queryInterface.bulkUpdate('api_calls',
-        { api_provider: provider.provider_name },
-        { admin_config_provider_id: provider.id }
-      );
+    if (!tableDescription.api_provider) {
+      await queryInterface.addColumn('api_calls', 'api_provider', {
+        type: Sequelize.STRING(50),
+        allowNull: true
+      });
     }
 
-    await queryInterface.removeColumn('api_calls', 'admin_config_provider_id');
+    if (tableDescription.admin_config_provider_id) {
+      const providers = await queryInterface.sequelize.query(
+        `SELECT id, provider_name from admin_config_provider;`,
+        { type: queryInterface.sequelize.QueryTypes.SELECT }
+      );
+      
+      for (const provider of providers) {
+        await queryInterface.bulkUpdate('api_calls',
+          { api_provider: provider.provider_name },
+          { admin_config_provider_id: provider.id }
+        );
+      }
+
+      await queryInterface.removeColumn('api_calls', 'admin_config_provider_id');
+    }
+
+    await queryInterface.sequelize.query(
+      `UPDATE "api_calls" SET "api_provider" = 'unknown' WHERE "api_provider" IS NULL`
+    );
 
     await queryInterface.changeColumn('api_calls', 'api_provider', {
       type: Sequelize.STRING(50),

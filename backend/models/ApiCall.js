@@ -1,6 +1,7 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/database');
 const AdminConfigProvider = require('./AdminConfigProvider');
+const User = require('./User');
 
 const ApiCall = sequelize.define('ApiCall', {
   id: {
@@ -109,6 +110,13 @@ ApiCall.belongsTo(AdminConfigProvider, {
 });
 AdminConfigProvider.hasMany(ApiCall, {
   foreignKey: 'admin_config_provider_id'
+});
+
+ApiCall.belongsTo(User, {
+  foreignKey: 'user_id'
+});
+User.hasMany(ApiCall, {
+  foreignKey: 'user_id'
 });
 
 module.exports = ApiCall;

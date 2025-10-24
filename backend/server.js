@@ -504,10 +504,6 @@ const startServer = async () => {
     // Tester la connexion à la base de données
     await testConnection();
     
-    // Synchroniser les modèles avec la base de données
-    await sequelize.sync({ alter: true });
-    console.log('✅ Modèles synchronisés avec la base de données');
-    
     // Démarrer le serveur
     app.listen(PORT, () => {
       console.log(`🚀 Serveur démarré sur le port ${PORT}`);

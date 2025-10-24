@@ -17,7 +17,7 @@ services:
       - solotext-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U solotext_user -d solotext"] #use entrypoint for env variable
+      test: ["CMD-SHELL", "pg_isready -U solotext_user -d solotext_db"] #use entrypoint for env variable
       interval: 10s
       timeout: 5s
       retries: 5

@@ -58,3 +58,11 @@ npm run dev
 
 http://localhost:8080/ 
 ```
+
+Database
+
+```
+docker-compose exec backend npm run db:undo:all (delete all table)
+docker-compose exec backend npm run db:migrate (apply all migration)
+docker-compose exec backend npm run db:seed:all (add fixtures)
+```

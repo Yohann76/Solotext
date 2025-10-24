@@ -22,7 +22,7 @@ module.exports = {
         type: Sequelize.STRING(255)
       },
       role: {
-        type: Sequelize.STRING(20),
+        type: Sequelize.ENUM('admin', 'user'),
         allowNull: false,
         defaultValue: 'user'
       },

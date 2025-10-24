@@ -19,14 +19,19 @@ RealtTime:
 Stripe: 
 - Add stripe paiement (with différent subscription, active etc...)
 
+## V1.1.2 Limit user
+- add Limit Sentence per user/per month
+- display limit under Historique des analyses (under 7 analyses..)
+- Stop analyse if limit is full
+- Add different role (admin, prenium6000, prenium3000, prenium1000, user)
 - Add 3 analyse demo (free analyse) (add counter per user)
 - After 3 analayse, display message -> your free version is end, you can pay for  analysis
-- Add different role (admin, prenium6000, prenium3000, prenium1000, user)
 
 ## V1.2 Functionnal +
 - Add github action (test + prettier?)
 - Add backup DB (container export)
-- Add red banner on top website (only on application) if GPT API is not available
+- Add red banner on top website (only on application) for display message..
+- on principal textarea, display number character, word, sentance..
 
 ## V1.21 Graphics
 - Update landing page with color chart (https://www.teachizy.fr/)
@@ -50,6 +55,10 @@ Stripe:
 - Add structur for SEO
 - Add robots.txt
 - add sitemap.xml
+
+## V1.3.3 Security
+- See security API route
+- See JWT Connexion
 
 ## V1.4 Deploy Saas - Saas is online!
 

@@ -10,29 +10,12 @@ const TextProcessor = require('./lib/TextProcessor');
 const SimilarityAnalyzer = require('./lib/SimilarityAnalyzer');
 const PerplexityService = require('./lib/PerplexityService');
 
-/**
- * WORKER D'ANALYSE DE DUPLICATION DE TEXTE
- * 
- * FLUX GLOBAL DU WORKER :
- * 1. CONNEXION → Se connecte à RabbitMQ et à la base de données
- * 2. ÉCOUTE → Attend les messages d'analyse dans la queue
- * 3. DÉCOUPAGE → Divise le texte en phrases individuelles
- * 4. SAUVEGARDE → Enregistre chaque phrase en base de données
- * 5. ANALYSE IA → Pour chaque phrase :
- *    a) Détection de patterns communs (rapide)
- *    b) Si pas de pattern → Recherche Perplexity (IA)
- * 6. CALCUL → Détermine le pourcentage de duplication global
- * 7. FINALISATION → Met à jour l'analyse avec les résultats
- */
 class AnalysisWorker {
   constructor() {
-    // Configuration des connexions
     this.connection = null;
     this.channel = null;
     this.queueName = process.env.ANALYSIS_QUEUE || 'analysis_queue';
     this.rabbitmqUrl = process.env.RABBITMQ_URL || 'amqp://admin:admin123@localhost:5672';
-    
-    // Initialisation des services
     this.perplexityService = new PerplexityService(process.env.PERPLEXITY_API_KEY);
   }
 
@@ -47,8 +30,6 @@ class AnalysisWorker {
    */
   async recordPerplexityCall(userId) {
     try {
-      const today = new Date().toISOString().split('T')[0];
-
       const perplexityProvider = await AdminConfigProvider.findOne({
         where: { provider_name: 'perplexity_search' }
       });
@@ -58,23 +39,15 @@ class AnalysisWorker {
         return;
       }
 
-      const [apiCall, created] = await ApiCall.findOrCreate({
-        where: {
-          user_id: userId,
-          admin_config_provider_id: perplexityProvider.id,
-          call_date: today
-        },
-        defaults: {
-          call_count: 1
-        }
+      await ApiCall.create({
+        user_id: userId,
+        admin_config_provider_id: perplexityProvider.id,
+        call_date: new Date(),
+        call_count: 1
       });
 
-      if (!created) {
-        await apiCall.increment('call_count');
-        console.log(`📊 Appel Perplexity enregistré pour l'utilisateur ${userId} (total: ${apiCall.call_count + 1})`);
-      } else {
-        console.log(`📊 Premier appel Perplexity enregistré pour l'utilisateur ${userId}`);
-      }
+      console.log(`📊 Nouvel appel Perplexity enregistré pour l'utilisateur ${userId}`);
+
     } catch (error) {
       console.error('❌ Erreur lors de l\'enregistrement de l\'appel Perplexity:', error);
     }
@@ -107,17 +80,6 @@ class AnalysisWorker {
   // SECTION 2 : TRAITEMENT PRINCIPAL
   // ========================================
 
-  /**
-   * FONCTION PRINCIPALE : Traitement complet d'une analyse
-   * 
-   * FLUX DÉTAILLÉ :
-   * 1. Mise à jour du statut → "processing"
-   * 2. Découpage du texte → phrases individuelles
-   * 3. Sauvegarde → chaque phrase en base de données
-   * 4. Analyse IA → pour chaque phrase (patterns + Perplexity)
-   * 5. Calcul → pourcentage de duplication global
-   * 6. Finalisation → mise à jour de l'analyse
-   */
   async processAnalysis(analysisData) {
     const { analysisId, sourceText } = analysisData;
     
@@ -264,14 +226,6 @@ class AnalysisWorker {
   // SECTION 3 : UTILITAIRES DE CONNEXION
   // ========================================
 
-  /**
-   * ATTENTE DE LA BASE DE DONNÉES : Attente que la DB soit prête
-   * 
-   * UTILITÉ :
-   * - Évite les erreurs de connexion au démarrage
-   * - Permet au conteneur DB de s'initialiser
-   * - Retry automatique avec délai
-   */
   async waitForDatabase(maxRetries = 30, delay = 2000) {
     for (let i = 0; i < maxRetries; i++) {
       try {
@@ -292,17 +246,6 @@ class AnalysisWorker {
   // SECTION 4 : DÉMARRAGE ET GESTION
   // ========================================
 
-  /**
-   * DÉMARRAGE DU WORKER : Initialisation complète du système
-   * 
-   * SÉQUENCE DE DÉMARRAGE :
-   * 1. Attente de la base de données
-   * 2. Connexion à la base de données
-   * 3. Synchronisation des modèles
-   * 4. Connexion à RabbitMQ
-   * 5. Configuration du consommateur
-   * 6. Démarrage de l'écoute des messages
-   */
   async start() {
     try {
       // ÉTAPE 1 : Attente de la base de données
@@ -351,14 +294,6 @@ class AnalysisWorker {
     }
   }
 
-  /**
-   * ARRÊT DU WORKER : Fermeture propre des connexions
-   * 
-   * PROCESSUS :
-   * 1. Fermeture du canal RabbitMQ
-   * 2. Fermeture de la connexion RabbitMQ
-   * 3. Log de confirmation
-   */
   async stop() {
     try {
       if (this.channel) {

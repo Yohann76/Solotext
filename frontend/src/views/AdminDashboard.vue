@@ -76,14 +76,14 @@
               <div class="stat-card">
                 <div class="stat-icon">👑</div>
                 <div class="stat-content">
-                  <div class="stat-number">{{ adminUsers.length }}</div>
+                  <div class="stat-number">{{ adminUsers }}</div>
                   <div class="stat-label">Administrateurs</div>
                 </div>
               </div>
               <div class="stat-card">
                 <div class="stat-icon">👤</div>
                 <div class="stat-content">
-                  <div class="stat-number">{{ regularUsers.length }}</div>
+                  <div class="stat-number">{{ regularUsers }}</div>
                   <div class="stat-label">Utilisateurs</div>
                 </div>
               </div>
@@ -136,8 +136,11 @@
                       </td>
                     </tr>
                     <tr v-if="activeDropdown === user.id">
-                      <td colspan="6">
-                        <UserCostsDropdown :costs="user.monthlyCosts" :visible="true" />
+                      <td colspan="7">
+                        <UserCostsDropdown 
+                          :costs="user.monthlyCosts || []" 
+                          :visible="activeDropdown === user.id"
+                        />
                       </td>
                     </tr>
                   </template>
@@ -163,7 +166,7 @@
               <div class="stat-card">
                 <div class="stat-icon">⏳</div>
                 <div class="stat-content">
-                  <div class="stat-number">{{ pendingAnalyses }}</div>
+                  <div class="stat-number">{{ waitingAnalyses }}</div>
                   <div class="stat-label">En attente</div>
                 </div>
               </div>
@@ -402,13 +405,6 @@
         @close="removeNotification(notification.id)"
       />
     </div>
-
-    <!-- User Costs Dropdown -->
-    <UserCostsDropdown
-      v-if="activeDropdown"
-      :user-id="activeDropdown"
-      @close="activeDropdown = null"
-    />
   </div>
 </template>
 
@@ -445,6 +441,7 @@ export default {
     const users = ref([])
     const analyses = ref([])
     const stats = ref({})
+    const userStats = ref({}) // Ajout pour les stats utilisateurs
     const newUser = ref({
       email: '',
       password: '',
@@ -495,6 +492,7 @@ export default {
         
         users.value = response.data.users.map(user => adminService.formatUserForDisplay(user))
         pagination.users = response.data.pagination
+        userStats.value = response.data.stats // Sauvegarder les stats utilisateurs
       } catch (err) {
         console.error('Erreur lors du chargement des utilisateurs:', err)
         error('Erreur lors du chargement des utilisateurs')
@@ -549,8 +547,8 @@ export default {
     }
 
     // Computed properties
-    const adminUsers = computed(() => stats.value.users?.admins || 0)
-    const regularUsers = computed(() => stats.value.users?.regular || 0)
+    const adminUsers = computed(() => userStats.value?.admins || 0)
+    const regularUsers = computed(() => userStats.value?.users || 0)
     const totalAnalyses = computed(() => stats.value.analyses?.total || 0)
     const waitingAnalyses = computed(() => stats.value.analyses?.waiting || 0)
     const inProgressAnalyses = computed(() => stats.value.analyses?.inProgress || 0)
@@ -558,8 +556,8 @@ export default {
     const errorAnalyses = computed(() => stats.value.analyses?.error || 0)
     
     // Statistiques Perplexity
-    const totalPerplexityCalls = computed(() => stats.value.perplexity?.totalCalls || 0)
-    const todayPerplexityCalls = computed(() => stats.value.perplexity?.todayCalls || 0)
+    const totalPerplexityCalls = computed(() => stats.value?.totalPerplexityCalls || 0)
+    const todayPerplexityCalls = computed(() => stats.value?.todayPerplexityCalls || 0)
     const estimatedCost = computed(() => {
       const costPerCall = 0.01 // $0.01 par appel
       return (totalPerplexityCalls.value * costPerCall).toFixed(2)
@@ -567,7 +565,7 @@ export default {
     
     const usersWithCosts = computed(() => {
       return users.value.map(user => {
-        const costData = userCosts.value.find(cost => cost.userId === user.id);
+        const costData = userCosts.value.find(cost => cost.id === user.id);
         return {
           ...user,
           monthlyCosts: costData ? costData.monthlyCosts : [],

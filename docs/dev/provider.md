@@ -2,9 +2,12 @@
 
 An exploration of different providers to test sentence duplication in a worker with their respective costs.
 
-Priority testing:
+Priority testing and functionnal:
+
 - Perplexity (per request, 0,005): implemented
 - Apify google-search-results-serp-scraper (per request, 0,0005): Todo testing this
+- Private Scraping (Create my script with IP rotation): Todo testing this
+- Private Scraping Apify (Create my script on Apify): Todo testing this
 
 ## Perplexity (default)
 
@@ -20,13 +23,20 @@ Priority testing:
 - TODO: implement this for stability (not urgent)
 - cost: 5$/1000 request (per request, 0,005)
 
-## Private Scraping Apify (Create my script)
-- cost: ???
+## Private Scraping (Create my script)
+- Add scraping with Selenium and IP roation (pool IP, open proxy,proxy pools )
+- cost: my VPS 
+
+Tools for get proxy IP pool: 
+https://brightdata.com/pricing/serp -> 1,5$/1000, 0,0015/per request
+https://www.scraperapi.com/solutions/scraping-api/ -> 49/100000 -> 0,00049/per request ? (+ cost rotation IP)
+https://scrape.do/pricing/ -> 29/250000 -> 0,000116 per request ? (+ cost rotation IP)
+
+## Private Scraping Apify (Create my script on Apify)
 - Create my scraping google SERP in Apify (author) -> private authors, and pay consomations in GO
+- Use Apify for IP rotation
 
-## Private Scraping Apify (Create my script)
-
-## Apify Actor : google-search-results-serp-scraper
+## Use Apify Actor : google-search-results-serp-scraper
 - TODO: test this 
 - cost: 0,50$/1000 request (per request, 0,0005 )
 - https://apify.com/scraperlink/google-search-results-serp-scraper

@@ -32,6 +32,10 @@ https://brightdata.com/pricing/serp -> 1,5$/1000, 0,0015/per request
 https://www.scraperapi.com/solutions/scraping-api/ -> 49/100000 -> 0,00049/per request ? (+ cost rotation IP)
 https://scrape.do/pricing/ -> 29/250000 -> 0,000116 per request ? (+ cost rotation IP)
 
+Other sources: 
+- https://proxyempire.io/rotating-residential-proxies/
+- https://www.webshare.io/pricing
+
 ## Private Scraping Apify (Create my script on Apify)
 - Create my scraping google SERP in Apify (author) -> private authors, and pay consomations in GO
 - Use Apify for IP rotation

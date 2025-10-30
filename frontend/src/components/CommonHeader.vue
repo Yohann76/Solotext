@@ -1,26 +1,34 @@
 <template>
-  <header class="header">
+  <header class="header" :class="{ scrolled: hasScrolled }">
     <nav class="nav">
-      <div class="nav-brand">
-        <router-link to="/" class="logo-link">
+      <div class="nav-left">
+        <router-link to="/" class="logo-link" aria-label="Accueil SoloText">
           <h1 class="logo">SoloText</h1>
         </router-link>
       </div>
-      <div class="nav-links">
-        <router-link to="/fonctionnalites" class="nav-link">Fonctionnalités</router-link>
-        <router-link to="/tarifs" class="nav-link">Tarifs</router-link>
-        
-        <!-- Liens pour utilisateurs non authentifiés -->
+
+      <button
+        class="burger"
+        :aria-expanded="isMobileOpen ? 'true' : 'false'"
+        aria-controls="primary-navigation"
+        aria-label="Ouvrir le menu"
+        @click="toggleMobile"
+      >
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </button>
+
+      <div class="nav-links" :class="{ open: isMobileOpen }" id="primary-navigation">
+        <router-link to="/fonctionnalites" class="nav-link" @click="closeMobile">Fonctionnalités</router-link>
+        <router-link to="/tarifs" class="nav-link" @click="closeMobile">Tarifs</router-link>
+
         <template v-if="!isAuthenticated">
-          <router-link to="/login" class="btn btn-outline">Connexion</router-link>
-          <router-link to="/register" class="btn btn-primary">Rejoindre l'aventure</router-link>
+          <router-link to="/login" class="btn btn-outline" @click="closeMobile">Connexion</router-link>
+          <router-link to="/register" class="btn btn-primary" @click="closeMobile">Rejoindre l'aventure</router-link>
         </template>
-        
-        <!-- Liens pour utilisateurs authentifiés -->
         <template v-else>
-          <router-link to="/application" class="nav-link app-link">
-            📱 Application
-          </router-link>
+          <router-link to="/application" class="nav-link app-link" @click="closeMobile">Application</router-link>
           <UserIndicator @logout="handleLogout" />
         </template>
       </div>
@@ -42,8 +50,10 @@ export default {
   },
   setup() {
     const router = useRouter()
-    const { isAuthenticated, user, logout, subscribe } = useAuthStore()
+    const { isAuthenticated, user, logout } = useAuthStore()
     const { success } = useNotifications()
+    const isMobileOpen = ref(false)
+    const hasScrolled = ref(false)
 
     const handleLogout = async () => {
       const userName = user.value?.displayName || 'Utilisateur'
@@ -51,14 +61,34 @@ export default {
       success(`Au revoir ${userName} ! Vous avez été déconnecté.`)
     }
 
+    const toggleMobile = () => { isMobileOpen.value = !isMobileOpen.value }
+    const closeMobile = () => { isMobileOpen.value = false }
+
+    const onKeydown = (e) => {
+      if (e.key === 'Escape') closeMobile()
+    }
+
+    const onScroll = () => {
+      hasScrolled.value = window.scrollY > 8
+    }
+
     onMounted(() => {
-      // Plus de scroll d'ancrage: remplacer par routes
+      window.addEventListener('keydown', onKeydown)
+      window.addEventListener('scroll', onScroll, { passive: true })
+    })
+    onUnmounted(() => {
+      window.removeEventListener('keydown', onKeydown)
+      window.removeEventListener('scroll', onScroll)
     })
 
     return {
       isAuthenticated,
       user,
-      handleLogout
+      handleLogout,
+      isMobileOpen,
+      hasScrolled,
+      toggleMobile,
+      closeMobile
     }
   }
 }
@@ -71,15 +101,21 @@ export default {
   left: 0;
   right: 0;
   z-index: 1000;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  background: var(--gradient-section);
+  color: #ffffff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.header.scrolled {
+  background: linear-gradient(235.37deg, rgba(7,42,37,0.98) 0%, rgba(3,24,21,0.98) 28%, rgba(7,42,37,0.98) 100%);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.25);
+  border-color: rgba(255,255,255,0.12);
 }
 
 .nav {
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 12px auto; /* espace en haut et en bas */
   padding: 0 2rem;
   display: flex;
   justify-content: space-between;
@@ -87,22 +123,17 @@ export default {
   height: 70px;
 }
 
-.nav-brand {
-  flex-shrink: 0;
-}
+.nav-left { flex-shrink: 0; }
 
 .logo-link {
   text-decoration: none;
-  color: inherit;
+  color: #ffffff;
 }
 
 .logo {
-  font-size: 1.8rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #ffffff;
   margin: 0;
 }
 
@@ -110,48 +141,44 @@ export default {
   display: flex;
   align-items: center;
   gap: 2rem;
+  transition: transform 0.25s ease, opacity 0.25s ease;
 }
 
 .nav-link {
   text-decoration: none;
-  color: #4a5568;
-  font-weight: 500;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 1.05rem;
+  padding: 0.4rem 0; /* plus d'espace haut/bas */
   transition: color 0.3s ease;
   position: relative;
 }
 
 .nav-link:hover {
-  color: #667eea;
+  color: var(--color-primary);
 }
 
 .app-link {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-weight: 600;
+  color: #ffffff;
+  font-weight: 700;
   padding: 0.5rem 1rem;
   border-radius: 8px;
-  transition: all 0.3s ease;
+  transition: color 0.3s ease;
 }
 
 .app-link:hover {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  transform: translateY(-1px);
+  color: var(--color-primary);
 }
 
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.75rem 1.5rem;
+  padding: 0.8rem 1.6rem;
   border-radius: 8px;
   text-decoration: none;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 1rem;
   transition: all 0.3s ease;
   border: 2px solid transparent;
   cursor: pointer;
@@ -159,8 +186,8 @@ export default {
 }
 
 .btn-outline {
-  color: #667eea;
-  border-color: #667eea;
+  color: #ffffff;
+  border-color: rgba(255,255,255,0.6);
   background: transparent;
 }
 
@@ -172,7 +199,7 @@ export default {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-btn);
   color: white;
   border-color: transparent;
 }
@@ -188,33 +215,19 @@ export default {
     padding: 0 1rem;
   }
   
-  .nav-links {
-    gap: 1rem;
-  }
-  
-  .nav-link {
-    font-size: 0.9rem;
-  }
-  
-  .btn {
-    padding: 0.6rem 1.2rem;
-    font-size: 0.85rem;
-    min-width: 100px;
-  }
+  .burger { display: inline-flex; flex-direction: column; gap: 4px; border: 0; background: transparent; padding: 8px; cursor: pointer; }
+  .burger span { display: block; width: 22px; height: 2px; background: #ffffff; transition: transform .2s ease, opacity .2s ease; }
+  .burger[aria-expanded="true"] span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  .burger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+  .burger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+  .nav-links { position: fixed; inset: 70px 0 auto 0; background: rgba(255,255,255,0.98); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(0,0,0,0.06); padding: 12px 16px; transform: translateY(-110%); opacity: 0; display: grid; gap: 10px; }
+  .nav-links.open { transform: translateY(0); opacity: 1; }
+  .nav-link { font-size: 1rem; }
+.btn { padding: 0.6rem 1.2rem; font-size: 0.9rem; min-width: 100px; }
 }
 
 @media (max-width: 640px) {
-  .nav-links {
-    gap: 0.5rem;
-  }
-  
-  .nav-link:not(.app-link) {
-    display: none;
-  }
-  
-  .app-link {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.85rem;
-  }
+  .app-link { padding: 0.4rem 0.8rem; font-size: 0.9rem; }
 }
 </style>

@@ -1,63 +1,6 @@
 <template>
   <div class="home">
-    <!-- Header -->
-    <CommonHeader />
-
-    <!-- Hero Section -->
-    <section class="hero">
-      <div class="hero-content">
-        <h1 class="hero-title">
-          Gérez vos textes avec 
-          <span class="gradient-text">SoloText</span> 🔥
-        </h1>
-        <p class="hero-description">
-          La solution SaaS moderne pour organiser, éditer et partager vos documents texte. 
-          Simple, rapide et puissant.
-        </p>
-        <div class="hero-actions">
-          <template v-if="!isAuthenticated">
-            <router-link to="/login" class="btn btn-secondary btn-large">Connexion</router-link>
-            <router-link to="/register" class="btn btn-primary btn-large">Rejoindre l'aventure</router-link>
-          </template>
-          <template v-else>
-            <router-link to="/application" class="btn btn-primary btn-large">Accéder au tableau de bord</router-link>
-            <router-link to="/application" class="btn btn-secondary btn-large">Voir mes analyses</router-link>
-          </template>
-        </div>
-        <div class="hero-stats">
-          <div class="stat">
-            <span class="stat-number">10k+</span>
-            <span class="stat-label">Utilisateurs actifs</span>
-          </div>
-          <div class="stat">
-            <span class="stat-number">1M+</span>
-            <span class="stat-label">Documents créés</span>
-          </div>
-          <div class="stat">
-            <span class="stat-number">99.9%</span>
-            <span class="stat-label">Disponibilité</span>
-          </div>
-        </div>
-      </div>
-      <div class="hero-image">
-        <div class="mockup">
-          <div class="mockup-header">
-            <div class="mockup-dots">
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
-          </div>
-          <div class="mockup-content">
-            <div class="mockup-text">
-              <div class="text-line"></div>
-              <div class="text-line"></div>
-              <div class="text-line short"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+    <HomeHeader />
 
     <!-- CTA section for Features & Pricing -->
     <section class="cta">
@@ -122,7 +65,7 @@
 
 <script>
 import { ref, onMounted, onUnmounted } from 'vue'
-import CommonHeader from '../components/CommonHeader.vue'
+import HomeHeader from '../components/HomeHeader.vue'
 import Notification from '../components/Notification.vue'
 import { useNotifications } from '../composables/useNotifications.js'
 import { useAuthStore } from '../stores/authStore.js'
@@ -130,7 +73,7 @@ import { useAuthStore } from '../stores/authStore.js'
 export default {
   name: 'Home',
   components: {
-    CommonHeader,
+    HomeHeader,
     Notification
   },
   setup() {

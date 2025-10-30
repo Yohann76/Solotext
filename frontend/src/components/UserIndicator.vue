@@ -125,16 +125,16 @@ export default {
   align-items: center;
   gap: 12px;
   position: relative;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 8px 12px;
-  border-radius: 25px;
+  background: rgba(255, 255, 255, 0.10);
+  padding: 10px 14px;
+  border-radius: 999px;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   transition: all 0.3s ease;
 }
 
 .user-indicator:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.18);
   transform: translateY(-1px);
 }
 
@@ -142,7 +142,7 @@ export default {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-btn);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -159,15 +159,15 @@ export default {
 }
 
 .user-name {
-  font-weight: 600;
-  color: #2d3748;
-  font-size: 0.9rem;
+  font-weight: 700;
+  color: #ffffff;
+  font-size: 1rem;
   line-height: 1.2;
 }
 
 .user-email {
-  color: #718096;
-  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
   line-height: 1.2;
 }
 
@@ -178,16 +178,16 @@ export default {
 .user-menu-toggle {
   background: none;
   border: none;
-  color: #4a5568;
+  color: #ffffff;
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;
   transition: all 0.2s ease;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
 }
 
 .user-menu-toggle:hover {
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .user-menu-toggle.active {
@@ -199,10 +199,10 @@ export default {
   top: 100%;
   right: 0;
   margin-top: 8px;
-  background: white;
+  background: #ffffff;
   border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(0, 0, 0, 0.06);
   min-width: 280px;
   z-index: 1000;
   animation: dropdownIn 0.2s ease-out;
@@ -219,7 +219,7 @@ export default {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-btn);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -234,8 +234,8 @@ export default {
 
 .user-details .user-name {
   font-size: 1rem;
-  font-weight: 600;
-  color: #2d3748;
+  font-weight: 700;
+  color: #031815;
   margin-bottom: 2px;
 }
 
@@ -271,7 +271,7 @@ export default {
   text-align: left;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  color: #4a5568;
+  color: #1f2937;
   font-size: 0.9rem;
   display: flex;
   align-items: center;

@@ -1,3 +1,13 @@
+:root {
+  --color-primary: #32C4C0;
+  --color-secondary: #031815;
+  --color-text: #031815;
+  --color-accent: #06584C;
+  --gradient-section: linear-gradient(235.37deg, #072A25 0%, #031815 28%, #072A25 100%);
+  --gradient-btn: radial-gradient(109.32% 72.43% at 50% 12.35%, #031815 0%, #073C35 100%),
+                  radial-gradient(75.97% 70.09% at 86.36% 93.51%, rgba(208, 208, 208, 0.2) 0%, rgba(255, 255, 255, 0) 100%);
+}
+
 /* Reset et base */
 * {
   margin: 0;

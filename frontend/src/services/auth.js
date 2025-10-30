@@ -2,8 +2,7 @@
  * Service d'authentification pour SoloText
  * Gère la connexion, déconnexion et la gestion des tokens
  */
-
-const API_BASE_URL = 'http://localhost:3000/api'
+import { http, endpoints } from '../api/index.js'
 
 class AuthService {
   constructor() {
@@ -43,15 +42,7 @@ class AuthService {
    */
   async login(email, password) {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password })
-      })
-
-      const data = await response.json()
+      const data = await http.post(endpoints.auth.login, { email, password })
 
       if (data.success) {
         this.token = data.data.token
@@ -78,15 +69,7 @@ class AuthService {
    */
   async register(email, password, role = 'user') {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password, role })
-      })
-
-      const data = await response.json()
+      const data = await http.post(endpoints.auth.register, { email, password, role })
 
       if (data.success) {
         this.token = data.data.token
@@ -115,13 +98,7 @@ class AuthService {
     try {
       // Appeler l'API de déconnexion si nécessaire
       if (this.token) {
-        await fetch(`${API_BASE_URL}/auth/logout`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${this.token}`,
-            'Content-Type': 'application/json',
-          }
-        })
+        await http.post(endpoints.auth.logout, {})
       }
     } catch (error) {
       console.error('Erreur lors de la déconnexion:', error)
@@ -145,14 +122,7 @@ class AuthService {
         return { success: false, message: 'Non authentifié' }
       }
 
-      const response = await fetch(`${API_BASE_URL}/auth/me`, {
-        headers: {
-          'Authorization': `Bearer ${this.token}`,
-          'Content-Type': 'application/json',
-        }
-      })
-
-      const data = await response.json()
+      const data = await http.get(endpoints.auth.me)
 
       if (data.success) {
         this.user = data.data.user
@@ -176,16 +146,7 @@ class AuthService {
    */
   async changePassword(currentPassword, newPassword) {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/change-password`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ currentPassword, newPassword })
-      })
-
-      const data = await response.json()
+      const data = await http.post(endpoints.auth.changePassword, { currentPassword, newPassword })
       return { success: data.success, message: data.message }
     } catch (error) {
       console.error('Erreur lors du changement de mot de passe:', error)
@@ -210,34 +171,12 @@ class AuthService {
   /**
    * Obtenir les en-têtes d'authentification pour les requêtes API
    */
-  getAuthHeaders() {
-    return {
-      'Authorization': `Bearer ${this.token}`,
-      'Content-Type': 'application/json',
-    }
-  }
+  getAuthHeaders() { return { 'Content-Type': 'application/json' } }
 
   /**
    * Faire une requête authentifiée
    */
-  async authenticatedRequest(url, options = {}) {
-    const defaultOptions = {
-      headers: {
-        ...this.getAuthHeaders(),
-        ...options.headers
-      }
-    }
-
-    const response = await fetch(url, { ...defaultOptions, ...options })
-    
-    // Si la réponse est 401, déconnecter l'utilisateur
-    if (response.status === 401) {
-      this.logout()
-      throw new Error('Session expirée')
-    }
-
-    return response
-  }
+  async authenticatedRequest(url, options = {}) { return http.get(url, options) }
 }
 
 // Créer une instance singleton

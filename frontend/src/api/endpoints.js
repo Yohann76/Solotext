@@ -3,8 +3,13 @@
  * Keep segments clear and composable.
  */
 export const endpoints = {
-  // Public/auth if needed later
-  // auth: { login: '/auth/login', register: '/auth/register' },
+  auth: {
+    login: '/auth/login',
+    register: '/auth/register',
+    logout: '/auth/logout',
+    me: '/auth/me',
+    changePassword: '/auth/change-password'
+  },
 
   analyses: {
     root: '/analyses',

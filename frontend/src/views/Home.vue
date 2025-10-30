@@ -19,7 +19,7 @@
         <div class="footer-content">
           <div class="footer-brand">
             <h3>SoloText</h3>
-            <p>La solution moderne pour gérer vos textes</p>
+            <p>Soyez le seul à posséder votre contenu</p>
           </div>
           <div class="footer-links">
             <div class="footer-column">

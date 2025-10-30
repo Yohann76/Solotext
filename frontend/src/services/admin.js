@@ -1,33 +1,19 @@
-import authService from './auth.js'
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+import { http, endpoints } from '../api/index.js'
 
 class AdminService {
   constructor() {
-    this.baseURL = `${API_BASE_URL}/admin`
+    this.baseURL = endpoints.admin.root
   }
 
   /**
    * Récupérer les en-têtes d'authentification
    */
-  getAuthHeaders() {
-    const token = localStorage.getItem('token')
-    return {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    }
-  }
+  getAuthHeaders() { return {} }
 
   /**
    * Gestion des erreurs API
    */
-  async handleResponse(response) {
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.message || `Erreur HTTP: ${response.status}`)
-    }
-    return response.json()
-  }
+  async handleResponse(response) { return response }
 
   // ========================================
   // GESTION DES UTILISATEURS
@@ -45,77 +31,42 @@ class AdminService {
       }
     })
 
-    const url = `${this.baseURL}/users${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: this.getAuthHeaders()
-    })
-
-    return this.handleResponse(response)
+    const url = `${endpoints.admin.users.root}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+    return http.get(url)
   }
 
   /**
    * Récupérer un utilisateur spécifique
    */
   async getUser(userId) {
-    const response = await fetch(`${this.baseURL}/users/${userId}`, {
-      method: 'GET',
-      headers: this.getAuthHeaders()
-    })
-
-    return this.handleResponse(response)
+    return http.get(endpoints.admin.users.byId(userId))
   }
 
   /**
    * Créer un nouvel utilisateur
    */
   async createUser(userData) {
-    const response = await fetch(`${this.baseURL}/users`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(userData)
-    })
-
-    return this.handleResponse(response)
+    return http.post(endpoints.admin.users.root, userData)
   }
 
   /**
    * Modifier un utilisateur
    */
   async updateUser(userId, userData) {
-    const response = await fetch(`${this.baseURL}/users/${userId}`, {
-      method: 'PUT',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(userData)
-    })
-
-    return this.handleResponse(response)
+    return http.put(endpoints.admin.users.byId(userId), userData)
   }
 
   /**
    * Supprimer un utilisateur
    */
   async deleteUser(userId) {
-    const response = await fetch(`${this.baseURL}/users/${userId}`, {
-      method: 'DELETE',
-      headers: this.getAuthHeaders()
-    })
-
-    return this.handleResponse(response)
+    return http.delete(endpoints.admin.users.byId(userId))
   }
 
   async getUserCosts() {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${this.baseURL}/costs/users`, {
-        method: 'GET',
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      return this.handleResponse(response);
+      return await http.get(endpoints.admin.costs.userCosts)
     } catch (error) {
-      // Assuming handleError is defined elsewhere or will be added
-      // this.handleError(error); 
     }
   }
 
@@ -135,66 +86,35 @@ class AdminService {
       }
     })
 
-    const url = `${this.baseURL}/analyses${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: this.getAuthHeaders()
-    })
-
-    return this.handleResponse(response)
+    const url = `${endpoints.admin.analyses.root}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+    return http.get(url)
   }
 
   /**
    * Récupérer une analyse spécifique
    */
   async getAnalysis(analysisId) {
-    const response = await fetch(`${this.baseURL}/analyses/${analysisId}`, {
-      method: 'GET',
-      headers: this.getAuthHeaders()
-    })
-
-    return this.handleResponse(response)
+    return http.get(endpoints.admin.analyses.byId(analysisId))
   }
 
   /**
    * Supprimer une analyse
    */
   async deleteAnalysis(analysisId) {
-    const response = await fetch(`${this.baseURL}/analyses/${analysisId}`, {
-      method: 'DELETE',
-      headers: this.getAuthHeaders()
-    })
-
-    return this.handleResponse(response)
+    return http.delete(endpoints.admin.analyses.byId(analysisId))
   }
 
   async getProviders() {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${this.baseURL}/providers`, {
-        method: 'GET',
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      return this.handleResponse(response);
+      return await http.get(endpoints.admin.providers.root)
     } catch (error) {
-      // Assuming handleError is defined elsewhere or will be added
-      // this.handleError(error); 
     }
   }
 
   async updateProvider(id, data) {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${this.baseURL}/providers/${id}`, {
-        method: 'PUT',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      return this.handleResponse(response);
+      return await http.put(endpoints.admin.providers.byId(id), data)
     } catch (error) {
-      // Assuming handleError is defined elsewhere or will be added
-      // this.handleError(error); 
     }
   }
 
@@ -206,12 +126,7 @@ class AdminService {
    * Récupérer les statistiques globales
    */
   async getStats() {
-    const response = await fetch(`${this.baseURL}/stats`, {
-      method: 'GET',
-      headers: this.getAuthHeaders()
-    })
-
-    return this.handleResponse(response)
+    return http.get(endpoints.admin.stats)
   }
 
   // ========================================

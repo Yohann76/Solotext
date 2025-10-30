@@ -1,8 +1,8 @@
-const API_BASE_URL = 'http://localhost:3000/api'
+import { http, endpoints } from '../api/index.js'
 
 class AnalysisService {
   constructor() {
-    this.baseURL = API_BASE_URL
+    this.baseURL = ''
     this.token = null
     if (typeof window !== 'undefined') {
       this.token = localStorage.getItem('token')
@@ -33,20 +33,7 @@ class AnalysisService {
   // Créer une nouvelle analyse
   async createAnalysis(sourceText) {
     try {
-      const response = await fetch(`${API_BASE_URL}/analyses`, {
-        method: 'POST',
-        headers: this.getHeaders(),
-        body: JSON.stringify({
-          source_text: sourceText
-        })
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Erreur lors de la création de l\'analyse')
-      }
-
+      const data = await http.post(endpoints.analyses.root, { source_text: sourceText })
       return data
     } catch (error) {
       console.error('Erreur AnalysisService.createAnalysis:', error)
@@ -57,17 +44,8 @@ class AnalysisService {
   // Récupérer les analyses de l'utilisateur
   async getAnalyses(page = 1, limit = 10) {
     try {
-      const response = await fetch(`${API_BASE_URL}/analyses?page=${page}&limit=${limit}`, {
-        method: 'GET',
-        headers: this.getHeaders()
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Erreur lors de la récupération des analyses')
-      }
-
+      const query = `?page=${page}&limit=${limit}`
+      const data = await http.get(`${endpoints.analyses.root}${query}`)
       return data
     } catch (error) {
       console.error('Erreur AnalysisService.getAnalyses:', error)
@@ -78,17 +56,7 @@ class AnalysisService {
   // Récupérer une analyse spécifique
   async getAnalysis(id) {
     try {
-      const response = await fetch(`${API_BASE_URL}/analyses/${id}`, {
-        method: 'GET',
-        headers: this.getHeaders()
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Erreur lors de la récupération de l\'analyse')
-      }
-
+      const data = await http.get(endpoints.analyses.byId(id))
       return data
     } catch (error) {
       console.error('Erreur AnalysisService.getAnalysis:', error)
@@ -99,18 +67,7 @@ class AnalysisService {
   // Mettre à jour une analyse
   async updateAnalysis(id, updateData) {
     try {
-      const response = await fetch(`${API_BASE_URL}/analyses/${id}`, {
-        method: 'PUT',
-        headers: this.getHeaders(),
-        body: JSON.stringify(updateData)
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Erreur lors de la mise à jour de l\'analyse')
-      }
-
+      const data = await http.put(endpoints.analyses.byId(id), updateData)
       return data
     } catch (error) {
       console.error('Erreur AnalysisService.updateAnalysis:', error)
@@ -121,17 +78,7 @@ class AnalysisService {
   // Supprimer une analyse
   async deleteAnalysis(id) {
     try {
-      const response = await fetch(`${API_BASE_URL}/analyses/${id}`, {
-        method: 'DELETE',
-        headers: this.getHeaders()
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Erreur lors de la suppression de l\'analyse')
-      }
-
+      const data = await http.delete(endpoints.analyses.byId(id))
       return data
     } catch (error) {
       console.error('Erreur AnalysisService.deleteAnalysis:', error)
@@ -142,20 +89,7 @@ class AnalysisService {
   // Récupérer les phrases d'une analyse
   async getAnalysisSentences(analysisId) {
     try {
-      const response = await fetch(`${this.baseURL}/analyses/${analysisId}/sentences`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.token}`
-        }
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Erreur lors de la récupération des phrases')
-      }
-
+      const data = await http.get(endpoints.analyses.sentences(analysisId))
       return data.sentences || []
     } catch (error) {
       console.error('Erreur AnalysisService.getAnalysisSentences:', error)

@@ -7,6 +7,7 @@ const Application = () => import('../views/Application.vue')
 const AdminDashboard = () => import('../views/AdminDashboard.vue')
 const Features = () => import('../views/Features.vue')
 const Pricing = () => import('../views/Pricing.vue')
+const PublicLayout = () => import('../components/layouts/PublicLayout.vue')
 
 /**
  * Route definitions for the application
@@ -19,16 +20,22 @@ const routes = [
     meta: { title: 'Accueil - SoloText' }
   },
   {
-    path: '/fonctionnalites',
-    name: 'Features',
-    component: Features,
-    meta: { title: 'Fonctionnalités - SoloText' }
-  },
-  {
-    path: '/tarifs',
-    name: 'Pricing',
-    component: Pricing,
-    meta: { title: 'Tarifs - SoloText' }
+    path: '/',
+    component: PublicLayout,
+    children: [
+      {
+        path: 'fonctionnalites',
+        name: 'Features',
+        component: Features,
+        meta: { title: 'Fonctionnalités - SoloText' }
+      },
+      {
+        path: 'tarifs',
+        name: 'Pricing',
+        component: Pricing,
+        meta: { title: 'Tarifs - SoloText' }
+      }
+    ]
   },
   {
     path: '/login',

@@ -14,40 +14,7 @@
       </div>
     </section>
 
-    <!-- Footer -->
-    <footer id="contact" class="footer">
-      <div class="container">
-        <div class="footer-content">
-          <div class="footer-brand">
-            <h3>SoloText</h3>
-            <p>Soyez le seul à posséder votre contenu</p>
-          </div>
-          <div class="footer-links">
-            <div class="footer-column">
-              <h4>Produit</h4>
-              <router-link to="/fonctionnalites">Fonctionnalités</router-link>
-              <router-link to="/tarifs">Tarifs</router-link>
-              <a href="#">API</a>
-            </div>
-            <div class="footer-column">
-              <h4>Support</h4>
-              <a href="#">Documentation</a>
-              <a href="#">Aide</a>
-              <a href="#">Contact</a>
-            </div>
-            <div class="footer-column">
-              <h4>Entreprise</h4>
-              <a href="#">À propos</a>
-              <a href="#">Blog</a>
-              <a href="#">Carrières</a>
-            </div>
-          </div>
-        </div>
-        <div class="footer-bottom">
-          <p>&copy; 2024 SoloText. Tous droits réservés.</p>
-        </div>
-      </div>
-    </footer>
+    <AppFooter />
 
     <!-- Notifications -->
     <div class="notifications-container">
@@ -67,6 +34,7 @@
 <script>
 import { ref, onMounted, onUnmounted } from 'vue'
 import HomeHeader from '../components/HomeHeader.vue'
+import AppFooter from '../components/common/AppFooter.vue'
 import InfoBand from '../components/InfoBand.vue'
 import Notification from '../components/Notification.vue'
 import { useNotifications } from '../composables/useNotifications.js'
@@ -77,7 +45,8 @@ export default {
   components: {
     HomeHeader,
     InfoBand,
-    Notification
+    Notification,
+    AppFooter
   },
   setup() {
     const { isAuthenticated, user, subscribe } = useAuthStore()

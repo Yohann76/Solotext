@@ -1,6 +1,5 @@
 <template>
   <div class="page pricing-page">
-    <CommonHeader />
 
     <section class="hero simple">
       <div class="container">
@@ -57,9 +56,10 @@
         <router-link to="/login" class="btn btn-outline btn-large">Connexion</router-link>
       </div>
     </footer>
+
   </div>
 </template>
 
 <script setup>
-import CommonHeader from '../components/CommonHeader.vue'
+// header & footer injectés par PublicLayout
 </script>

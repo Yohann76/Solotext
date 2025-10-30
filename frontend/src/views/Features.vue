@@ -1,6 +1,5 @@
 <template>
   <div class="page features-page">
-    <CommonHeader />
     <section class="hero simple">
       <div class="container">
         <h1>Fonctionnalités</h1>
@@ -42,9 +41,10 @@
         <router-link to="/login" class="btn btn-outline btn-large">Connexion</router-link>
       </div>
     </footer>
+
   </div>
 </template>
 
 <script setup>
-import CommonHeader from '../components/CommonHeader.vue'
+// header & footer injectés par PublicLayout
 </script>

@@ -6,7 +6,7 @@
 
 <script>
 import { ref, onMounted, onUnmounted } from 'vue'
-import NavBar from './navigation/NavBar.vue'
+import NavBar from './common/NavBar.vue'
 
 export default {
   name: 'CommonHeader',

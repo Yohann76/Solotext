@@ -33,7 +33,7 @@ Stripe:
 - on principal textarea, display number character, word, sentance..
 
 ## V1.21 Graphics
-- Update landing page with color chart (https://www.teachizy.fr/)
+- Update landing page with color chart graphic 
 - Add page : "conditions d’utilisation"  
 - Add page : "politique de confidentialité"  
 - Add Cookie management ()

@@ -518,9 +518,8 @@ export default {
 }
 
 .main-content {
-  padding-top: 70px; /* Hauteur du header fixe */
   margin-top: 2rem; /* Marge supplémentaire pour séparer du menu */
-  height: calc(100vh - 70px - 2rem);
+  height: calc(100vh - 125px - 2rem);
   overflow: hidden;
 }
 

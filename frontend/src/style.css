@@ -22,6 +22,11 @@ body {
   background: #fff;
 }
 
+/* Compensation pour le menu fixe sur toutes les pages */
+main, .main-content {
+  padding-top: 125px;
+}
+
 .container {
   max-width: 1200px;
   margin: 0 auto;

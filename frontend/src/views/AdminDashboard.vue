@@ -801,8 +801,7 @@ export default {
 }
 
 .main-content {
-  padding-top: 70px;
-  height: calc(100vh - 70px);
+  height: calc(100vh - 125px);
   overflow: hidden;
 }
 

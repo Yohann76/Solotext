@@ -4,7 +4,7 @@
       <div class="hero-inner">
       <div class="hero-content">
       <h1 class="hero-title">
-      Surveillez votre contenu en ligne<span class="title-accent">en ligne</span>
+      Surveillez votre contenu<span class="title-accent">en ligne</span>
       </h1>
       <p class="hero-description">
         Simple, flexible et 100% Français, SoloText est un outil pour surveillez la visibilité de vos textes partout sur le web (Chaque phrase est une recherche intégral sur le web)

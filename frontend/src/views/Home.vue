@@ -3,6 +3,8 @@
     <HomeHeader />
     <InfoBand />
 
+    <OurMission />
+
     <!-- CTA section for Features & Pricing -->
     <section class="cta">
       <div class="container">
@@ -36,6 +38,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import HomeHeader from '../components/HomeHeader.vue'
 import AppFooter from '../components/common/AppFooter.vue'
 import InfoBand from '../components/InfoBand.vue'
+import OurMission from '../components/home/OurMission.vue'
 import Notification from '../components/Notification.vue'
 import { useNotifications } from '../composables/useNotifications.js'
 import { useAuthStore } from '../stores/authStore.js'
@@ -45,6 +48,7 @@ export default {
   components: {
     HomeHeader,
     InfoBand,
+    OurMission,
     Notification,
     AppFooter
   },

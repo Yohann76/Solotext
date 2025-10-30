@@ -24,8 +24,8 @@
         <router-link to="/tarifs" class="nav-link" @click="closeMobile">Tarifs</router-link>
 
         <template v-if="!isAuthenticated">
-          <router-link to="/login" class="btn btn-outline" @click="closeMobile">Connexion</router-link>
-          <router-link to="/register" class="btn btn-primary" @click="closeMobile">Rejoindre l'aventure</router-link>
+          <router-link to="/login" class="btn btn-outline btn-pill" @click="closeMobile">Connexion</router-link>
+          <router-link to="/register" class="btn btn-primary btn-pill" @click="closeMobile">Rejoindre l'aventure</router-link>
         </template>
         <template v-else>
           <router-link to="/application" class="nav-link app-link" @click="closeMobile">Application</router-link>
@@ -103,7 +103,7 @@ export default {
   z-index: 1000;
   background: var(--gradient-section);
   color: #ffffff;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  /* border-bottom: 1px solid rgba(255, 255, 255, 0.08); */
   transition: background 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
@@ -115,12 +115,12 @@ export default {
 
 .nav {
   max-width: 1200px;
-  margin: 12px auto; /* espace en haut et en bas */
+  margin: 16px auto; /* espace en haut et en bas */
   padding: 0 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 70px;
+  height: 96px; /* proche de la maquette */
 }
 
 .nav-left { flex-shrink: 0; }
@@ -131,7 +131,7 @@ export default {
 }
 
 .logo {
-  font-size: 2rem;
+  font-size: 2.2rem;
   font-weight: 800;
   color: #ffffff;
   margin: 0;
@@ -140,7 +140,7 @@ export default {
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 2.5rem; /* espacement important comme la maquette */
   transition: transform 0.25s ease, opacity 0.25s ease;
 }
 
@@ -148,8 +148,8 @@ export default {
   text-decoration: none;
   color: #ffffff;
   font-weight: 600;
-  font-size: 1.05rem;
-  padding: 0.4rem 0; /* plus d'espace haut/bas */
+  font-size: 1.1rem;
+  padding: 0.5rem 0; /* plus d'espace haut/bas */
   transition: color 0.3s ease;
   position: relative;
 }
@@ -174,20 +174,22 @@ export default {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.8rem 1.6rem;
-  border-radius: 8px;
+  padding: 0.9rem 1.8rem;
+  border-radius: 10px;
   text-decoration: none;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 1.05rem;
   transition: all 0.3s ease;
   border: 2px solid transparent;
   cursor: pointer;
   min-width: 120px;
 }
 
+.btn-pill { border-radius: 9999px; }
+
 .btn-outline {
   color: #ffffff;
-  border-color: rgba(255,255,255,0.6);
+  border-color: rgba(255,255,255,0.7);
   background: transparent;
 }
 
@@ -221,10 +223,10 @@ export default {
   .burger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
   .burger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
-  .nav-links { position: fixed; inset: 70px 0 auto 0; background: rgba(255,255,255,0.98); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(0,0,0,0.06); padding: 12px 16px; transform: translateY(-110%); opacity: 0; display: grid; gap: 10px; }
+  .nav-links { position: fixed; inset: 96px 0 auto 0; background: linear-gradient(235.37deg, #072A25 0%, #031815 28%, #072A25 100%); padding: 16px; transform: translateY(-120%); opacity: 0; display: grid; gap: 12px; }
   .nav-links.open { transform: translateY(0); opacity: 1; }
-  .nav-link { font-size: 1rem; }
-.btn { padding: 0.6rem 1.2rem; font-size: 0.9rem; min-width: 100px; }
+  .nav-link { font-size: 1.1rem; padding: 0.75rem 0; }
+  .btn { padding: 0.8rem 1.4rem; font-size: 1rem; min-width: 120px; }
 }
 
 @media (max-width: 640px) {

@@ -1,6 +1,7 @@
 <template>
   <div class="home">
     <HomeHeader />
+    <InfoBand />
 
     <!-- CTA section for Features & Pricing -->
     <section class="cta">
@@ -66,6 +67,7 @@
 <script>
 import { ref, onMounted, onUnmounted } from 'vue'
 import HomeHeader from '../components/HomeHeader.vue'
+import InfoBand from '../components/InfoBand.vue'
 import Notification from '../components/Notification.vue'
 import { useNotifications } from '../composables/useNotifications.js'
 import { useAuthStore } from '../stores/authStore.js'
@@ -74,6 +76,7 @@ export default {
   name: 'Home',
   components: {
     HomeHeader,
+    InfoBand,
     Notification
   },
   setup() {

@@ -1,11 +1,140 @@
 :root {
+  /* Elementor Global Colors */
+  --e-global-color-primary: #32C4C0;
+  --e-global-color-secondary: #031815;
+  --e-global-color-text: #031815;
+  --e-global-color-accent: #06584C;
+  --e-global-color-23c35a1: #F2F7F6;
+  --e-global-color-3fa854f: #FFFFFF;
+  --e-global-color-4aa14ba: #019E8B;
+  --e-global-color-13280ed: #0000001A;
+  --e-global-color-34be739: #06584C;
+  --e-global-color-a57edc8: #717F7D;
+  --e-global-color-f3a0eba: #EE5622;
+  --e-global-color-2812d97: #FFF8F0;
+  --e-global-color-0d93b9c: #717F7D;
+  --e-global-color-4274c90: #FFA300;
+  --e-global-color-3fddcef: #00000000;
+  
+  /* Alias pour compatibilité */
   --color-primary: #32C4C0;
   --color-secondary: #031815;
   --color-text: #031815;
   --color-accent: #06584C;
+  
+  /* Gradients */
   --gradient-section: linear-gradient(235.37deg, #072A25 0%, #031815 28%, #072A25 100%);
   --gradient-btn: radial-gradient(109.32% 72.43% at 50% 12.35%, #031815 0%, #073C35 100%),
                   radial-gradient(75.97% 70.09% at 86.36% 93.51%, rgba(208, 208, 208, 0.2) 0%, rgba(255, 255, 255, 0) 100%);
+  
+  /* WordPress Presets - Colors */
+  --wp--preset--color--black: #000000;
+  --wp--preset--color--cyan-bluish-gray: #abb8c3;
+  --wp--preset--color--white: #ffffff;
+  --wp--preset--color--pale-pink: #f78da7;
+  --wp--preset--color--vivid-red: #cf2e2e;
+  --wp--preset--color--luminous-vivid-orange: #ff6900;
+  --wp--preset--color--luminous-vivid-amber: #fcb900;
+  --wp--preset--color--light-green-cyan: #7bdcb5;
+  --wp--preset--color--vivid-green-cyan: #00d084;
+  --wp--preset--color--pale-cyan-blue: #8ed1fc;
+  --wp--preset--color--vivid-cyan-blue: #0693e3;
+  --wp--preset--color--vivid-purple: #9b51e0;
+  
+  /* WordPress Presets - Gradients */
+  --wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);
+  --wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);
+  --wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgba(252,185,0,1) 0%,rgba(255,105,0,1) 100%);
+  --wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgba(255,105,0,1) 0%,rgb(207,46,46) 100%);
+  --wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);
+  --wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);
+  --wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);
+  --wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);
+  --wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);
+  --wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);
+  --wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);
+  --wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);
+  
+  /* Typography Elementor */
+  --e-global-typography-primary-font-family: "Neulis Alt";
+  --e-global-typography-primary-font-size: 48px;
+  --e-global-typography-primary-font-weight: 700;
+  --e-global-typography-primary-line-height: 1.2em;
+  --e-global-typography-secondary-font-family: "Neulis Alt";
+  --e-global-typography-secondary-font-size: 40px;
+  --e-global-typography-secondary-font-weight: 700;
+  --e-global-typography-secondary-line-height: 1.2em;
+  --e-global-typography-text-font-family: "Inter";
+  --e-global-typography-text-font-size: 18px;
+  --e-global-typography-text-font-weight: 400;
+  --e-global-typography-text-line-height: 28px;
+  --e-global-typography-accent-font-family: "Inter";
+  --e-global-typography-accent-font-weight: 700;
+  --e-global-typography-cb9037a-font-family: "Inter";
+  --e-global-typography-cb9037a-font-size: 16px;
+  --e-global-typography-3f602aa-font-size: 28px;
+  --e-global-typography-3f602aa-font-weight: 700;
+  
+  /* Layout */
+  --container-max-width: 1140px;
+  --content-width: 1264px;
+  --widgets-spacing: 20px 20px;
+  --widgets-spacing-row: 20px;
+  --widgets-spacing-column: 20px;
+  --gap: var(--widgets-spacing, 20px);
+  --row-gap: var(--widgets-spacing-row, 20px);
+  --column-gap: var(--widgets-spacing-column, 20px);
+  
+  /* Spacing presets */
+  --wp--preset--spacing--20: 0.44rem;
+  --wp--preset--spacing--30: 0.67rem;
+  --wp--preset--spacing--40: 1rem;
+  --wp--preset--spacing--50: 1.5rem;
+  --wp--preset--spacing--60: 2.25rem;
+  --wp--preset--spacing--70: 3.38rem;
+  --wp--preset--spacing--80: 5.06rem;
+  
+  /* Font sizes */
+  --wp--preset--font-size--small: 13px;
+  --wp--preset--font-size--medium: 20px;
+  --wp--preset--font-size--large: 36px;
+  --wp--preset--font-size--x-large: 42px;
+  
+  /* Shadows */
+  --wp--preset--shadow--natural: 6px 6px 9px rgba(0, 0, 0, 0.2);
+  --wp--preset--shadow--deep: 12px 12px 50px rgba(0, 0, 0, 0.4);
+  --wp--preset--shadow--sharp: 6px 6px 0px rgba(0, 0, 0, 0.2);
+  --wp--preset--shadow--outlined: 6px 6px 0px -3px rgba(255, 255, 255, 1), 6px 6px rgba(0, 0, 0, 1);
+  --wp--preset--shadow--crisp: 6px 6px 0px rgba(0, 0, 0, 1);
+  
+  /* Global styles */
+  --wp--style--global--content-size: 800px;
+  --wp--style--global--wide-size: 1200px;
+  --wp--style--block-gap: 24px;
+  
+  /* Flexbox defaults */
+  --flex-wrap: initial;
+  --align-items: initial;
+  --align-content: initial;
+  --flex-direction: row;
+  --justify-content: space-between;
+  
+  /* Border defaults */
+  --border-radius: 0;
+  --border-top-width: 0px;
+  --border-right-width: 0px;
+  --border-bottom-width: 0px;
+  --border-left-width: 0px;
+  
+  /* Spacing defaults */
+  --padding-top: 20px;
+  --padding-bottom: 20px;
+  --padding-left: 32px;
+  --padding-right: 32px;
+  --padding-inline-start: var(--padding-left);
+  --padding-inline-end: var(--padding-right);
+  --padding-block-start: var(--padding-top);
+  --padding-block-end: var(--padding-bottom);
 }
 
 /* Reset et base */

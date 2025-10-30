@@ -8,7 +8,6 @@ Multy-provider:
  
 Improve base:
 - Les phrases non tester/dupliquer, doivent etre en surligné/gris
-- Le / (home), must be return home page (with / and without /)
 - Improve history analyse (small card, and color from analysis, add nbr sentence in card)
 
 RealtTime:

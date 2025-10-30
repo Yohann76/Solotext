@@ -1,0 +1,125 @@
+# ============================================
+# .cursorrules
+# Cursor AI rules for a Node.js (Express) + Vue.js project
+# ============================================
+
+# === General Philosophy ===
+- Code must be clean, maintainable, and follow SOLID principles.
+- Prefer readability over cleverness.
+- Apply separation of concerns strictly (controllers, services, models, utils).
+- Every module should have a single, clear responsibility.
+- Follow consistent naming and file structure conventions across backend and frontend.
+- All comments and documentation must be written in English.
+
+# === Backend (Node.js + Express) ===
+- Use ES Modules (import/export) syntax; avoid require() unless absolutely necessary.
+- Follow a layered architecture:
+  - `/routes` → only define endpoints and link to controllers.
+  - `/controllers` → handle request/response logic, no business logic.
+  - `/services` → contain business logic.
+  - `/models` → define data models and schemas (e.g., with Mongoose or Prisma).
+  - `/repository` → only define endpoints and link to controllers.
+  - `/utils` → for shared helper functions.
+  - `/middlewares` → for request preprocessing (auth, validation, etc).
+- Always validate incoming data using a schema validator (e.g., Zod, Joi, Yup).
+- Handle errors using centralized error-handling middleware.
+- Return consistent JSON responses with clear structure (`{ success, data, message, error }`).
+- Use async/await, never mix with raw Promise chains.
+- Include descriptive log messages with context in every major operation.
+- Include JSDoc-style comments for all exported functions and classes.
+- Type-check the backend code using TypeScript or JSDoc typedefs.
+- When writing services or data layers, inject dependencies instead of importing globally.
+- Avoid hardcoded constants; store them in a dedicated `/config` folder.
+
+# === Backend Naming Conventions ===
+- Classes → PascalCase (e.g., `UserService`)
+- Functions → camelCase (e.g., `getUserById`)
+- Constants → UPPER_SNAKE_CASE
+- Filenames → kebab-case.js (e.g., `user-service.js`)
+- Private properties or helpers → prefix with underscore
+
+# === Frontend (Vue.js 3 + Composition API) ===
+- Use `<script setup>` syntax for all Vue components.
+- Organize code by feature domain, not by file type.
+  Example:
+    /src
+      /users
+        UserList.vue
+        UserForm.vue
+        useUserStore.js
+        userService.js
+- Use Pinia for state management.
+- Avoid mutating reactive state directly outside stores.
+- Use composables (`/src/composables`) for shared logic between components.
+- Use TypeScript or JSDoc for typing props, emits, and stores.
+- Use Tailwind CSS for styling; prefer utility classes over inline CSS.
+- Keep components small and focused; each component should do one thing well.
+- All components must have a clear naming convention (`UserCard.vue`, `AppHeader.vue`).
+- Use event emits with clear names (e.g., `onUserSelected` → `user-selected`).
+- Keep template logic minimal; move complex logic to `<script>`.
+
+# === Frontend Naming Conventions ===
+- Components → PascalCase (e.g., `UserCard.vue`)
+- Composables → useSomething (e.g., `useAuth`)
+- Stores → descriptive names (e.g., `useUserStore`)
+- Constants → UPPER_SNAKE_CASE
+- Folders → kebab-case
+
+# === Documentation & Comments ===
+- Use English for all comments and documentation.
+- Each public class, method, and function must include a JSDoc comment explaining:
+  - Purpose
+  - Parameters
+  - Return type
+  - Side effects (if any)
+- For frontend components, use comments to describe props and emitted events.
+
+# === Error Handling & Logging ===
+- Never expose raw error stacks to the client.
+- Use centralized error middleware in Express.
+- Log meaningful error messages (context + action + result).
+- For Vue, handle API errors gracefully and display user-friendly messages.
+- Use consistent HTTP status codes.
+
+# === Testing ===
+- Use Jest for both backend and frontend.
+- Backend:
+  - Unit test services and controllers.
+  - Mock external dependencies and DB calls.
+- Frontend:
+  - Use Vue Test Utils for component testing.
+  - Snapshot test critical UI components.
+- All tests should be placed under `/tests` mirroring the main structure.
+- Naming convention for tests: `<filename>.test.js`.
+
+# === Git & Project Hygiene ===
+- Commit messages must be in English and follow Conventional Commits (e.g., `feat:`, `fix:`, `chore:`).
+- Do not commit build outputs or environment files.
+- Keep `.env.example` up to date.
+- Avoid pushing experimental code directly to `main` or `master`.
+
+# === AI Assistance Guidelines ===
+- Prefer generating code that integrates seamlessly with the existing architecture.
+- Avoid rewriting entire files unless explicitly requested.
+- Suggest refactors that improve clarity, modularity, or performance.
+- When generating code, always include relevant docstrings or inline comments.
+
+# === Example of Ideal Code Structure ===
+# backend/
+#   src/
+#     config/
+#     routes/
+#     controllers/
+#     services/
+#     models/
+#     middlewares/
+#     utils/
+# frontend/
+#   src/
+#     components/
+#     composables/
+#     stores/
+#     services/
+#     views/
+#     router/
+#     assets/

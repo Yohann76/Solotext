@@ -16,12 +16,12 @@
         </p>
         <div class="hero-actions">
           <template v-if="!isAuthenticated">
-            <router-link to="/register" class="btn btn-primary btn-large">Essayer gratuitement</router-link>
-            <router-link to="/login" class="btn btn-secondary btn-large">Se connecter</router-link>
+            <router-link to="/login" class="btn btn-secondary btn-large">Connexion</router-link>
+            <router-link to="/register" class="btn btn-primary btn-large">Rejoindre l'aventure</router-link>
           </template>
           <template v-else>
-            <button class="btn btn-primary btn-large">Accéder au tableau de bord</button>
-            <button class="btn btn-secondary btn-large">Voir mes analyses</button>
+            <router-link to="/application" class="btn btn-primary btn-large">Accéder au tableau de bord</router-link>
+            <router-link to="/application" class="btn btn-secondary btn-large">Voir mes analyses</router-link>
           </template>
         </div>
         <div class="hero-stats">
@@ -59,95 +59,14 @@
       </div>
     </section>
 
-    <!-- Features Section -->
-    <section id="features" class="features">
-      <div class="container">
-        <h2 class="section-title">Pourquoi choisir SoloText ?</h2>
-        <div class="features-grid">
-          <div class="feature-card">
-            <div class="feature-icon">⚡</div>
-            <h3>Rapide et efficace</h3>
-            <p>Interface intuitive et réactive pour une productivité maximale</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-icon">🔒</div>
-            <h3>Sécurisé</h3>
-            <p>Vos données sont protégées avec un chiffrement de niveau entreprise</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-icon">🌐</div>
-            <h3>Collaboratif</h3>
-            <p>Partagez et collaborez en temps réel avec votre équipe</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-icon">📱</div>
-            <h3>Multi-plateforme</h3>
-            <p>Accessible sur tous vos appareils, partout dans le monde</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Pricing Section -->
-    <section id="pricing" class="pricing">
-      <div class="container">
-        <h2 class="section-title">Tarifs simples et transparents</h2>
-        <div class="pricing-grid">
-          <div class="pricing-card">
-            <h3>Gratuit</h3>
-            <div class="price">
-              <span class="currency">€</span>
-              <span class="amount">0</span>
-              <span class="period">/mois</span>
-            </div>
-            <ul class="features-list">
-              <li>5 documents</li>
-              <li>1 Go de stockage</li>
-              <li>Support email</li>
-            </ul>
-            <button class="btn btn-outline">Commencer</button>
-          </div>
-          <div class="pricing-card featured">
-            <div class="badge">Populaire</div>
-            <h3>Pro</h3>
-            <div class="price">
-              <span class="currency">€</span>
-              <span class="amount">19</span>
-              <span class="period">/mois</span>
-            </div>
-            <ul class="features-list">
-              <li>Documents illimités</li>
-              <li>100 Go de stockage</li>
-              <li>Collaboration en temps réel</li>
-              <li>Support prioritaire</li>
-            </ul>
-            <button class="btn btn-primary">Essayer Pro</button>
-          </div>
-          <div class="pricing-card">
-            <h3>Entreprise</h3>
-            <div class="price">
-              <span class="currency">€</span>
-              <span class="amount">49</span>
-              <span class="period">/mois</span>
-            </div>
-            <ul class="features-list">
-              <li>Tout de Pro</li>
-              <li>Stockage illimité</li>
-              <li>API avancée</li>
-              <li>Support dédié</li>
-            </ul>
-            <button class="btn btn-outline">Nous contacter</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- CTA Section -->
+    <!-- CTA section for Features & Pricing -->
     <section class="cta">
       <div class="container">
-        <h2>Prêt à commencer ?</h2>
-        <p>Rejoignez des milliers d'utilisateurs qui font confiance à SoloText</p>
-        <button class="btn btn-primary btn-large">Commencer maintenant</button>
+        <h2>Découvrez SoloText</h2>
+        <div class="cta-row">
+          <router-link to="/fonctionnalites" class="btn btn-outline btn-large">Fonctionnalités</router-link>
+          <router-link to="/tarifs" class="btn btn-outline btn-large">Tarifs</router-link>
+        </div>
       </div>
     </section>
 
@@ -162,8 +81,8 @@
           <div class="footer-links">
             <div class="footer-column">
               <h4>Produit</h4>
-              <a href="#">Fonctionnalités</a>
-              <a href="#">Tarifs</a>
+              <router-link to="/fonctionnalites">Fonctionnalités</router-link>
+              <router-link to="/tarifs">Tarifs</router-link>
               <a href="#">API</a>
             </div>
             <div class="footer-column">
@@ -221,26 +140,11 @@ export default {
     onMounted(() => {
       // S'abonner aux changements d'authentification
       const unsubscribe = subscribe(() => {
-        // Notification de connexion
         if (isAuthenticated.value) {
           success(`Bienvenue ${user.value?.displayName || 'Utilisateur'} ! Vous êtes maintenant connecté.`)
         }
       })
-      
-      // Smooth scrolling pour les liens d'ancrage
-      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-          e.preventDefault()
-          const target = document.querySelector(this.getAttribute('href'))
-          if (target) {
-            target.scrollIntoView({
-              behavior: 'smooth',
-              block: 'start'
-            })
-          }
-        })
-      })
-      
+
       // Nettoyer l'abonnement
       onUnmounted(() => {
         unsubscribe()

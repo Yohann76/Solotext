@@ -7,14 +7,13 @@
         </router-link>
       </div>
       <div class="nav-links">
-        <a href="#features" class="nav-link">Fonctionnalités</a>
-        <a href="#pricing" class="nav-link">Tarifs</a>
-        <a href="#contact" class="nav-link">Contact</a>
+        <router-link to="/fonctionnalites" class="nav-link">Fonctionnalités</router-link>
+        <router-link to="/tarifs" class="nav-link">Tarifs</router-link>
         
         <!-- Liens pour utilisateurs non authentifiés -->
         <template v-if="!isAuthenticated">
-          <router-link to="/login" class="btn btn-outline">Se connecter</router-link>
-          <router-link to="/register" class="btn btn-primary">S'inscrire</router-link>
+          <router-link to="/login" class="btn btn-outline">Connexion</router-link>
+          <router-link to="/register" class="btn btn-primary">Rejoindre l'aventure</router-link>
         </template>
         
         <!-- Liens pour utilisateurs authentifiés -->
@@ -53,19 +52,7 @@ export default {
     }
 
     onMounted(() => {
-      // Smooth scrolling pour les liens d'ancrage
-      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-          e.preventDefault()
-          const target = document.querySelector(this.getAttribute('href'))
-          if (target) {
-            target.scrollIntoView({
-              behavior: 'smooth',
-              block: 'start'
-            })
-          }
-        })
-      })
+      // Plus de scroll d'ancrage: remplacer par routes
     })
 
     return {

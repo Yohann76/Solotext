@@ -35,34 +35,20 @@
       </div>
     </div>
     <div class="hero-image">
-      <div class="mockup">
-        <div class="mockup-header">
-          <div class="mockup-dots">
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
-        </div>
-        <div class="mockup-content">
-          <div class="mockup-text">
-            <div class="text-line"></div>
-            <div class="text-line"></div>
-            <div class="text-line short"></div>
-          </div>
-        </div>
-      </div>
+      <img :src="heroIllustration" alt="SoloText illustration" class="hero-illustration" />
     </div>
   </section>
 </template>
 
 <script>
 import { useAuthStore } from '../stores/authStore.js'
+import heroIllustration from '../assets/undraw_svg/undraw_file-bundle_oaof.svg'
 
 export default {
   name: 'HomeHeader',
   setup() {
     const { isAuthenticated } = useAuthStore()
-    return { isAuthenticated }
+    return { isAuthenticated, heroIllustration }
   }
 }
 </script>
@@ -173,49 +159,11 @@ export default {
   justify-content: center;
 }
 
-.mockup {
+.hero-illustration {
   width: 100%;
-  max-width: 520px;
-  border-radius: 16px;
-  background: #0b1f1c;
-  box-shadow: 0 20px 50px rgba(7, 60, 53, 0.25);
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.mockup-header {
-  height: 44px;
-  padding: 0 12px;
-  display: flex;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.mockup-dots {
-  display: flex;
-  gap: 8px;
-}
-
-.mockup-dots span {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.35);
-}
-
-.mockup-content {
-  padding: 24px;
-}
-
-.mockup-text .text-line {
-  height: 12px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.15);
-  margin-bottom: 12px;
-}
-
-.mockup-text .text-line.short {
-  width: 60%;
+  max-width: 560px;
+  height: auto;
+  filter: drop-shadow(0 20px 50px rgba(7, 60, 53, 0.25));
 }
 
 @media (max-width: 1024px) {

@@ -107,7 +107,7 @@ onUnmounted(() => {
   position: relative;
 }
 
-.nav-link:hover { color: var(--color-primary); }
+.nav-link:hover { color: #031815; }
 
 .app-link {
   color: #ffffff;
@@ -117,7 +117,7 @@ onUnmounted(() => {
   transition: color 0.3s ease;
 }
 
-.app-link:hover { color: var(--color-primary); }
+.app-link:hover { color: #031815; }
 
 .btn {
   display: inline-flex;

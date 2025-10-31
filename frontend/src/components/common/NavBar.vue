@@ -100,8 +100,9 @@ onUnmounted(() => {
 .nav-link {
   text-decoration: none;
   color: #ffffff;
-  font-weight: 600;
-  font-size: 1.1rem;
+  font-weight: 500;
+  font-size: 20px;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   padding: 0.5rem 0;
   transition: color 0.3s ease;
   position: relative;
@@ -111,7 +112,9 @@ onUnmounted(() => {
 
 .app-link {
   color: #ffffff;
-  font-weight: 700;
+  font-weight: 500;
+  font-size: 20px;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   padding: 0.5rem 1rem;
   border-radius: 8px;
   transition: color 0.3s ease;

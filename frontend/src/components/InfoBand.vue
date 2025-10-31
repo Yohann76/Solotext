@@ -91,7 +91,7 @@ export default {
 .info-title {
   color: rgba(255, 255, 255, 0.95);
   font-family: var(--e-global-typography-text-font-family), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-  font-size: 16px;
+  font-size: 20px;
   font-weight: var(--e-global-typography-accent-font-weight);
   line-height: 1.5;
   margin: 0;
@@ -108,7 +108,7 @@ export default {
   }
   
   .info-title {
-    font-size: 14px;
+    font-size: 18px;
   }
 }
 
@@ -116,6 +116,10 @@ export default {
   .info-band-inner {
     flex-direction: column;
     gap: var(--wp--preset--spacing--50);
+  }
+  
+  .info-title {
+    font-size: 16px;
   }
 }
 </style>

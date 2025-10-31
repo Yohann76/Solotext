@@ -1,20 +1,9 @@
 <template>
   <div class="home">
+  
     <HomeHeader />
     <InfoBand />
-
     <OurMission />
-
-    <!-- CTA section for Features & Pricing -->
-    <section class="cta">
-      <div class="container">
-        <h2>Découvrez SoloText</h2>
-        <div class="cta-row">
-          <router-link to="/fonctionnalites" class="btn btn-outline btn-large">Fonctionnalités</router-link>
-          <router-link to="/tarifs" class="btn btn-outline btn-large">Tarifs</router-link>
-        </div>
-      </div>
-    </section>
 
     <AppFooter />
 

@@ -18,7 +18,7 @@
       -->
 
       <h2 id="our-mission-title" class="elementor-heading-title">Notre mission</h2>
-      <p class="lead">Teachizy s’engage pour inventer la pédagogie de demain, au service de ceux qui veulent partager !</p>
+      <p class="lead">Solotext s’engage a avoir la meilleure qualité de service pour nos clients, a un prix abordable et accessible pour tous !</p>
 
       <div class="e-con e-child features">
         <div class="card card--teal">

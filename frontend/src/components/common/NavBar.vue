@@ -2,7 +2,7 @@
   <nav class="nav">
     <div class="nav-left">
       <router-link to="/" class="logo-link" aria-label="Accueil SoloText">
-        <h1 class="logo">SoloText</h1>
+        <h1 class="logo">Solo<span class="logo-text">Text</span></h1>
       </router-link>
     </div>
 
@@ -88,6 +88,10 @@ onUnmounted(() => {
   font-weight: 800;
   color: #ffffff;
   margin: 0;
+}
+
+.logo-text {
+  color: #031815;
 }
 
 .nav-links {

@@ -513,19 +513,26 @@ export default {
 
 <style scoped>
 .application {
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  overflow: hidden;
 }
 
 .main-content {
-  margin-top: 2rem; /* Marge supplémentaire pour séparer du menu */
-  height: calc(100vh - 125px - 2rem);
+  flex: 1;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding-top: 130px; /* Compensation pour le header fixe (hauteur header ~128px + marge) */
 }
 
 .app-layout {
   display: flex;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .sidebar {
@@ -535,6 +542,7 @@ export default {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 0;
 }
 
 .sidebar-header {

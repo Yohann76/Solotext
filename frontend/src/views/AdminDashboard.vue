@@ -796,18 +796,26 @@ export default {
 
 <style scoped>
 .admin-dashboard {
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  overflow: hidden;
 }
 
 .main-content {
-  height: calc(100vh - 125px);
+  flex: 1;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding-top: 128px; /* Compensation pour le header fixe */
 }
 
 .dashboard-layout {
   display: flex;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .admin-sidebar {
@@ -817,6 +825,7 @@ export default {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 0;
 }
 
 .sidebar-header {

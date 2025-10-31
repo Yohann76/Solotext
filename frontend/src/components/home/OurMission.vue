@@ -52,9 +52,6 @@
         </div>
       </div>
 
-      <div class="cta">
-        <a class="elementor-button" href="https://app.teachizy.fr/inscription" target="_blank" rel="noopener">Inscription gratuite</a>
-      </div>
     </div>
   </section>
 </template>

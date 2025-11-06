@@ -7,28 +7,29 @@ Multy-provider(Later):
 - Create Second service with APIFY, or google content search..
  
 Improve base:
-- Les phrases non tester/dupliquer, doivent etre en surligné/gris
+- Les phrases non tester en base de données, doivent etre en surligné/gris (pour les long textes)
 - Improve history analyse (small card, and color from analysis, add nbr sentence in card)
-- L'algo pour detecter le nombre de phrase doit etre le méme pour le back et pour le front (pour afficher la prévisualisation des phrases dans le textarea du frontend)
+- Afficher le nombre de phrases et de mots dans le textarea pour avoir un nombre de crédit phrase qui vas etre utilisé.
 
 RealtTime:
-- Each phrase textarea must be display test in realt-time
+- Each phrase textarea must be display test in realt-time (in progress)
 - Le % dans l’historique doit se rafraîchir automatique a chaque changement
 
 ## V1.1 Payment Interface
 Stripe: 
-- Add stripe paiement (with différent subscription, active etc...)
+- Add stripe paiement (with différent subscription, active etc...) -> redirect page with button..
 
 ## V1.1.2 Limit user
 - add Limit Sentence per user/per month
+- User base : 200 free sentence
 - display limit under Historique des analyses (under 7 analyses..)
 - Stop analyse if limit is full
 - Add different role (admin, prenium6000, prenium3000, prenium1000, user)
-- Add 3 analyse demo (free analyse) (add counter per user)
-- After 3 analayse, display message -> your free version is end, you can pay for  analysis
+- After use 200 free sentence credit, display message for pay
 
 ## V1.2 Functionnal +
-- Add newletter API (for register new email from newletter form in footer)(new table with email + activate/desactive boolean)
+- Add post api in back (for register new email from newletter form in footer)(new table with email + activate/desactive boolean)
+
 - Add github action (test + prettier?)
 - Add backup DB (container export)
 - Add red banner on top website (only on application) for display message..
@@ -69,7 +70,7 @@ Stripe:
 ## V1.4 Deploy Saas - Saas is online!
 
 - Kubernetes for deployment/ Other simple deploy
-- Buy NDD (OVH)
+- Buy NDD (OVH) (solotext.io)
 - Buy VPS (OVH)
 - Use HTTPS Certificat (Let's Encryptt)
 
@@ -81,9 +82,16 @@ Stripe:
 
 - Add other source of document (search student university), and put type search in request post json for analyse different source (document/web...)(Prepare API for different marketing target)
 
-## V3 Project 
+## V3 Project (Extension for use existent API)
 
 - Wordpress Plugin (need API, customer en website...)
+- Extension chrome for need sentance
+
+## V4 Project (New target)
+
+- Actual website -> for content/agency SEO
+
+- Add new website (color blue) -> for school (1 university, different professor licence...)
 
 ----------------------------------------------------------------------
 

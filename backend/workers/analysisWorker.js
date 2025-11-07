@@ -16,7 +16,9 @@ class AnalysisWorker {
     this.connection = null;
     this.channel = null;
     this.queueName = process.env.ANALYSIS_QUEUE || 'analysis_queue';
-    this.rabbitmqUrl = process.env.RABBITMQ_URL || 'amqp://admin:admin123@localhost:5672';
+    // Note: In Docker, use service name (e.g., 'rabbitmq'), not 'localhost'
+    const defaultHost = process.env.NODE_ENV === 'production' ? 'rabbitmq' : 'localhost';
+    this.rabbitmqUrl = process.env.RABBITMQ_URL || `amqp://admin:admin123@${defaultHost}:5672`;
     this.perplexityService = new PerplexityService(process.env.PERPLEXITY_API_KEY);
     this.providerService = new ProviderService();
   }

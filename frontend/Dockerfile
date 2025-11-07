@@ -8,10 +8,14 @@ WORKDIR /app
 COPY package*.json ./
 
 # Installer les dépendances (y compris dev dependencies)
-RUN npm install
+RUN npm install && \
+    chmod -R 755 /app/node_modules/.bin
 
 # Copier le code source
 COPY . .
+
+# S'assurer que les permissions sont correctes
+RUN chmod -R 755 /app/node_modules/.bin || true
 
 # Exposer le port de développement
 EXPOSE 8080

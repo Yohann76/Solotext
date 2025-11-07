@@ -3,8 +3,9 @@ const { Sequelize } = require('sequelize');
 // file for database in application 
 
 // Database configuration
+// Note: In Docker, use service name (e.g., 'postgres'), not 'localhost'
 const sequelize = new Sequelize({
-  host: process.env.DB_HOST || 'localhost',
+  host: process.env.DB_HOST || (process.env.NODE_ENV === 'production' ? 'postgres' : 'localhost'),
   port: process.env.DB_PORT || 5432,
   database: process.env.DB_NAME || 'solotext_db',
   username: process.env.DB_USER || 'solotext_user',

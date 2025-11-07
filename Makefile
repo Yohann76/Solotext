@@ -21,13 +21,13 @@ help:
 # Build Docker images
 dev-build:
 	@echo "Building Docker images..."
-	docker-compose build --no-cache
+	@sg docker -c "docker compose build --no-cache"
 	@echo "Images built successfully!"
 
 # Start services in development mode
 dev-run:
 	@echo "Starting services SoloText..."
-	docker-compose up -d
+	@sg docker -c "docker compose up -d"
 	@echo "Services started!"
 	@echo ""
 	@echo "Frontend: http://localhost:8080"
@@ -41,30 +41,30 @@ dev-run:
 # Stop all services
 dev-kill:
 	@echo "Stopping services SoloText..."
-	docker-compose down
+	@sg docker -c "docker compose down"
 	@echo "Services stopped!"
 
 # Display logs
 dev-logs:
 	@echo "Logs of the services SoloText..."
-	docker-compose logs -f
+	@sg docker -c "docker compose logs -f"
 
 # Display the status of the services
 dev-status:
 	@echo "Status of the services SoloText..."
-	docker-compose ps
+	@sg docker -c "docker compose ps"
 
 # Restart the services
 dev-restart:
 	@echo "Restarting services SoloText..."
-	docker-compose restart
+	@sg docker -c "docker compose restart"
 	@echo "Services restarted!"
 
 # Clean completely (images, volumes, containers)
 dev-clean:
 	@echo "Cleaning completely the project SoloText..."
-	docker-compose down -v --rmi all --remove-orphans
-	docker system prune -f
+	@sg docker -c "docker compose down -v --rmi all --remove-orphans"
+	@sg docker -c "docker system prune -f"
 	@echo "Cleaning completed!"
 
 # Default command

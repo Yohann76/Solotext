@@ -2,10 +2,8 @@
 
 ## V1 Base Saas, and short therm option
 
-Multy-provider(Later):
-- Study input/output perplexity service for have same parameter in different provider
-- Create Second service with APIFY, or google content search..
- 
+- Buy stagging VPS on OVH for development
+
 Improve base:
 - Les phrases non tester en base de données, doivent etre en surligné/gris (pour les long textes)
 - Improve history analyse (small card, and color from analysis, add nbr sentence in card)
@@ -30,6 +28,11 @@ Stripe:
 ## V1.2 Functionnal +
 - Add post api in back (for register new email from newletter form in footer)(new table with email + activate/desactive boolean)
 
+Multy-provider(Later):
+- Study input/output perplexity service for have same parameter in different provider
+- Create Second service with APIFY, or google content search..
+ 
+ 
 - Add github action (test + prettier?)
 - Add backup DB (container export)
 - Add red banner on top website (only on application) for display message..

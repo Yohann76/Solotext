@@ -347,21 +347,39 @@ export default {
 
     // Créer le texte avec surlignage des phrases
     const highlightedText = computed(() => {
-      if (!selectedAnalysis.value || !selectedAnalysisSentences.value.length) {
-        return selectedAnalysis.value?.source_text || ''
+      if (!selectedAnalysis.value) {
+        return ''
       }
 
       let text = selectedAnalysis.value.source_text
       const sentences = selectedAnalysisSentences.value
 
+      // Si aucune phrase n'est chargée, retourner le texte sans surlignage
+      if (!sentences.length) {
+        return text
+      }
+      
       // Remplacer chaque phrase par sa version surlignée
       sentences.forEach(sentence => {
         const sentenceText = sentence.sentence_text.trim()
         if (sentenceText && text.includes(sentenceText)) {
-          const className = sentence.is_duplicate ? 'sentence-duplicate' : 'sentence-original'
-          const title = sentence.is_duplicate 
-            ? `Source: ${sentence.source_url || 'Non spécifiée'}` 
-            : 'Phrase originale'
+          // Déterminer la classe CSS selon le statut de test et de duplication
+          let className
+          let title
+          
+          if (!sentence.is_test) {
+            // Phrase non testée → gris
+            className = 'sentence-untested'
+            title = 'Phrase non testée'
+          } else if (sentence.is_duplicate) {
+            // Phrase testée et dupliquée → rouge
+            className = 'sentence-duplicate'
+            title = `Source: ${sentence.source_url || 'Non spécifiée'}`
+          } else {
+            // Phrase testée et originale → vert
+            className = 'sentence-original'
+            title = 'Phrase originale'
+          }
           
           const highlightedSentence = `<span class="sentence-highlight ${className}" title="${title}">${sentenceText}</span>`
           text = text.replace(sentenceText, highlightedSentence)

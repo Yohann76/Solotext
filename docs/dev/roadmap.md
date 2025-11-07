@@ -5,7 +5,6 @@
 - Buy stagging VPS on OVH for development
 
 Improve base:
-- Les phrases non tester en base de données, doivent etre en surligné/gris (pour les long textes)
 - Improve history analyse (small card, and color from analysis, add nbr sentence in card)
 - Afficher le nombre de phrases et de mots dans le textarea pour avoir un nombre de crédit phrase qui vas etre utilisé.
 

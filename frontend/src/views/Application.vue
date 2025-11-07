@@ -372,8 +372,18 @@ export default {
           form.value.text = '' // Vider le formulaire après analyse
           // Recharger la liste des analyses
           await loadAnalyses()
+          // Sélectionner automatiquement la nouvelle analyse pour afficher son résultat
+          const newAnalysis = result.data.analysis
+          await selectAnalysis(newAnalysis)
           // Démarrer le rafraîchissement automatique pour la nouvelle analyse
           startAutoRefresh()
+          // Scroller vers la vue de l'analyse
+          setTimeout(() => {
+            const viewerElement = document.querySelector('.analysis-viewer')
+            if (viewerElement) {
+              viewerElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            }
+          }, 100)
         } else {
           error(result.message || 'Erreur lors de la création de l\'analyse')
         }

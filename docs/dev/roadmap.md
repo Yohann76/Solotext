@@ -10,7 +10,7 @@ Improve base:
 
 RealtTime:
 - Each phrase textarea must be display test in realt-time (in progress)
-- Le % dans l’historique doit se rafraîchir automatique a chaque changement
+
 
 ## V1.1 Payment Interface
 Stripe: 

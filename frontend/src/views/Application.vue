@@ -229,6 +229,9 @@ export default {
     
     // Timer pour le délai de disparition
     let hideTimer = null
+    
+    // Timer pour le rafraîchissement automatique des pourcentages
+    let refreshInterval = null
 
     // Vérifier l'authentification et charger les analyses
     onMounted(async () => {
@@ -240,10 +243,13 @@ export default {
       await loadAnalyses()
     })
 
-    // Nettoyer le timer à la destruction du composant
+    // Nettoyer les timers à la destruction du composant
     onUnmounted(() => {
       if (hideTimer) {
         clearTimeout(hideTimer)
+      }
+      if (refreshInterval) {
+        clearInterval(refreshInterval)
       }
     })
 
@@ -252,10 +258,91 @@ export default {
         const result = await analysisService.getAnalyses(1, 50) // Charger les 50 dernières analyses
         if (result.success) {
           analyses.value = result.data.analyses
+          // Démarrer le rafraîchissement automatique si nécessaire
+          startAutoRefresh()
         }
       } catch (err) {
         console.error('Erreur lors du chargement des analyses:', err)
         error('Erreur lors du chargement de l\'historique')
+      }
+    }
+
+    // Rafraîchir uniquement les pourcentages des analyses en cours
+    const refreshPercentages = async () => {
+      try {
+        // Identifier les analyses qui doivent être rafraîchies :
+        // - Celles qui n'ont pas encore de pourcentage (même si terminées)
+        // - Celles qui ne sont pas en erreur
+        const pendingAnalyses = analyses.value.filter(
+          analysis => {
+            const hasError = analysis.status === 'error' || 
+                           analysis.status === 'sentence_analysis_error' || 
+                           analysis.status === 'sentence_segmentation_error'
+            const hasPercent = analysis.duplicate_percent !== null && analysis.duplicate_percent !== undefined
+            // Rafraîchir si pas d'erreur et pas de pourcentage (même si terminée)
+            return !hasError && !hasPercent
+          }
+        )
+
+        if (pendingAnalyses.length === 0) {
+          // Plus d'analyses en cours, arrêter le rafraîchissement
+          if (refreshInterval) {
+            clearInterval(refreshInterval)
+            refreshInterval = null
+          }
+          return
+        }
+
+        // Récupérer les données mises à jour pour chaque analyse en cours
+        const updatePromises = pendingAnalyses.map(async (analysis) => {
+          try {
+            const result = await analysisService.getAnalysis(analysis.id)
+            if (result.success && result.data.analysis) {
+              const updatedAnalysis = result.data.analysis
+              // Mettre à jour uniquement les champs pertinents
+              const index = analyses.value.findIndex(a => a.id === analysis.id)
+              if (index !== -1) {
+                analyses.value[index].duplicate_percent = updatedAnalysis.duplicate_percent
+                analyses.value[index].status = updatedAnalysis.status
+                
+                // Si l'analyse sélectionnée est mise à jour, mettre à jour aussi selectedAnalysis
+                if (selectedAnalysis.value && selectedAnalysis.value.id === analysis.id) {
+                  selectedAnalysis.value.duplicate_percent = updatedAnalysis.duplicate_percent
+                  selectedAnalysis.value.status = updatedAnalysis.status
+                }
+              }
+            }
+          } catch (err) {
+            console.error(`Erreur lors de la mise à jour de l'analyse ${analysis.id}:`, err)
+          }
+        })
+
+        await Promise.all(updatePromises)
+      } catch (err) {
+        console.error('Erreur lors du rafraîchissement des pourcentages:', err)
+      }
+    }
+
+    const startAutoRefresh = () => {
+      if (refreshInterval) {
+        clearInterval(refreshInterval)
+      }
+      
+      const hasPendingAnalyses = analyses.value.some(
+        analysis => {
+          const hasError = analysis.status === 'error' || 
+                         analysis.status === 'sentence_analysis_error' || 
+                         analysis.status === 'sentence_segmentation_error'
+          const hasPercent = analysis.duplicate_percent !== null && analysis.duplicate_percent !== undefined
+          return !hasError && !hasPercent
+        }
+      )
+
+      if (hasPendingAnalyses) {
+        // Rafraîchir toutes les 3 secondes
+        refreshInterval = setInterval(() => {
+          refreshPercentages()
+        }, 3000)
       }
     }
 
@@ -285,6 +372,8 @@ export default {
           form.value.text = '' // Vider le formulaire après analyse
           // Recharger la liste des analyses
           await loadAnalyses()
+          // Démarrer le rafraîchissement automatique pour la nouvelle analyse
+          startAutoRefresh()
         } else {
           error(result.message || 'Erreur lors de la création de l\'analyse')
         }

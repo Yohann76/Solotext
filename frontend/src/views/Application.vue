@@ -229,9 +229,10 @@ export default {
     
     // Timer pour le délai de disparition
     let hideTimer = null
-    
     // Timer pour le rafraîchissement automatique des pourcentages
     let refreshInterval = null
+    // Timer pour le rafraîchissement automatique des phrases
+    let refreshSentencesInterval = null
 
     // Vérifier l'authentification et charger les analyses
     onMounted(async () => {
@@ -250,6 +251,9 @@ export default {
       }
       if (refreshInterval) {
         clearInterval(refreshInterval)
+      }
+      if (refreshSentencesInterval) {
+        clearInterval(refreshSentencesInterval)
       }
     })
 
@@ -397,19 +401,77 @@ export default {
 
     // Sélectionner une analyse pour la visualiser
     const selectAnalysis = async (analysis) => {
+      // Arrêter le rafraîchissement des phrases précédent
+      if (refreshSentencesInterval) {
+        clearInterval(refreshSentencesInterval)
+        refreshSentencesInterval = null
+      }
+      
       selectedAnalysis.value = analysis
       try {
         // Charger les phrases de cette analyse
         const sentences = await analysisService.getAnalysisSentences(analysis.id)
         selectedAnalysisSentences.value = sentences
+        
+        // Démarrer le rafraîchissement automatique des phrases si l'analyse n'est pas terminée
+        startSentencesRefresh(analysis.id)
       } catch (err) {
         console.error('Erreur lors du chargement des phrases:', err)
         error('Erreur lors du chargement des détails de l\'analyse')
       }
     }
+    
+    // Rafraîchir les phrases de l'analyse sélectionnée en temps réel
+    const refreshSentences = async () => {
+      if (!selectedAnalysis.value) return
+      
+      try {
+        const sentences = await analysisService.getAnalysisSentences(selectedAnalysis.value.id)
+        // Mettre à jour les phrases (cela déclenchera automatiquement la mise à jour du surlignage)
+        selectedAnalysisSentences.value = sentences
+        
+        // Vérifier si toutes les phrases sont testées, si oui arrêter le rafraîchissement
+        const allTested = sentences.every(s => s.is_test === true)
+        const isCompleted = selectedAnalysis.value.status === 'analysis_completed'
+        
+        if (allTested || isCompleted) {
+          if (refreshSentencesInterval) {
+            clearInterval(refreshSentencesInterval)
+            refreshSentencesInterval = null
+          }
+        }
+      } catch (err) {
+        console.error('Erreur lors du rafraîchissement des phrases:', err)
+      }
+    }
+    
+    // Démarrer le rafraîchissement automatique des phrases
+    const startSentencesRefresh = (analysisId) => {
+      // Arrêter l'intervalle existant
+      if (refreshSentencesInterval) {
+        clearInterval(refreshSentencesInterval)
+      }
+      
+      // Vérifier si l'analyse est terminée
+      const analysis = analyses.value.find(a => a.id === analysisId)
+      if (analysis && analysis.status === 'analysis_completed') {
+        return // Ne pas rafraîchir si terminée
+      }
+      
+      // Rafraîchir toutes les 2 secondes
+      refreshSentencesInterval = setInterval(() => {
+        refreshSentences()
+      }, 2000)
+    }
 
     // Effacer la sélection
     const clearSelection = () => {
+      // Arrêter le rafraîchissement des phrases
+      if (refreshSentencesInterval) {
+        clearInterval(refreshSentencesInterval)
+        refreshSentencesInterval = null
+      }
+      
       selectedAnalysis.value = null
       selectedAnalysisSentences.value = []
     }

@@ -2,15 +2,9 @@
 
 ## V1 Base Saas, and short therm option
 
-- Buy stagging VPS on OVH for development
-
 Improve base:
 - Improve history analyse (small card, and color from analysis, add nbr sentence in card)
 - Afficher le nombre de phrases et de mots dans le textarea pour avoir un nombre de crédit phrase qui vas etre utilisé.
-
-RealtTime:
-- Each phrase textarea must be display test in realt-time (in progress)
-
 
 ## V1.1 Payment Interface
 Stripe: 
@@ -101,9 +95,11 @@ Multy-provider(Later):
 
 - add blog article ...?
 
-## V /prblm
+## V /prblm /bug
 
 - Improve database queries (a folder/repository in the backend) to separate database calls that are in files like routes, for example, sorted by model.
+
+- App: Dans une analyse, la date est affiché comme Invalid Date
 
 
 

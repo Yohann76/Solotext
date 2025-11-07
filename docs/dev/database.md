@@ -82,10 +82,10 @@ npx sequelize-cli seed:generate --name initial-users (generate seed)
 ## Run in container
 
 ```
-docker-compose exec backend npm run db:undo:all (delete all table)
-docker-compose exec backend npm run db:migrate (apply all migration)
-docker-compose exec backend npm run db:seed:all (add fixtures)
+docker compose exec backend npm run db:undo:all (delete all table)
+docker compose exec backend npm run db:migrate (apply all migration)
+docker compose exec backend npm run db:seed:all (add fixtures)
 
-docker-compose exec backend npm run migration:generate (create new migration)
-docker-compose exec backend npm run seed:generate (create new seed/fixtures)
+docker compose exec backend npm run migration:generate (create new migration)
+docker compose exec backend npm run seed:generate (create new seed/fixtures)
 ```

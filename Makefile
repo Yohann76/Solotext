@@ -1,6 +1,11 @@
 # Makefile for SoloText
 # Docker development commands
 
+# Détection automatique : utilise docker directement si le groupe est actif, sinon utilise sg docker
+# Cela évite d'avoir à utiliser sg docker -c à chaque fois si vous êtes dans le groupe docker
+DOCKER = $(shell groups | grep -q docker && echo "docker" || echo "sg docker -c docker")
+DOCKER_COMPOSE = $(shell groups | grep -q docker && echo "docker compose" || echo "sg docker -c \"docker compose\"")
+
 .PHONY: help dev-build dev-run dev-kill dev-logs dev-status dev-clean dev-restart
 
 # Default help
@@ -21,13 +26,13 @@ help:
 # Build Docker images
 dev-build:
 	@echo "Building Docker images..."
-	@sg docker -c "docker compose build --no-cache"
+	@$(DOCKER_COMPOSE) build --no-cache
 	@echo "Images built successfully!"
 
 # Start services in development mode
 dev-run:
 	@echo "Starting services SoloText..."
-	@sg docker -c "docker compose up -d"
+	@$(DOCKER_COMPOSE) up -d
 	@echo "Services started!"
 	@echo ""
 	@echo "Frontend: http://localhost:8080"
@@ -41,30 +46,30 @@ dev-run:
 # Stop all services
 dev-kill:
 	@echo "Stopping services SoloText..."
-	@sg docker -c "docker compose down"
+	@$(DOCKER_COMPOSE) down
 	@echo "Services stopped!"
 
 # Display logs
 dev-logs:
 	@echo "Logs of the services SoloText..."
-	@sg docker -c "docker compose logs -f"
+	@$(DOCKER_COMPOSE) logs -f
 
 # Display the status of the services
 dev-status:
 	@echo "Status of the services SoloText..."
-	@sg docker -c "docker compose ps"
+	@$(DOCKER_COMPOSE) ps
 
 # Restart the services
 dev-restart:
 	@echo "Restarting services SoloText..."
-	@sg docker -c "docker compose restart"
+	@$(DOCKER_COMPOSE) restart
 	@echo "Services restarted!"
 
 # Clean completely (images, volumes, containers)
 dev-clean:
 	@echo "Cleaning completely the project SoloText..."
-	@sg docker -c "docker compose down -v --rmi all --remove-orphans"
-	@sg docker -c "docker system prune -f"
+	@$(DOCKER_COMPOSE) down -v --rmi all --remove-orphans
+	@$(DOCKER) system prune -f
 	@echo "Cleaning completed!"
 
 # Default command

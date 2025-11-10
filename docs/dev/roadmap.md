@@ -3,7 +3,6 @@
 ## V1 Base Saas, and short therm option
 
 Improve base:
-- Improve history analyse (small card, and color from analysis, add nbr sentence in card)
 - Afficher le nombre de phrases et de mots dans le textarea pour avoir un nombre de crédit phrase qui vas etre utilisé.
 
 ## V1.1 Payment Interface

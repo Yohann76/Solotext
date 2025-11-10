@@ -187,7 +187,7 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import CommonHeader from '../components/CommonHeader.vue'
 import Notification from '../components/Notification.vue'
@@ -205,7 +205,7 @@ export default {
   },
   setup() {
     const router = useRouter()
-    const { isAuthenticated } = useAuthStore()
+    const { isAuthenticated, subscribe } = useAuthStore()
     const { notifications, removeNotification, success, error } = useNotifications()
 
     // État du formulaire
@@ -233,6 +233,13 @@ export default {
     let refreshInterval = null
     // Timer pour le rafraîchissement automatique des phrases
     let refreshSentencesInterval = null
+
+    // Surveiller les changements d'authentification
+    watch(isAuthenticated, (newValue) => {
+      if (!newValue) {
+        router.push('/login')
+      }
+    }, { immediate: false })
 
     // Vérifier l'authentification et charger les analyses
     onMounted(async () => {

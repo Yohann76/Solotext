@@ -1,5 +1,6 @@
 import { ref, reactive } from 'vue'
 import authService from '../services/auth.js'
+import router from '../router/index.js'
 
 // State global for authentication
 const isAuthenticated = ref(false)
@@ -77,6 +78,15 @@ const logout = async () => {
     await authService.logout()
     checkAuth()
     notifyListeners()
+    
+    // Rediriger vers la page de login après la déconnexion
+    if (router && router.currentRoute) {
+      const currentPath = router.currentRoute.value.path
+      // Ne rediriger que si on est sur une page protégée
+      if (currentPath.startsWith('/application') || currentPath.startsWith('/dashboard')) {
+        router.push('/login')
+      }
+    }
   } catch (error) {
     console.error('Erreur de déconnexion:', error)
   }

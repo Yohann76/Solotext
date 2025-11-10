@@ -432,7 +432,7 @@
 </template>
 
 <script>
-import { ref, onMounted, computed, reactive } from 'vue'
+import { ref, onMounted, onUnmounted, computed, reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import CommonHeader from '../components/CommonHeader.vue'
 import Notification from '../components/Notification.vue'
@@ -482,6 +482,16 @@ export default {
       users: { search: '', role: '' },
       analyses: { status: '', userId: '' }
     })
+
+    // Surveiller les changements d'authentification
+    watch(isAuthenticated, (newValue) => {
+      if (!newValue) {
+        router.push('/login')
+      } else if (user.value?.role !== 'admin') {
+        error('Accès refusé. Droits administrateur requis.')
+        router.push('/application')
+      }
+    }, { immediate: false })
 
     // Vérifier l'authentification et les droits admin
     onMounted(async () => {

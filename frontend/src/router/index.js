@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '../stores/authStore.js'
 
 const Home = () => import('../views/Home.vue')
 const Login = () => import('../views/Login.vue')
@@ -82,25 +83,29 @@ router.beforeEach((to, from, next) => {
     return
   }
 
+  // Utiliser le store d'authentification pour une vérification cohérente
+  const { isAuthenticated, user } = useAuthStore()
+
   if (to.meta.requiresAuth) {
-    const token = localStorage.getItem('token')
-    if (!token) {
+    if (!isAuthenticated.value) {
       next('/login')
       return
     }
   }
 
   if (to.meta.requiresAdmin) {
-    const user = JSON.parse(localStorage.getItem('user') || '{}')
-    if (user.role !== 'admin') {
+    if (!isAuthenticated.value) {
+      next('/login')
+      return
+    }
+    if (user.value?.role !== 'admin') {
       next('/application')
       return
     }
   }
 
   if (to.meta.requiresGuest) {
-    const token = localStorage.getItem('token')
-    if (token) {
+    if (isAuthenticated.value) {
       next('/application')
       return
     }

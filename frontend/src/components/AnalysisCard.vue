@@ -174,8 +174,8 @@ export default {
 .analysis-card {
   position: relative;
   background: white;
-  border-radius: 12px;
-  margin-bottom: 0.75rem;
+  border-radius: 10px;
+  margin-bottom: 0.6rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -223,7 +223,7 @@ export default {
 }
 
 .card-content {
-  padding: 1rem;
+  padding: 0.75rem;
   margin-left: 4px;
 }
 
@@ -231,7 +231,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
   gap: 0.5rem;
 }
 
@@ -259,11 +259,11 @@ export default {
 }
 
 .duplicate-badge {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  padding: 0.35rem 0.7rem;
-  border-radius: 8px;
-  min-width: 50px;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  min-width: 45px;
   text-align: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
@@ -274,31 +274,31 @@ export default {
 }
 
 .analysis-text {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #4a5568;
-  line-height: 1.5;
-  margin-bottom: 0.75rem;
+  line-height: 1.4;
+  margin-bottom: 0.5rem;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  min-height: 2.4rem;
+  min-height: 2.1rem;
 }
 
 .analysis-stats {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
   flex-wrap: wrap;
 }
 
 .stat-badge {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.3rem;
   background: #f7fafc;
-  padding: 0.4rem 0.7rem;
-  border-radius: 8px;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
   border: 1px solid #e2e8f0;
   transition: all 0.2s ease;
 }
@@ -313,20 +313,20 @@ export default {
 }
 
 .stat-value {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: #2d3748;
 }
 
 .stat-label {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   color: #718096;
   font-weight: 500;
 }
 
 /* Section de duplication avec barre de progression */
 .duplicate-section {
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
 .duplicate-header {
@@ -337,7 +337,7 @@ export default {
 }
 
 .duplicate-label {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #4a5568;
   font-weight: 500;
 }
@@ -408,14 +408,14 @@ export default {
 .analysis-footer {
   display: flex;
   justify-content: flex-start;
-  padding-top: 0.5rem;
+  padding-top: 0.4rem;
   border-top: 1px solid #f1f5f9;
 }
 
 .status-badge {
-  font-size: 0.7rem;
-  padding: 0.3rem 0.6rem;
-  border-radius: 12px;
+  font-size: 0.65rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 10px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;

@@ -3,8 +3,8 @@
     class="analysis-card"
     @click="$emit('select', analysis)"
   >
-    <!-- Bordure colorée basée sur la duplication -->
-    <div class="card-border" :class="borderClass"></div>
+    <!-- Bordure colorée à gauche -->
+    <div class="card-border"></div>
     
     <!-- Contenu de la carte -->
     <div class="card-content">
@@ -103,14 +103,6 @@ export default {
       return 'duplicate-high'
     },
     
-    borderClass() {
-      if (this.isNull) return 'border-null'
-      if (this.duplicatePercent === 0) return 'border-original'
-      if (this.duplicatePercent < 15) return 'border-low'
-      if (this.duplicatePercent < 50) return 'border-medium'
-      return 'border-high'
-    },
-    
     progressClass() {
       if (this.isNull) return 'progress-null'
       if (this.duplicatePercent === 0) return 'progress-original'
@@ -195,31 +187,12 @@ export default {
   top: 0;
   bottom: 0;
   width: 4px;
+  background: #32c4c0;
   transition: width 0.3s ease;
 }
 
 .analysis-card:hover .card-border {
   width: 5px;
-}
-
-.border-null {
-  background: linear-gradient(180deg, #90cdf4 0%, #63b3ed 100%);
-}
-
-.border-original {
-  background: linear-gradient(180deg, #68d391 0%, #48bb78 100%);
-}
-
-.border-low {
-  background: linear-gradient(180deg, #9ae6b4 0%, #68d391 100%);
-}
-
-.border-medium {
-  background: linear-gradient(180deg, #fbd38d 0%, #f6ad55 100%);
-}
-
-.border-high {
-  background: linear-gradient(180deg, #fc8181 0%, #f56565 100%);
 }
 
 .card-content {

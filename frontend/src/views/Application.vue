@@ -49,6 +49,7 @@
                   <textarea
                     id="text"
                     v-model="form.text"
+                    @input="updateTextStats"
                     class="form-textarea"
                     :class="{ 'error': errors.text }"
                     placeholder="Collez votre texte ici..."
@@ -56,6 +57,29 @@
                     required
                   ></textarea>
                   <span v-if="errors.text" class="error-message">{{ errors.text }}</span>
+                  <div v-if="textStats && form.text && form.text.trim()" class="text-stats-info">
+                    <p v-if="textStats.sentences > 0" class="stats-message">
+                      Votre texte contient <strong>{{ textStats.sentences }} phrase{{ textStats.sentences !== 1 ? 's' : '' }}</strong>, 
+                      ces phrases une fois analysées seront décomptées de vos crédits.
+                    </p>
+                    <p v-else class="stats-message">
+                      <strong>Aucune phrase complète détectée.</strong> Assurez-vous que votre texte contient des phrases terminées par un point, un point d'exclamation ou un point d'interrogation.
+                    </p>
+                    <div class="text-stats-details">
+                      <span class="stat-badge-text">
+                        <span class="stat-icon-text">📝</span>
+                        {{ textStats.sentences }} phrase{{ textStats.sentences !== 1 ? 's' : '' }}
+                      </span>
+                      <span class="stat-badge-text">
+                        <span class="stat-icon-text">📊</span>
+                        {{ textStats.words }} mot{{ textStats.words !== 1 ? 's' : '' }}
+                      </span>
+                      <span v-if="textStats.sentences > 0" class="stat-badge-text stat-credits">
+                        <span class="stat-icon-text">💳</span>
+                        {{ textStats.credits }} crédit{{ textStats.credits !== 1 ? 's' : '' }}
+                      </span>
+                    </div>
+                  </div>
                 </div>
                 
                 <div class="form-actions">
@@ -254,6 +278,7 @@ import AnalysisCard from '../components/AnalysisCard.vue'
 import { useAuthStore } from '../stores/authStore.js'
 import { useNotifications } from '../composables/useNotifications.js'
 import analysisService from '../services/analysis.js'
+import { getTextStats } from '../utils/textProcessor.js'
 
 export default {
   name: 'Application',
@@ -277,6 +302,7 @@ export default {
     const analyses = ref([])
     const selectedAnalysis = ref(null)
     const selectedAnalysisSentences = ref([])
+    const textStats = ref(null)
     
     // État du tooltip
     const tooltip = ref({
@@ -416,6 +442,14 @@ export default {
       }
     }
 
+    // Mettre à jour les statistiques du texte en temps réel
+    const updateTextStats = () => {
+      if (form.value.text && form.value.text.trim()) {
+        textStats.value = getTextStats(form.value.text)
+      } else {
+        textStats.value = null
+      }
+    }
 
     const analyzeText = async () => {
       // Validation
@@ -440,6 +474,7 @@ export default {
         if (result.success) {
           success(`Analyse créée avec succès ! ID: ${result.data.analysis.id}`)
           form.value.text = '' // Vider le formulaire après analyse
+          textStats.value = null // Réinitialiser les statistiques
           // Recharger la liste des analyses
           await loadAnalyses()
           // Sélectionner automatiquement la nouvelle analyse pour afficher son résultat
@@ -751,6 +786,7 @@ export default {
       highlightedText,
       duplicateSources,
       analysisStats,
+      textStats,
       tooltip,
       notifications,
       removeNotification,
@@ -765,7 +801,8 @@ export default {
       loadAnalyses,
       handleTextHover,
       hideTooltip,
-      keepTooltipVisible
+      keepTooltipVisible,
+      updateTextStats
     }
   }
 }
@@ -931,6 +968,57 @@ export default {
   color: #2d3748;
   margin-bottom: 0.5rem;
   font-size: 1rem;
+}
+
+.text-stats-info {
+  margin-top: 0.75rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-radius: 8px;
+  border: 1px solid #bae6fd;
+}
+
+.stats-message {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.9rem;
+  color: #0c4a6e;
+  line-height: 1.5;
+}
+
+.stats-message strong {
+  color: #075985;
+  font-weight: 700;
+}
+
+.text-stats-details {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.stat-badge-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #f7fafc;
+  padding: 0.4rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #4a5568;
+  transition: all 0.2s ease;
+}
+
+.stat-badge-text.stat-credits {
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+  border-color: #32c4c0;
+  color: #0c4a6e;
+}
+
+.stat-icon-text {
+  font-size: 0.9rem;
 }
 
 .form-textarea {

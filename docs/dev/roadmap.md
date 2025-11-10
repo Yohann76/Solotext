@@ -1,10 +1,6 @@
 # Roadmap
 
 ## V1 Base Saas, and short therm option
-
-Improve base:
-- Afficher le nombre de phrases et de mots dans le textarea pour avoir un nombre de crédit phrase qui vas etre utilisé.
-
 ## V1.1 Payment Interface
 Stripe: 
 - Add stripe paiement (with différent subscription, active etc...) -> redirect page with button..

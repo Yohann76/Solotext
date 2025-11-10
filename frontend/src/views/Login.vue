@@ -16,6 +16,7 @@
             class="form-input"
             :class="{ 'error': errors.email }"
             placeholder="votre@email.com"
+            autocomplete="email"
             required
           />
           <span v-if="errors.email" class="error-message">{{ errors.email }}</span>
@@ -31,6 +32,7 @@
               class="form-input"
               :class="{ 'error': errors.password }"
               placeholder="Votre mot de passe"
+              autocomplete="current-password"
               required
             />
             <button

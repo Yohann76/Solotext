@@ -38,8 +38,17 @@ async function handleResponse(response) {
 export async function request(path, options = {}) {
   const url = `${API_BASE_URL}${path}`
   const headers = { ...buildHeaders(), ...(options.headers || {}) }
-  const response = await fetch(url, { ...options, headers })
-  return handleResponse(response)
+  
+  try {
+    const response = await fetch(url, { ...options, headers })
+    return handleResponse(response)
+  } catch (error) {
+    // Gérer les erreurs de réseau (Failed to fetch, CORS, etc.)
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      throw new Error(`Impossible de se connecter au serveur. Vérifiez que le serveur est accessible à ${url}`)
+    }
+    throw error
+  }
 }
 
 /**

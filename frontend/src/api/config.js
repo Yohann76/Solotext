@@ -2,7 +2,20 @@
 
 /**
  * Base URL for the backend API
+ * En production, utilise un chemin relatif pour fonctionner avec le proxy nginx
+ * En développement, utilise le proxy Vite configuré dans vite.config.js
  */
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+const getApiBaseUrl = () => {
+  // Si VITE_API_URL est défini, l'utiliser (priorité absolue)
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL
+  }
+  
+  // En mode développement ou production, utiliser un chemin relatif
+  // Le proxy Vite (dev) ou nginx (prod) redirigera vers le backend
+  return '/api'
+}
+
+export const API_BASE_URL = getApiBaseUrl()
 
 

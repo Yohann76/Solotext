@@ -60,7 +60,9 @@ class AuthService {
       }
     } catch (error) {
       console.error('Erreur de connexion:', error)
-      return { success: false, message: 'Erreur de connexion au serveur' }
+      // Propager le message d'erreur réel si disponible
+      const errorMessage = error.message || 'Erreur de connexion au serveur'
+      return { success: false, message: errorMessage }
     }
   }
 

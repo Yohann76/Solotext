@@ -82,32 +82,75 @@
                 </div>
               </div>
               
-              <div class="analysis-stats">
-                <div class="stat-item">
-                  <span class="stat-label">Duplication:</span>
-                  <span class="stat-value" :class="getDuplicateClass(selectedAnalysis.duplicate_percent)">
-                    {{ selectedAnalysis.duplicate_percent !== null && selectedAnalysis.duplicate_percent !== undefined ? selectedAnalysis.duplicate_percent + '%' : 'En cours...' }}
-                  </span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">Date:</span>
-                  <span class="stat-value">{{ formatDate(selectedAnalysis.analyzed_at || selectedAnalysis.created_at) }}</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">Phrases analysées:</span>
-                  <span class="stat-value">{{ analysisStats.totalSentences }}</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">Sources trouvées:</span>
-                  <span class="stat-value">{{ duplicateSources.length }}</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">Phrases originales:</span>
-                  <span class="stat-value original">{{ analysisStats.originalSentences }}</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">Phrases dupliquées:</span>
-                  <span class="stat-value duplicate">{{ analysisStats.duplicateSentences }}</span>
+              <div class="analysis-stats-container">
+                <div class="stats-grid">
+                  <!-- Carte principale : Duplication -->
+                  <div class="stat-card stat-card-primary">
+                    <div class="stat-icon-wrapper duplicate">
+                      <span class="stat-icon">📊</span>
+                    </div>
+                    <div class="stat-content">
+                      <span class="stat-label">Duplication</span>
+                      <span class="stat-value" :class="getDuplicateClass(selectedAnalysis.duplicate_percent)">
+                        {{ selectedAnalysis.duplicate_percent !== null && selectedAnalysis.duplicate_percent !== undefined ? selectedAnalysis.duplicate_percent + '%' : 'En cours...' }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Date -->
+                  <div class="stat-card">
+                    <div class="stat-icon-wrapper date">
+                      <span class="stat-icon">📅</span>
+                    </div>
+                    <div class="stat-content">
+                      <span class="stat-label">Date d'analyse</span>
+                      <span class="stat-value date-value">{{ formatDate(selectedAnalysis.analyzed_at || selectedAnalysis.created_at) }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Phrases analysées -->
+                  <div class="stat-card">
+                    <div class="stat-icon-wrapper total">
+                      <span class="stat-icon">📝</span>
+                    </div>
+                    <div class="stat-content">
+                      <span class="stat-label">Phrases analysées</span>
+                      <span class="stat-value">{{ analysisStats.totalSentences }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Sources trouvées -->
+                  <div class="stat-card">
+                    <div class="stat-icon-wrapper sources">
+                      <span class="stat-icon">🔗</span>
+                    </div>
+                    <div class="stat-content">
+                      <span class="stat-label">Sources trouvées</span>
+                      <span class="stat-value">{{ duplicateSources.length }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Phrases originales -->
+                  <div class="stat-card stat-card-success">
+                    <div class="stat-icon-wrapper success">
+                      <span class="stat-icon">✅</span>
+                    </div>
+                    <div class="stat-content">
+                      <span class="stat-label">Phrases originales</span>
+                      <span class="stat-value original">{{ analysisStats.originalSentences }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Phrases dupliquées -->
+                  <div class="stat-card stat-card-danger">
+                    <div class="stat-icon-wrapper danger">
+                      <span class="stat-icon">⚠️</span>
+                    </div>
+                    <div class="stat-content">
+                      <span class="stat-label">Phrases dupliquées</span>
+                      <span class="stat-value duplicate">{{ analysisStats.duplicateSentences }}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -1008,34 +1051,113 @@ export default {
   transform: translateY(-1px);
 }
 
-.analysis-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 1.5rem;
+.analysis-stats-container {
   margin-bottom: 2rem;
-  padding: 1.5rem;
-  background: #f8f9fa;
-  border-radius: 8px;
 }
 
-.stat-item {
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  border-color: #cbd5e0;
+}
+
+.stat-card-primary {
+  border-left: 4px solid #667eea;
+  background: linear-gradient(135deg, #ffffff 0%, #f7f9fc 100%);
+}
+
+.stat-card-success {
+  border-left: 4px solid #48bb78;
+}
+
+.stat-card-danger {
+  border-left: 4px solid #f56565;
+}
+
+.stat-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #f7fafc;
+}
+
+.stat-icon-wrapper.duplicate {
+  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+}
+
+.stat-icon-wrapper.date {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+}
+
+.stat-icon-wrapper.total {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+}
+
+.stat-icon-wrapper.sources {
+  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+}
+
+.stat-icon-wrapper.success {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+}
+
+.stat-icon-wrapper.danger {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+}
+
+.stat-icon {
+  font-size: 1.5rem;
+}
+
+.stat-content {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .stat-label {
-  font-size: 0.85rem;
-  color: #6c757d;
-  font-weight: 500;
+  font-size: 0.75rem;
+  color: #718096;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .stat-value {
-  font-size: 1.3rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: #2d3748;
+  line-height: 1.2;
+}
+
+.stat-value.date-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #4a5568;
 }
 
 .stat-value.original {

@@ -86,12 +86,28 @@
                 <div class="stat-item">
                   <span class="stat-label">Duplication:</span>
                   <span class="stat-value" :class="getDuplicateClass(selectedAnalysis.duplicate_percent)">
-                    {{ selectedAnalysis.duplicate_percent }}%
+                    {{ selectedAnalysis.duplicate_percent !== null && selectedAnalysis.duplicate_percent !== undefined ? selectedAnalysis.duplicate_percent + '%' : 'En cours...' }}
                   </span>
                 </div>
                 <div class="stat-item">
                   <span class="stat-label">Date:</span>
-                  <span class="stat-value">{{ formatDate(selectedAnalysis.analyzed_at) }}</span>
+                  <span class="stat-value">{{ formatDate(selectedAnalysis.analyzed_at || selectedAnalysis.created_at) }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Phrases analysées:</span>
+                  <span class="stat-value">{{ analysisStats.totalSentences }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Sources trouvées:</span>
+                  <span class="stat-value">{{ duplicateSources.length }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Phrases originales:</span>
+                  <span class="stat-value original">{{ analysisStats.originalSentences }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Phrases dupliquées:</span>
+                  <span class="stat-value duplicate">{{ analysisStats.duplicateSentences }}</span>
                 </div>
               </div>
 
@@ -582,6 +598,20 @@ export default {
       return Array.from(sourceMap.values()).sort((a, b) => b.count - a.count)
     })
 
+    // Calculer les statistiques de l'analyse
+    const analysisStats = computed(() => {
+      const sentences = selectedAnalysisSentences.value
+      const totalSentences = sentences.length
+      const originalSentences = sentences.filter(s => s.is_test && !s.is_duplicate).length
+      const duplicateSentences = sentences.filter(s => s.is_test && s.is_duplicate).length
+      
+      return {
+        totalSentences,
+        originalSentences,
+        duplicateSentences
+      }
+    })
+
     // Fonctions utilitaires pour les URLs
     const getDomainFromUrl = (url) => {
       try {
@@ -677,6 +707,7 @@ export default {
       selectedAnalysisSentences,
       highlightedText,
       duplicateSources,
+      analysisStats,
       tooltip,
       notifications,
       removeNotification,
@@ -978,8 +1009,9 @@ export default {
 }
 
 .analysis-stats {
-  display: flex;
-  gap: 2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1.5rem;
   margin-bottom: 2rem;
   padding: 1.5rem;
   background: #f8f9fa;
@@ -993,14 +1025,25 @@ export default {
 }
 
 .stat-label {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: #6c757d;
   font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .stat-value {
-  font-size: 1.2rem;
-  font-weight: 600;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #2d3748;
+}
+
+.stat-value.original {
+  color: #28a745;
+}
+
+.stat-value.duplicate {
+  color: #dc3545;
 }
 
 .stat-value.pending {

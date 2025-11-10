@@ -1,17 +1,14 @@
 # Roadmap
 
 ## V1 Base Saas, and short therm option
-## V1.1 Payment Interface
-Stripe: 
-- Add stripe paiement (with différent subscription, active etc...) -> redirect page with button..
-
-## V1.1.2 Limit user
-- add Limit Sentence per user/per month
-- User base : 200 free sentence
-- display limit under Historique des analyses (under 7 analyses..)
+## V1.1 Payment Interface (Stripe)
+- Add stripe paiement (with différent subscription, active etc...) -> stripe = redirect page with button..
+- Ajouter une limite a un utilisateur qui sera défini par son abonnement (Table user ou une relation via stripe?)
+- Un user a un freenium de 200 free phrases
+- Montrer les crédits restant dans l'historique (en dessous du nombre d'analyse))
 - Stop analyse if limit is full
 - Add different role (admin, prenium6000, prenium3000, prenium1000, user)
-- After use 200 free sentence credit, display message for pay
+- Si l'utilisateur n'a plus de crédit, afficher les crédits en rouge (et pouvoir faire évoluer son abonnement)
 
 ## V1.2 Functionnal +
 - Add post api in back (for register new email from newletter form in footer)(new table with email + activate/desactive boolean)

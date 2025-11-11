@@ -65,4 +65,7 @@ Database
 docker-compose exec backend npm run db:undo:all (delete all table)
 docker-compose exec backend npm run db:migrate (apply all migration)
 docker-compose exec backend npm run db:seed:all (add fixtures)
+
+http://51.178.80.14:8081/
+
 ```

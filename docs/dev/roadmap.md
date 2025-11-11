@@ -33,6 +33,7 @@ Multy-provider(Later):
 - Add argument marketing in 3 row section (in homepage)
 - Add Impact Header (link teachizy)
 - Add Table price in page /price (base on 50% marge on perplexity API cost)(4 offers, Decouverte, Pro, Expert, Business)
+- Add Favicon (Logo)
 
 ## V1.3 Customer Saas
 - Add support fonction (send message, receive message in infobull)
@@ -91,7 +92,9 @@ Multy-provider(Later):
 
 - Improve database queries (a folder/repository in the backend) to separate database calls that are in files like routes, for example, sorted by model.
 
-- App: Dans une analyse, la date est affiché comme Invalid Date
+- App: Improve interface design 
+
+- TODO: In producation, not run adminer service
 
 
 

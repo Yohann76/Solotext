@@ -22,12 +22,23 @@ for 1000 sentance/user/month (cost 5$). 50% marge for SoloText = 7,99$ (subscrip
 for 3000 sentance/user/month (cost 15$). 50% marge for SoloText = 22,99$  (subscription price)
 for 6000 sentance/user/month (cost 30$). 50% marge for SoloText = 45$ (subscription price)
 
-## progressing marge 
+## progressing marge (I have this for the moment)
 
-for 1000 sentance/user/month (cost 5$). 70% marge for SoloText = 8,99$ (subscription price)
-for 3000 sentance/user/month (cost 15$). 50% marge for SoloText = 22,99$  (subscription price)
-for 6000 sentance/user/month (cost 30$). 40% marge for SoloText = 42,99$ (subscription price)
+Pro : for 1000 sentance/user/month (cost 5$). 70% marge for SoloText = 8,99$ (subscription price)
+Entreprise :  for 3000 sentance/user/month (cost 15$). 50% marge for SoloText = 22,99$  (subscription price)
+Agence : for 6000 sentance/user/month (cost 30$). 40% marge for SoloText = 42,99$ (subscription price)
 
+# Id Stripe (3 product)
+
+Solotext Pro (prod_TP2TEPIPX0CNKi) (1000) -> 8,99 Euros
+Solotext Entreprise (prod_TP2VeMjtwEhnrS) (3000) -> 22,99 Euros
+Solotext Agence (prod_TP2W6EoGj1sucx) (6000) -> 42,99 Euros
+
+# Use: 
+
+POST /v1/products/prod_TP2W6EoGj1sucx
+POST /v1/prices
+POST /v1/products
 
 ## Conccurence margin
 

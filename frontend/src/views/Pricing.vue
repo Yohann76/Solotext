@@ -53,16 +53,16 @@
             <li>✅ Support prioritaire</li>
             <li>✅ Export PDF</li>
           </ul>
-          <button 
+          <router-link
             v-if="!isAuthenticated"
-            @click="handleSubscribe('premium1000', '/register')"
+            :to="`/register?plan=premium1000`"
             class="btn btn-primary"
-            :disabled="loading"
           >
-            {{ loading ? 'Chargement...' : 'Choisir Pro' }}
-          </button>
+            Choisir Pro
+          </router-link>
           <button 
             v-else-if="currentPlan !== 'premium1000'"
+            type="button"
             @click="handleSubscribe('premium1000')"
             class="btn btn-primary"
             :disabled="loading"
@@ -90,16 +90,16 @@
             <li>✅ Export PDF</li>
             <li>✅ API access</li>
           </ul>
-          <button 
+          <router-link
             v-if="!isAuthenticated"
-            @click="handleSubscribe('premium3000', '/register')"
+            :to="`/register?plan=premium3000`"
             class="btn btn-outline"
-            :disabled="loading"
           >
-            {{ loading ? 'Chargement...' : 'Choisir Enterprise' }}
-          </button>
+            Choisir Enterprise
+          </router-link>
           <button 
             v-else-if="currentPlan !== 'premium3000'"
+            type="button"
             @click="handleSubscribe('premium3000')"
             class="btn btn-outline"
             :disabled="loading"
@@ -128,16 +128,16 @@
             <li>✅ API access</li>
             <li>✅ Gestion multi-utilisateurs</li>
           </ul>
-          <button 
+          <router-link
             v-if="!isAuthenticated"
-            @click="handleSubscribe('premium6000', '/register')"
+            :to="`/register?plan=premium6000`"
             class="btn btn-outline"
-            :disabled="loading"
           >
-            {{ loading ? 'Chargement...' : 'Choisir Agence' }}
-          </button>
+            Choisir Agence
+          </router-link>
           <button 
             v-else-if="currentPlan !== 'premium6000'"
+            type="button"
             @click="handleSubscribe('premium6000')"
             class="btn btn-outline"
             :disabled="loading"
@@ -195,13 +195,7 @@ const loadSubscription = async () => {
 }
 
 // Gérer l'abonnement
-const handleSubscribe = async (planType, redirectPath = null) => {
-  if (!isAuthenticated.value && redirectPath) {
-    // Rediriger vers l'inscription avec le plan en paramètre
-    router.push(`${redirectPath}?plan=${planType}`)
-    return
-  }
-
+const handleSubscribe = async (planType) => {
   if (!isAuthenticated.value) {
     router.push(`/register?plan=${planType}`)
     return

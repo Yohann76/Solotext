@@ -127,9 +127,14 @@ router.post('/register', async (req, res) => {
     }
 
     // Créer le nouvel utilisateur
+    const today = new Date();
+    const todayDate = today.toISOString().split('T')[0]; // Format YYYY-MM-DD
+    
     const user = new User({
       email: email.toLowerCase(),
-      role: role
+      role: role, // Par défaut 'user' = freemium (200 crédits)
+      monthly_credits_used: 0, // Initialiser à 0
+      credits_reset_date: todayDate // Initialiser la date de reset
     });
 
     // Hacher le mot de passe

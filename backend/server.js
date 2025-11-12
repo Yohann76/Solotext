@@ -14,6 +14,8 @@ const Sentence = require('./models/Sentence');
 const authRoutes = require('./routes/auth');
 const analysesRoutes = require('./routes/analyses');
 const adminRoutes = require('./routes/admin');
+const creditsRoutes = require('./routes/credits');
+const stripeRoutes = require('./routes/stripe');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -51,6 +53,8 @@ app.get('/', (req, res) => {
 
 // Routes d'authentification (publiques)
 app.use('/api/auth', authRoutes);
+app.use('/api/credits', creditsRoutes);
+app.use('/api/stripe', stripeRoutes);
 
 // Routes des analyses (protégées)
 app.use('/api/analyses', analysesRoutes);

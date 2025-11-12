@@ -37,13 +37,25 @@ const User = sequelize.define('User', {
     }
   },
   role: {
-    type: DataTypes.ENUM('admin', 'user'),
+    type: DataTypes.ENUM('admin', 'user', 'premium1000', 'premium3000', 'premium6000'),
     allowNull: false,
     defaultValue: 'user',
     set(value) {
       // Normalize the role
       this.setDataValue('role', value ? value.toLowerCase().trim() : 'user');
     }
+  },
+  monthly_credits_used: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+    validate: {
+      min: 0
+    }
+  },
+  credits_reset_date: {
+    type: DataTypes.DATEONLY,
+    allowNull: true
   }
 }, {
   tableName: 'users',

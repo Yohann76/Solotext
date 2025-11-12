@@ -16,6 +16,25 @@
               </button>
             </div>
             <div class="analysis-count">{{ analyses.length }} analyse{{ analyses.length > 1 ? 's' : '' }}</div>
+            <div v-if="creditsInfo" class="credits-display" :class="{ 'credits-exhausted': creditsInfo.isExhausted }">
+              <div class="credits-label">Crédits restants</div>
+              <div class="credits-value">
+                <span class="credits-remaining">{{ creditsInfo.remaining }}</span>
+                <span class="credits-separator">/</span>
+                <span class="credits-limit">{{ creditsInfo.limit }}</span>
+              </div>
+              <div class="credits-progress-bar">
+                <div 
+                  class="credits-progress-fill" 
+                  :class="{ 'credits-progress-danger': creditsInfo.remaining / creditsInfo.limit < 0.2 }"
+                  :style="{ width: `${Math.min((creditsInfo.remaining / creditsInfo.limit) * 100, 100)}%` }"
+                ></div>
+              </div>
+              <div v-if="creditsInfo.isExhausted" class="credits-warning">
+                <span class="warning-icon">⚠️</span>
+                <span>Limite atteinte. Mettez à niveau votre abonnement.</span>
+              </div>
+            </div>
           </div>
           
           <div class="sidebar-content">
@@ -278,6 +297,7 @@ import AnalysisCard from '../components/AnalysisCard.vue'
 import { useAuthStore } from '../stores/authStore.js'
 import { useNotifications } from '../composables/useNotifications.js'
 import analysisService from '../services/analysis.js'
+import creditsService from '../services/credits.js'
 import { getTextStats } from '../utils/textProcessor.js'
 
 export default {
@@ -303,6 +323,7 @@ export default {
     const selectedAnalysis = ref(null)
     const selectedAnalysisSentences = ref([])
     const textStats = ref(null)
+    const creditsInfo = ref(null)
     
     // État du tooltip
     const tooltip = ref({
@@ -326,6 +347,18 @@ export default {
       }
     }, { immediate: false })
 
+    // Charger les crédits
+    const loadCredits = async () => {
+      try {
+        const result = await creditsService.getCredits()
+        if (result.success) {
+          creditsInfo.value = result.data
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des crédits:', error)
+      }
+    }
+
     // Vérifier l'authentification et charger les analyses
     onMounted(async () => {
       if (!isAuthenticated.value) {
@@ -333,7 +366,24 @@ export default {
         return
       }
       
+      // Vérifier si on revient d'un paiement Stripe
+      const urlParams = new URLSearchParams(window.location.search)
+      if (urlParams.get('checkout') === 'success') {
+        success('Paiement réussi ! Votre abonnement est maintenant actif.')
+        // Nettoyer l'URL
+        window.history.replaceState({}, document.title, '/application')
+        // Recharger les crédits pour voir la mise à jour
+        await loadCredits()
+      }
+      
       await loadAnalyses()
+      await loadCredits()
+      startAutoRefresh()
+      
+      // Rafraîchir les crédits toutes les 30 secondes
+      setInterval(() => {
+        loadCredits()
+      }, 30000)
     })
 
     // Nettoyer les timers à la destruction du composant
@@ -475,8 +525,9 @@ export default {
           success(`Analyse créée avec succès ! ID: ${result.data.analysis.id}`)
           form.value.text = '' // Vider le formulaire après analyse
           textStats.value = null // Réinitialiser les statistiques
-          // Recharger la liste des analyses
+          // Recharger la liste des analyses et les crédits
           await loadAnalyses()
+          await loadCredits()
           // Sélectionner automatiquement la nouvelle analyse pour afficher son résultat
           const newAnalysis = result.data.analysis
           await selectAnalysis(newAnalysis)
@@ -494,7 +545,19 @@ export default {
         }
       } catch (err) {
         console.error('Erreur lors de l\'analyse:', err)
-        error(err.message || 'Erreur lors de l\'analyse du texte')
+        
+        // Gérer spécifiquement les erreurs de crédits insuffisants
+        if (err.response?.data?.code === 'INSUFFICIENT_CREDITS') {
+          const creditsData = err.response.data.data
+          error(
+            `Crédits insuffisants ! Vous avez ${creditsData?.creditsInfo?.remaining || 0} crédit(s) restant(s) sur ${creditsData?.creditsInfo?.limit || 0}, ` +
+            `mais ${creditsData?.requiredCredits || 0} crédit(s) sont nécessaires. Veuillez mettre à niveau votre abonnement.`
+          )
+          // Recharger les crédits pour mettre à jour l'affichage
+          await loadCredits()
+        } else {
+          error(err.message || 'Erreur lors de l\'analyse du texte')
+        }
       } finally {
         loading.value = false
       }
@@ -802,7 +865,9 @@ export default {
       handleTextHover,
       hideTooltip,
       keepTooltipVisible,
-      updateTextStats
+      updateTextStats,
+      creditsInfo,
+      loadCredits
     }
   }
 }
@@ -846,6 +911,92 @@ export default {
   padding: 1.5rem;
   border-bottom: 1px solid #e2e8f0;
   background: white;
+}
+
+.credits-display {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-radius: 12px;
+  border: 1px solid #bae6fd;
+}
+
+.credits-display.credits-exhausted {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-color: #fca5a5;
+}
+
+.credits-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0c4a6e;
+  margin-bottom: 0.5rem;
+}
+
+.credits-exhausted .credits-label {
+  color: #991b1b;
+}
+
+.credits-value {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.credits-remaining {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #075985;
+}
+
+.credits-exhausted .credits-remaining {
+  color: #dc2626;
+}
+
+.credits-separator {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.credits-limit {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.credits-progress-bar {
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.credits-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #32c4c0 0%, #2aada9 100%);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.credits-progress-fill.credits-progress-danger {
+  background: linear-gradient(90deg, #f56565 0%, #e53e3e 100%);
+}
+
+.credits-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: #991b1b;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+.warning-icon {
+  font-size: 1rem;
 }
 
 .sidebar-title-row {

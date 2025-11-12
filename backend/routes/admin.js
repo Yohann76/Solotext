@@ -98,11 +98,17 @@ router.post('/users', async (req, res) => {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
+    // Initialiser la date de reset des crédits
+    const today = new Date();
+    const todayDate = today.toISOString().split('T')[0]; // Format YYYY-MM-DD
+
     // Créer l'utilisateur
     const newUser = await User.create({
       email,
       password: hashedPassword,
-      role
+      role, // Par défaut 'user' = freemium (200 crédits)
+      monthly_credits_used: 0, // Initialiser à 0
+      credits_reset_date: todayDate // Initialiser la date de reset
     });
 
     // Retourner l'utilisateur sans le mot de passe

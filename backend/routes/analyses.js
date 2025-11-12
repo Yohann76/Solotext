@@ -4,6 +4,8 @@ const Analysis = require('../models/Analysis');
 const Sentence = require('../models/Sentence');
 const { authenticateToken } = require('../middleware/auth');
 const queueService = require('../services/queueService');
+const CreditService = require('../services/creditService');
+const TextProcessor = require('../workers/lib/TextProcessor');
 
 // POST /api/analyses - Create a new analysis
 router.post('/', authenticateToken, async (req, res) => {
@@ -28,6 +30,33 @@ router.post('/', authenticateToken, async (req, res) => {
       });
     }
 
+    // Calculer le nombre de phrases (même algorithme que le backend)
+    const sentences = TextProcessor.splitIntoSentences(source_text.trim());
+    const sentenceCount = sentences.length;
+
+    if (sentenceCount === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Aucune phrase valide détectée dans le texte. Assurez-vous que votre texte contient des phrases terminées par un point, un point d\'exclamation ou un point d\'interrogation.',
+        code: 'NO_VALID_SENTENCES'
+      });
+    }
+
+    // Vérifier les crédits disponibles
+    const creditCheck = await CreditService.canAnalyze(userId, sentenceCount);
+    
+    if (!creditCheck.canAnalyze) {
+      return res.status(403).json({
+        success: false,
+        message: creditCheck.reason || 'Crédits insuffisants',
+        code: 'INSUFFICIENT_CREDITS',
+        data: {
+          creditsInfo: creditCheck.creditsInfo,
+          requiredCredits: sentenceCount
+        }
+      });
+    }
+
     // Create the analysis
     const analysis = await Analysis.create({
       user_id: userId,
@@ -36,6 +65,10 @@ router.post('/', authenticateToken, async (req, res) => {
       status: 'waiting_for_process', // Status initial
       analyzed_at: new Date() // Date of analysis
     });
+
+    // Consommer les crédits (on consomme maintenant car l'analyse est créée)
+    // Note: Si l'analyse échoue plus tard, on ne rembourse pas les crédits (comportement standard)
+    await CreditService.consumeCredits(userId, sentenceCount);
 
     // Send analysis task to queue
     const taskSent = await queueService.sendAnalysisTask(analysis.id, analysis.source_text);

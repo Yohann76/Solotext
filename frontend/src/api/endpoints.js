@@ -35,6 +35,15 @@ export const endpoints = {
     costs: {
       userCosts: '/admin/costs/users'
     }
+  },
+
+  credits: {
+    root: '/credits'
+  },
+
+  stripe: {
+    subscription: '/stripe/subscription',
+    createCheckoutSession: '/stripe/create-checkout-session'
   }
 }
 

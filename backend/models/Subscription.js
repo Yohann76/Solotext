@@ -47,6 +47,15 @@ const Subscription = sequelize.define('Subscription', {
   cancel_at_period_end: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
+  },
+  plan_type: {
+    type: DataTypes.ENUM('freemium', 'premium1000', 'premium3000', 'premium6000'),
+    allowNull: true,
+    defaultValue: 'freemium',
+    set(value) {
+      // Normalize the plan type
+      this.setDataValue('plan_type', value ? value.toLowerCase().trim() : 'freemium');
+    }
   }
 }, {
   tableName: 'subscriptions',

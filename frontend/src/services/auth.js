@@ -103,7 +103,12 @@ class AuthService {
         await http.post(endpoints.auth.logout, {})
       }
     } catch (error) {
-      console.error('Erreur lors de la déconnexion:', error)
+      const message = error?.message?.toLowerCase?.() || ''
+      if (message.includes('token expir')) {
+        console.info('Token déjà expiré côté serveur, nettoyage local.')
+      } else {
+        console.error('Erreur lors de la déconnexion:', error)
+      }
     } finally {
       // Nettoyer les données locales
       this.token = null

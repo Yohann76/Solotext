@@ -1,14 +1,19 @@
 # Roadmap
 
 ## V1 Base Saas, and short therm option
-## V1.1 Payment Interface (Stripe)
+
+For testing stripe payment, need certificat SSL 
+- Buy NDD (OVH) (solotext.io)
+- Use HTTPS Certificat (Let's Encryptt)
+
+## V1.1 Payment Interface (Stripe) [In progress -> testing this]
 - Add stripe paiement (with différent subscription, active etc...) -> stripe = redirect page with button..
 - Ajouter une limite a un utilisateur qui sera défini par son abonnement (Table user ou une relation via stripe?)
 - Un user a un freenium de 200 free phrases
 - Montrer les crédits restant dans l'historique (en dessous du nombre d'analyse))
 - Stop analyse if limit is full
 - Add different role (admin, prenium6000, prenium3000, prenium1000, user)
-- Si l'utilisateur n'a plus de crédit, afficher les crédits en rouge (et pouvoir faire évoluer son abonnement)
+- Si l'utilisateur n'a plus de crédit, afficher les crédits en rouge (et pouvoir faire évoluer son abonnement) (Ne plus pouvoir faire d'analyse (Griser le bouton avec un hover -> abonnez vous!))
 
 ## V1.2 Functionnal +
 - Add post api in back (for register new email from newletter form in footer)(new table with email + activate/desactive boolean)
@@ -16,7 +21,6 @@
 Multy-provider(Later):
 - Study input/output perplexity service for have same parameter in different provider
 - Create Second service with APIFY, or google content search..
- 
  
 - Add github action (test + prettier?)
 - Add backup DB (container export)
@@ -32,8 +36,13 @@ Multy-provider(Later):
 - Add Cookie management ()
 - Add argument marketing in 3 row section (in homepage)
 - Add Impact Header (link teachizy)
-- Add Table price in page /price (base on 50% marge on perplexity API cost)(4 offers, Decouverte, Pro, Expert, Business)
 - Add Favicon (Logo)
+- Edit login/register page with chart color
+- Add functionnality page (argument=section)
+    - Check each sentance on internet (each sentance = request in different search engine)
+    - Keep history of your analysis
+    - Export Analysis in PDF
+    - Find source in your different occurence..
 
 ## V1.3 Customer Saas
 - Add support fonction (send message, receive message in infobull)
@@ -59,9 +68,7 @@ Multy-provider(Later):
 ## V1.4 Deploy Saas - Saas is online!
 
 - Kubernetes for deployment/ Other simple deploy
-- Buy NDD (OVH) (solotext.io)
-- Buy VPS (OVH)
-- Use HTTPS Certificat (Let's Encryptt)
+- Buy VPS prod (OVH)
 
 ## V1.5 
 - Diversify worker (Google search content, bing, apify...)

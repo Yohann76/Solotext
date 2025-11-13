@@ -9,11 +9,6 @@
   vars:
     deployment_env: staging
 
-  pre_tasks:
-    - name: Mettre à jour les informations système
-      setup:
-        gather_subset: minimal
-
   roles:
     - role: common
       tags: [common, system]

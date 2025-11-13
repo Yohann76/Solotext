@@ -10,10 +10,6 @@
     deployment_env: production
 
   pre_tasks:
-    - name: Mettre à jour les informations système
-      setup:
-        gather_subset: minimal
-
     - name: Confirmer le déploiement en production
       pause:
         prompt: |

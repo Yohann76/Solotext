@@ -1,0 +1,103 @@
+---
+# Rôle backend : Déploiement du backend Node.js avec Docker
+
+- name: Vérifier que Docker est installé
+  command: docker --version
+  register: docker_version
+  changed_when: false
+  failed_when: false
+
+- name: Créer le répertoire de l'application
+  file:
+    path: "{{ app_dir }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0755'
+  become: yes
+
+- name: Cloner ou mettre à jour le dépôt Git
+  git:
+    repo: "{{ git_repo }}"
+    dest: "{{ app_dir }}"
+    version: "{{ git_version }}"
+    force: yes
+    update: yes
+  become: yes
+  become_user: "{{ app_user }}"
+  register: git_result
+  when: git_repo is defined
+
+- name: Créer le fichier .env pour le backend
+  template:
+    src: backend.env.j2
+    dest: "{{ app_dir }}/backend/.env"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0600'
+  become: yes
+  become_user: "{{ app_user }}"
+
+- name: Construire l'image Docker du backend
+  community.docker.docker_image:
+    name: "{{ app_name }}-backend"
+    source: build
+    build:
+      path: "{{ app_dir }}/backend"
+      dockerfile: Dockerfile
+    state: present
+  become: yes
+  become_user: "{{ app_user }}"
+  register: backend_image
+
+- name: Construire l'image Docker du worker
+  community.docker.docker_image:
+    name: "{{ app_name }}-worker"
+    source: build
+    build:
+      path: "{{ app_dir }}/backend"
+      dockerfile: Dockerfile.worker
+    state: present
+  become: yes
+  become_user: "{{ app_user }}"
+  register: worker_image
+
+- name: Créer le docker-compose pour le backend
+  template:
+    src: backend-compose.yml.j2
+    dest: "{{ app_dir }}/docker-compose.backend.yml"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0644'
+  become: yes
+  become_user: "{{ app_user }}"
+
+- name: Démarrer les services backend
+  community.docker.docker_compose_v2:
+    project_src: "{{ app_dir }}"
+    files:
+      - docker-compose.backend.yml
+    state: present
+    pull: no
+  become: yes
+  become_user: "{{ app_user }}"
+
+- name: Attendre que le backend soit prêt
+  uri:
+    url: "http://localhost:{{ backend_port }}/api/health"
+    method: GET
+    status_code: [200, 404]
+  register: health_check
+  until: health_check.status == 200
+  retries: 30
+  delay: 5
+  ignore_errors: yes
+
+- name: Vérifier le statut du backend
+  uri:
+    url: "http://localhost:{{ backend_port }}/api/health"
+    method: GET
+    status_code: 200
+  register: final_health_check
+  failed_when: final_health_check.status != 200
+

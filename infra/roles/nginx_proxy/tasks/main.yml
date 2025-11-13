@@ -1,0 +1,67 @@
+---
+# Rôle nginx_proxy : Configuration du reverse proxy et SSL
+
+- name: Installer Nginx
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Installer Certbot pour Let's Encrypt
+  apt:
+    name:
+      - certbot
+      - python3-certbot-nginx
+    state: present
+    update_cache: yes
+  become: yes
+  when: nginx_ssl_enabled | default(false)
+
+- name: Créer la configuration Nginx principale
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: '0644'
+  become: yes
+  notify: restart nginx
+
+- name: Obtenir le certificat SSL avec Let's Encrypt
+  command: >
+    certbot --nginx
+    -d {{ nginx_domain }}
+    --non-interactive
+    --agree-tos
+    --email {{ nginx_ssl_email }}
+    --redirect
+  become: yes
+  register: certbot_result
+  changed_when: "'Congratulations' in certbot_result.stdout or 'already' in certbot_result.stdout"
+  failed_when: certbot_result.rc != 0 and 'already' not in certbot_result.stdout
+  when: nginx_ssl_enabled | default(false)
+
+- name: Configurer le renouvellement automatique des certificats
+  cron:
+    name: "Renouvellement certificat SSL {{ nginx_domain }}"
+    minute: "0"
+    hour: "3"
+    job: "/usr/bin/certbot renew --quiet --nginx"
+  become: yes
+  when: nginx_ssl_enabled | default(false)
+
+- name: Vérifier la configuration Nginx
+  command: nginx -t
+  register: nginx_test
+  changed_when: false
+  become: yes
+  failed_when: nginx_test.rc != 0
+
+- name: Démarrer et activer Nginx
+  systemd:
+    name: nginx
+    state: started
+    enabled: yes
+  become: yes
+

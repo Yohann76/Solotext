@@ -1,0 +1,9 @@
+---
+# Handlers pour le rôle frontend
+
+- name: restart nginx
+  systemd:
+    name: nginx
+    state: restarted
+  become: yes
+

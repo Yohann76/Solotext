@@ -1,0 +1,156 @@
+---
+# Rôle common : Configuration système de base
+
+- name: Mettre à jour le cache des paquets
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  become: yes
+
+- name: Installer les paquets système essentiels
+  apt:
+    name:
+      - curl
+      - wget
+      - git
+      - vim
+      - htop
+      - ufw
+      - fail2ban
+      - unattended-upgrades
+      - apt-transport-https
+      - ca-certificates
+      - gnupg
+      - lsb-release
+      - software-properties-common
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Vérifier si Docker est installé
+  command: docker --version
+  register: docker_check
+  changed_when: false
+  failed_when: false
+  become: yes
+
+- name: Ajouter la clé GPG de Docker
+  ansible.builtin.apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+  become: yes
+  when: docker_check.rc != 0
+
+- name: Ajouter le dépôt Docker
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    state: present
+  become: yes
+  when: docker_check.rc != 0
+
+- name: Installer Docker
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+    update_cache: yes
+  become: yes
+  when: docker_check.rc != 0
+
+- name: Démarrer et activer Docker
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+  become: yes
+  when: docker_check.rc != 0
+
+- name: Installer Docker Compose (standalone)
+  get_url:
+    url: "https://github.com/docker/compose/releases/download/v{{ docker_compose_version }}/docker-compose-linux-x86_64"
+    dest: "{{ docker_compose_path }}"
+    mode: '0755'
+  become: yes
+  when: docker_check.rc != 0 or docker_compose_path is not defined
+
+- name: Créer l'utilisateur de l'application
+  user:
+    name: "{{ app_user }}"
+    group: "{{ app_group }}"
+    shell: /bin/bash
+    home: "{{ app_dir }}"
+    create_home: yes
+    system: no
+  become: yes
+
+- name: Ajouter l'utilisateur au groupe docker
+  user:
+    name: "{{ app_user }}"
+    groups: docker
+    append: yes
+  become: yes
+
+- name: Configurer les limites système
+  pam_limits:
+    domain: "{{ app_user }}"
+    limit_type: "{{ item.type }}"
+    limit_item: "{{ item.item }}"
+    value: "{{ item.value }}"
+  become: yes
+  loop:
+    - { type: soft, item: nofile, value: "{{ max_open_files }}" }
+    - { type: hard, item: nofile, value: "{{ max_open_files }}" }
+    - { type: soft, item: nproc, value: "{{ max_user_processes }}" }
+    - { type: hard, item: nproc, value: "{{ max_user_processes }}" }
+
+- name: Configurer les mises à jour automatiques de sécurité
+  template:
+    src: 50unattended-upgrades.j2
+    dest: /etc/apt/apt.conf.d/50unattended-upgrades
+  become: yes
+  when: auto_updates_enabled | default(false)
+
+- name: Activer le pare-feu UFW
+  ufw:
+    state: enabled
+    policy: "{{ item.policy }}"
+  become: yes
+  loop:
+    - { policy: deny, direction: input }
+    - { policy: allow, direction: output }
+    - { policy: deny, direction: forward }
+
+- name: Autoriser les ports TCP dans le pare-feu
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  become: yes
+  loop: "{{ firewall_allowed_tcp_ports }}"
+
+- name: Autoriser les ports UDP dans le pare-feu
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: udp
+  become: yes
+  loop: "{{ firewall_allowed_udp_ports }}"
+
+- name: Configurer Fail2ban
+  template:
+    src: jail.local.j2
+    dest: /etc/fail2ban/jail.local
+  become: yes
+  notify: restart fail2ban
+
+- name: Démarrer et activer Fail2ban
+  systemd:
+    name: fail2ban
+    state: started
+    enabled: yes
+  become: yes
+

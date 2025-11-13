@@ -1,0 +1,95 @@
+---
+# Rôle frontend : Build et déploiement du frontend Vue.js
+
+- name: Vérifier que Node.js est installé (pour le build)
+  command: node --version
+  register: node_version
+  changed_when: false
+  failed_when: false
+  become: yes
+
+- name: Installer Node.js via NodeSource
+  shell: |
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+    apt-get install -y nodejs
+  become: yes
+  when: node_version.rc != 0
+  args:
+    creates: /usr/bin/node
+
+- name: Vérifier l'installation de Node.js
+  command: node --version
+  register: node_check
+  changed_when: false
+  become: yes
+
+- name: Installer les dépendances du frontend
+  npm:
+    path: "{{ app_dir }}/frontend"
+    state: present
+    production: no
+  become: yes
+  become_user: "{{ app_user }}"
+  when: node_check.rc == 0
+
+- name: Build du frontend pour la production
+  command: npm run build
+    chdir: "{{ app_dir }}/frontend"
+  become: yes
+  become_user: "{{ app_user }}"
+  environment:
+    NODE_ENV: production
+  register: build_result
+  when: node_check.rc == 0
+
+- name: Créer le répertoire pour les fichiers statiques
+  file:
+    path: /var/www/{{ app_name }}
+    state: directory
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_user }}"
+    mode: '0755'
+  become: yes
+
+- name: Copier les fichiers buildés vers le répertoire web
+  synchronize:
+    src: "{{ app_dir }}/frontend/dist/"
+    dest: /var/www/{{ app_name }}/
+    delete: yes
+    recursive: yes
+    owner: yes
+    group: yes
+  become: yes
+
+- name: Vérifier que Nginx est installé
+  command: nginx -v
+  register: nginx_version
+  changed_when: false
+  failed_when: false
+  become: yes
+
+- name: Créer la configuration Nginx pour le frontend
+  template:
+    src: nginx-frontend.conf.j2
+    dest: /etc/nginx/sites-available/{{ app_name }}
+    owner: root
+    group: root
+    mode: '0644'
+  become: yes
+  notify: restart nginx
+
+- name: Activer le site Nginx
+  file:
+    src: /etc/nginx/sites-available/{{ app_name }}
+    dest: /etc/nginx/sites-enabled/{{ app_name }}
+    state: link
+  become: yes
+  notify: restart nginx
+
+- name: Vérifier la configuration Nginx
+  command: nginx -t
+  register: nginx_test
+  changed_when: false
+  become: yes
+  failed_when: nginx_test.rc != 0
+

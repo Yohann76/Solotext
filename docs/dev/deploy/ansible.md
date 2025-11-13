@@ -39,16 +39,16 @@ ansible-vault view infra/group_vars/staging/vault.yml
 cd infra
 
 # Déployer sur staging
-./deploy.sh staging
+./deploy.sh staging --vault
 
 # Déployer sur production
-./deploy.sh prod
+./deploy.sh prod --vault
 
 # Déployer uniquement le backend
-./deploy.sh prod --tags backend
+./deploy.sh prod --vault --tags backend
 
 # Mode dry-run (vérification uniquement)
-./deploy.sh staging --check
+./deploy.sh staging --vault --check
 ```
 
 ### Méthode manuelle

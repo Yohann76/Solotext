@@ -2,9 +2,8 @@
 
 ## V1 Base Saas, and short therm option
 
-For testing stripe payment, need certificat SSL 
-- Buy NDD (OVH) (solotext.io)
-- Use HTTPS Certificat (Let's Encryptt)
+- Add infra for deploy on prod server
+- Use HTTPS Certificat (Let's Encryptt)(infra as code if possible)
 
 ## V1.1 Payment Interface (Stripe) [In progress -> testing this]
 - Add stripe paiement (with différent subscription, active etc...) -> stripe = redirect page with button..
@@ -18,14 +17,18 @@ For testing stripe payment, need certificat SSL
 ## V1.2 Functionnal +
 - Add post api in back (for register new email from newletter form in footer)(new table with email + activate/desactive boolean)
 
-Multy-provider(Later):
-- Study input/output perplexity service for have same parameter in different provider
-- Create Second service with APIFY, or google content search..
- 
+## V1.4 Deploy Saas - Saas is online!
+
+- Kubernetes for deployment/ Other simple deploy
+- Install automatically on prod server (git, docker, make,build-essential)
 - Add github action (test + prettier?)
 - Add backup DB (container export)
-- Add red banner on top website (only on application) for display message..
-- on principal textarea, display number character, word, sentance..
+
+- Add red banner on top website (only on application) for display message (cette application est en beta test, pour tout probléme veuillez me contacter...)
+    - La banner doit etre afficher que au dessus de l'application
+    - la banner doit avoir une variable d'envionnement display true/false
+    - la banner doit avoir une variable d'environnement pour le message
+    - la banner doit avoir une variable d'environnement pour la couleur de la banner
 
 ## V1.21 Graphics
 - Update landing page with color chart graphic (In progress)
@@ -44,15 +47,6 @@ Multy-provider(Later):
     - Export Analysis in PDF
     - Find source in your different occurence..
 
-## V1.3 Customer Saas
-- Add support fonction (send message, receive message in infobull)
-- Add contact page (per email?)
-- Add mailer informations (connexion, forget password, register)
-
-## V1.3.1 Worker test
-- Write test worker and lib (Unit test)
-- Add 5 text corpus, and create script for test different provider on this corpus text for comparate result
-
 ## V1.3.2 Blog
 - Add blog page
 - Add Single blog page
@@ -61,14 +55,22 @@ Multy-provider(Later):
 - add sitemap.xml
 - add link blog in footer page
 
+## V1.3 Customer Saas
+- Add support fonction (send message, receive message in infobull)
+- Add contact page (per email?)
+- Add mailer informations (connexion, forget password, register)
+
+Multy-provider(Later):
+- Study input/output perplexity service for have same parameter in different provider
+- Create Second service with APIFY, or google content search..
+
 ## V1.3.3 Security
 - See security API route
 - See JWT Connexion
 
-## V1.4 Deploy Saas - Saas is online!
-
-- Kubernetes for deployment/ Other simple deploy
-- Buy VPS prod (OVH)
+## V1.3.1 Worker test
+- Write test worker and lib (Unit test)
+- Add 5 text corpus, and create script for test different provider on this corpus text for comparate result
 
 ## V1.5 
 - Diversify worker (Google search content, bing, apify...)

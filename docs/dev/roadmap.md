@@ -103,8 +103,10 @@ Multy-provider(Later):
 
 - App: Improve interface design 
 
-- TODO: In producation, not run adminer service
+- TODO: In producation, not run adminer service (create a docker-compose.prod?)
 
 
+## V Deploy
+- Verification backup DB
 
 

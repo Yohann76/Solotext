@@ -10,10 +10,6 @@ git_repo: https://github.com/Yohann76/Solotext
 git_branch: main
 git_version: HEAD
 
-# Configuration Docker
-docker_compose_version: "2.24.0"
-docker_compose_path: /usr/local/bin/docker-compose
-
 # Configuration des ports
 backend_port: 3000
 frontend_port: 8080
@@ -38,8 +34,6 @@ postgres_backup_dir: /opt/backups/postgres
 rabbitmq_version: "3-management-alpine"
 rabbitmq_data_dir: /var/lib/rabbitmq
 
-# db_name: solotext_db
-# db_user: solotext_user
 db_name: "{{ vault_db_name }}"
 db_user: "{{ vault_db_user }}"
 db_password: "{{ vault_db_password }}"

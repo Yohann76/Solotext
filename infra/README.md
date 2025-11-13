@@ -27,23 +27,7 @@ sudo sh get-docker.sh
 sudo usermod -aG docker $USER
 ```
 
-## 🔧 Configuration
 
-### 1. Configurer les inventaires
-
-Éditez les fichiers d'inventaire avec les adresses IP de vos serveurs :
-
-**`inventory/staging.ini`** :
-```ini
-[staging]
-staging_server ansible_host=192.168.1.100 ansible_user=ubuntu
-```
-
-**`inventory/prod.ini`** :
-```ini
-[production]
-prod_server ansible_host=192.168.1.200 ansible_user=ubuntu
-```
 
 ### 2. Configurer les variables
 
@@ -86,25 +70,6 @@ Puis référencez-les dans `staging.yml` et `production.yml` :
 db_password: "{{ vault_db_password }}"
 ```
 
-## 🚀 Déploiement
-
-### Méthode rapide (avec script)
-
-```bash
-cd infra
-
-# Déployer sur staging
-./deploy.sh staging
-
-# Déployer sur production
-./deploy.sh prod
-
-# Déployer uniquement le backend
-./deploy.sh prod --tags backend
-
-# Mode dry-run (vérification uniquement)
-./deploy.sh staging --check
-```
 
 ### Méthode manuelle
 
@@ -139,6 +104,7 @@ ansible-playbook -i inventory/prod.ini playbooks/deploy-prod.yml --tags database
 # Déployer uniquement Nginx
 ansible-playbook -i inventory/prod.ini playbooks/deploy-prod.yml --tags nginx
 ```
+
 
 ### Déploiement avec variables
 
@@ -296,9 +262,10 @@ vault_stripe_webhook_secret: "REMPLACEZ-MOI"
 vault_perplexity_api_key: "REMPLACEZ-MOI"
 ```
 
-ansible-vault edit infra/group_vars/production/vault.yml
-ansible-vault view infra/group_vars/production/vault.yml
+ansible-vault edit infra/inventory/group_vars/production/vault.yml
+ansible-vault view infra/inventory/group_vars/production/vault.yml
 
-ansible-vault edit infra/group_vars/staging/vault.yml
-ansible-vault view infra/group_vars/staging/vault.yml
+ansible-vault edit infra/inventory/group_vars/staging/vault.yml
+ansible-vault view infra/inventory/group_vars/staging/vault.yml
 
+/home/ubuntu/Solotext/

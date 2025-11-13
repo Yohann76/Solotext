@@ -69,13 +69,18 @@
   become: yes
   when: docker_check.rc != 0
 
-- name: Installer Docker Compose (standalone)
-  get_url:
-    url: "https://github.com/docker/compose/releases/download/v{{ docker_compose_version }}/docker-compose-linux-x86_64"
-    dest: "{{ docker_compose_path }}"
-    mode: '0755'
+- name: Vérifier que Docker Compose plugin est disponible
+  command: docker compose version
+  register: docker_compose_check
+  changed_when: false
+  failed_when: false
   become: yes
-  when: docker_check.rc != 0 or docker_compose_path is not defined
+
+- name: Créer le groupe de l'application
+  group:
+    name: "{{ app_group }}"
+    state: present
+  become: yes
 
 - name: Créer l'utilisateur de l'application
   user:

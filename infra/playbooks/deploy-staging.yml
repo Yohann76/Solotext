@@ -9,6 +9,11 @@
   vars:
     deployment_env: staging
 
+  pre_tasks:
+    - name: Charger les variables depuis group_vars
+      include_vars:
+        file: "{{ inventory_dir }}/group_vars/staging.yml"
+
   roles:
     - role: common
       tags: [common, system]

@@ -10,6 +10,10 @@
     deployment_env: production
 
   pre_tasks:
+    - name: Charger les variables depuis group_vars
+      include_vars:
+        file: "{{ inventory_dir }}/group_vars/production.yml"
+
     - name: Confirmer le déploiement en production
       pause:
         prompt: |

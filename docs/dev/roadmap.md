@@ -2,7 +2,7 @@
 
 ## V1 Base Saas, and short therm option
 
-- Add infra for deploy on prod server
+- Add base infra for deploy on prod server
 - Use HTTPS Certificat (Let's Encryptt)(infra as code if possible)
 
 ## V1.1 Payment Interface (Stripe) [In progress -> testing this]
@@ -108,5 +108,31 @@ Multy-provider(Later):
 
 ## V Deploy
 - Verification backup DB
+
+# Infra description (TODO)
+
+Need to separe website (no DB on landing website) and app (db, login etc...)
+
+Stagging: 51.178.80.14 (dev branch for CI/CD)
+- api.staging.solotext.io
+- app.staging.solotext.io
+- staging.solotext.io
+
+Prod: 51.38.178.137 (main branch for CI/CD)
+- solotext.io
+- api.solotext.io
+- app.solotext.io
+
+Ansible Var:
+
+```
+group_vars/
+  production/
+    api.yml
+    app.yml
+  staging/
+    api.yml
+    app.yml
+```
 
 

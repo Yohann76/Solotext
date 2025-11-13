@@ -1,5 +1,5 @@
 ---
-# Rôle backend : Déploiement via Docker Compose
+# Rôle app : Déploiement via Docker Compose
 
 - name: Créer le répertoire de l'application
   file:
@@ -75,7 +75,7 @@
       - docker-compose.yml
     state: present
     pull: missing
-    build: yes
+    build: always
   become: yes
   become_user: "{{ app_user }}"
 

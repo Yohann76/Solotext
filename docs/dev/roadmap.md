@@ -116,10 +116,10 @@ Need to separe website (no DB on landing website) and app (db, login etc...)
 Stagging: 51.178.80.14 (dev branch for CI/CD)
 - api.staging.solotext.io
 - app.staging.solotext.io
-- staging.solotext.io
+- staging.solotext.io (for blog use api or Nuxt Content)
 
 Prod: 51.38.178.137 (main branch for CI/CD)
-- solotext.io
+- solotext.io (for blog use api or Nuxt Content)
 - api.solotext.io
 - app.solotext.io
 

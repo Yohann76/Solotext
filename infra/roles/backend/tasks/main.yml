@@ -86,7 +86,7 @@
     group: "{{ app_group }}"
     mode: '0600'
   become: yes
-  become_user: "{{ app_user }}"
+  # Ne pas utiliser become_user ici pour éviter les problèmes d'ACL
 
 - name: Construire l'image Docker du backend
   community.docker.docker_image:
@@ -120,7 +120,7 @@
     group: "{{ app_group }}"
     mode: '0644'
   become: yes
-  become_user: "{{ app_user }}"
+  # Ne pas utiliser become_user ici pour éviter les problèmes d'ACL
 
 - name: Démarrer les services backend
   community.docker.docker_compose_v2:

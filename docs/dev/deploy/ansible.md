@@ -27,8 +27,8 @@ ansible-galaxy install -r requirements.yml
 ansible-vault edit infra/group_vars/production/vault.yml
 ansible-vault view infra/group_vars/production/vault.yml
 
-ansible-vault edit infra/group_vars/staging/vault.yml
-ansible-vault view infra/group_vars/staging/vault.yml
+ansible-vault edit infra/inventory/group_vars/staging/vault.yml
+ansible-vault view infra/inventory/group_vars/staging/vault.yml
 ```
 
 ## 🚀 Déploiement

@@ -38,9 +38,9 @@ db_name: "{{ vault_db_name }}"
 db_user: "{{ vault_db_user }}"
 db_password: "{{ vault_db_password }}"
 jwt_secret: "{{ vault_jwt_secret }}"
-stripe_secret_key: "{{ vault_stripe_secret_key }}"
-stripe_public_key: "{{ vault_stripe_public_key }}"
-stripe_webhook_secret: "{{ vault_stripe_webhook_secret }}"
+stripe_secret_key: "{{ STRIPE_SECRET_KEY }}"
+stripe_public_key: "{{ STRIPE_PUBLIC_KEY }}"
+stripe_webhook_secret: "{{ STRIPE_WEBHOOK_SECRET }}"
 perplexity_api_key: "{{ vault_perplexity_api_key }}"
 
 # Configuration des limites système

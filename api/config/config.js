@@ -1,4 +1,9 @@
-require('dotenv').config();
+
+
+// 14/11 : fix env file import .env in api for deploy 
+const path = require('path');
+// Charger le fichier .env depuis le répertoire api/
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
 // config for sequelize-cli in development, test, production
 

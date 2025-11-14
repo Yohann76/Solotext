@@ -113,6 +113,6 @@
     status_code: [200, 404]
   register: health_check
   until: health_check.status == 200
-  retries: 30
-  delay: 5
+  retries: 10
+  delay: 3
   ignore_errors: yes

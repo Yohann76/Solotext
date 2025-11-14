@@ -50,6 +50,27 @@
     NODE_ENV: production
   register: build_result
   when: node_check.rc == 0
+  failed_when: build_result.rc != 0
+
+- name: Vérifier que le répertoire dist existe après le build
+  stat:
+    path: "{{ website_build_dir }}/dist"
+  register: dist_dir
+  when: node_check.rc == 0
+
+- name: Échouer si le répertoire dist n'existe pas
+  fail:
+    msg: "Le build du website a échoué : le répertoire dist/ n'existe pas"
+  when: node_check.rc == 0 and not dist_dir.stat.exists
+
+- name: S'assurer que le répertoire parent /var/www existe
+  file:
+    path: /var/www
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  become: yes
 
 - name: Créer le répertoire web pour le website
   file:
@@ -66,7 +87,18 @@
     dest: "{{ website_web_dir }}/"
     owner: "{{ nginx_user }}"
     group: "{{ nginx_user }}"
-    mode: '0644'
+    mode: '0755'
+    directory_mode: '0755'
     remote_src: yes
+  become: yes
+  when: node_check.rc == 0 and dist_dir.stat.exists
+
+- name: Corriger les permissions récursives du website (garantit les bonnes permissions)
+  file:
+    path: "{{ website_web_dir }}"
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_user }}"
+    mode: '0755'
+    recurse: yes
   become: yes
 

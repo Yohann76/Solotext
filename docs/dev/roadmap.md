@@ -1,10 +1,5 @@
 # Roadmap
 
-## V1 Base Saas, and short therm option
-
-- Add base infra for deploy on prod server
-- Use HTTPS Certificat (Let's Encryptt)(infra as code if possible)
-
 ## V1.1 Payment Interface (Stripe) [In progress -> testing this]
 - Add stripe paiement (with différent subscription, active etc...) -> stripe = redirect page with button..
 - Ajouter une limite a un utilisateur qui sera défini par son abonnement (Table user ou une relation via stripe?)
@@ -16,13 +11,6 @@
 
 ## V1.2 Functionnal +
 - Add post api in back (for register new email from newletter form in footer)(new table with email + activate/desactive boolean)
-
-## V1.4 Deploy Saas - Saas is online!
-
-- Kubernetes for deployment/ Other simple deploy
-- Install automatically on prod server (git, docker, make,build-essential)
-- Add github action (test + prettier?)
-- Add backup DB (container export)
 
 - Add red banner on top website (only on application) for display message (cette application est en beta test, pour tout probléme veuillez me contacter...)
     - La banner doit etre afficher que au dessus de l'application
@@ -54,6 +42,8 @@
 - Add robots.txt
 - add sitemap.xml
 - add link blog in footer page
+
+- add blog article (with markdown content and vue)
 
 ## V1.3 Customer Saas
 - Add support fonction (send message, receive message in infobull)
@@ -95,44 +85,21 @@ Multy-provider(Later):
 
 ## V /Maintenance
 
-- add blog article ...?
+- ? 
 
 ## V /prblm /bug
 
-- Improve database queries (a folder/repository in the backend) to separate database calls that are in files like routes, for example, sorted by model.
-
-- App: Improve interface design 
-
-- TODO: In producation, not run adminer service (create a docker-compose.prod?)
-
+- ? 
 
 ## V Deploy
-- Verification backup DB
 
-# Infra description (TODO)
+TODO: 
+- Verification backup DB (container postgres)
+- Verification env var (app var, deploy var, useless var...)
+- In prod not reload database
+- Put reload on service (only backend, or only website)
+- In producation, not run adminer service (create a docker-compose.prod?)
+- add CI/CD (deploy staging with branch staging, deploy production on branch main)
 
-Need to separe website (no DB on landing website) and app (db, login etc...)
-
-Stagging: 51.178.80.14 (dev branch for CI/CD)
-- api.staging.solotext.io
-- app.staging.solotext.io
-- staging.solotext.io (for blog use api or Nuxt Content)
-
-Prod: 51.38.178.137 (main branch for CI/CD)
-- solotext.io (for blog use api or Nuxt Content)
-- api.solotext.io
-- app.solotext.io
-
-Ansible Var:
-
-```
-group_vars/
-  production/
-    api.yml
-    app.yml
-  staging/
-    api.yml
-    app.yml
-```
 
 

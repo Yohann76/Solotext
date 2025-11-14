@@ -85,13 +85,15 @@
     mode: '0600'
   become: yes
 
-- name: Déterminer le fichier docker-compose à utiliser
+- name: Déterminer le fichier docker-compose et le nom de projet à utiliser
   set_fact:
     docker_compose_file: "{{ 'docker-compose.staging.yml' if deployment_env == 'staging' else 'docker-compose.production.yml' }}"
+    docker_compose_project: "{{ 'solotext-staging' if deployment_env == 'staging' else 'solotext-production' }}"
 
 - name: Arrêter les conteneurs existants
   community.docker.docker_compose_v2:
     project_src: "{{ app_dir }}"
+    project_name: "{{ docker_compose_project }}"
     files:
       - "{{ docker_compose_file }}"
     state: absent
@@ -100,7 +102,7 @@
   ignore_errors: yes
 
 - name: Supprimer le volume PostgreSQL pour réinitialiser la base de données
-  command: docker compose -f {{ docker_compose_file }} down -v
+  command: docker compose -p {{ docker_compose_project }} -f {{ docker_compose_file }} down -v
   args:
     chdir: "{{ app_dir }}"
   become: yes
@@ -113,6 +115,7 @@
 - name: Construire et démarrer les services avec Docker Compose
   community.docker.docker_compose_v2:
     project_src: "{{ app_dir }}"
+    project_name: "{{ docker_compose_project }}"
     files:
       - "{{ docker_compose_file }}"
     state: present
@@ -133,7 +136,7 @@
   ignore_errors: yes
 
 - name: Afficher les logs du backend si le health check a échoué
-  command: docker compose -f {{ docker_compose_file }} logs backend --tail=50
+  command: docker compose -p {{ docker_compose_project }} -f {{ docker_compose_file }} logs backend --tail=50
   args:
     chdir: "{{ app_dir }}"
   become: yes
@@ -152,7 +155,7 @@
   debug:
     msg:
       - "⚠️  L'API n'est pas encore prête après le déploiement"
-      - "Vérifiez les logs avec : cd {{ app_dir }} && docker compose -f {{ docker_compose_file }} logs backend"
-      - "Vérifiez l'état avec : cd {{ app_dir }} && docker compose -f {{ docker_compose_file }} ps"
+      - "Vérifiez les logs avec : cd {{ app_dir }} && docker compose -p {{ docker_compose_project }} -f {{ docker_compose_file }} logs backend"
+      - "Vérifiez l'état avec : cd {{ app_dir }} && docker compose -p {{ docker_compose_project }} -f {{ docker_compose_file }} ps"
       - "Testez avec : curl http://localhost:{{ backend_port }}/api/health"
   when: health_check.status != 200

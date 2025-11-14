@@ -1,3 +1,5 @@
+name: solotext-staging
+
 services:
   # Service PostgreSQL Database (Staging)
   postgres:

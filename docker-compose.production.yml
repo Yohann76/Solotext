@@ -1,3 +1,5 @@
+name: solotext-production
+
 services:
   # Service PostgreSQL Database
   postgres:

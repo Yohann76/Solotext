@@ -1,3 +1,5 @@
+name: solotext-dev
+
 services:
   # Service PostgreSQL Database (même port, pas de conflit car dans Docker)
   postgres:

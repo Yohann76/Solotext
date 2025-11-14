@@ -35,3 +35,7 @@ Thumbs.db
 
 # Docker
 .dockerignore
+
+# Development PIDs
+.dev-pids
+.local-pids

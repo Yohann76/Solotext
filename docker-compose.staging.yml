@@ -1,0 +1,117 @@
+services:
+  # Service PostgreSQL Database (Staging)
+  postgres:
+    image: postgres:15-alpine
+    container_name: solotext-postgres-staging
+    environment:
+      - POSTGRES_DB=${DB_NAME:-solotext_db_staging}
+      - POSTGRES_USER=${DB_USER:-solotext_user}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-solotext_password}
+    ports:
+      - "5432:5432"  # Port interne, accessible uniquement via Nginx
+    volumes:
+      - postgres_data_staging:/var/lib/postgresql/data
+    networks:
+      - solotext-network-staging
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-solotext_user} -d ${DB_NAME:-solotext_db_staging}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: solotext-backend-staging
+    ports:
+      - "3000:3000"  # Port interne, accessible uniquement via Nginx (api.staging.solotext.io)
+    environment:
+      - NODE_ENV=${NODE_ENV:-staging}
+      - PORT=${PORT:-3000}
+      - DB_HOST=${DB_HOST:-postgres}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_NAME=${DB_NAME:-solotext_db_staging}
+      - DB_USER=${DB_USER:-solotext_user}
+      - DB_PASSWORD=${DB_PASSWORD:-solotext_password}
+      - RABBITMQ_URL=amqp://admin:admin123@rabbitmq:5672
+      - ANALYSIS_QUEUE=analysis_queue
+    volumes:
+      - ./api:/app
+      - /app/node_modules
+    networks:
+      - solotext-network-staging
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: sh -c "npx sequelize-cli db:migrate --env ${NODE_ENV:-staging} && npm start"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Service RabbitMQ for message queuing (Staging)
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: solotext-rabbitmq-staging
+    ports:
+      - "5672:5672"   # AMQP port (interne uniquement)
+      - "15672:15672" # Management UI (interne uniquement, accessible via tunnel SSH si nécessaire)
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER:-admin}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS:-admin123}
+      - RABBITMQ_DEFAULT_VHOST=${RABBITMQ_DEFAULT_VHOST:-/}
+    volumes:
+      - rabbitmq_data_staging:/var/lib/rabbitmq
+    networks:
+      - solotext-network-staging
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Service Analysis Worker for processing text analyses (Staging)
+  analysis-worker:
+    build:
+      context: ./api
+      dockerfile: Dockerfile.worker
+    container_name: solotext-analysis-worker-staging
+    environment:
+      - NODE_ENV=${NODE_ENV:-staging}
+      - DB_HOST=${DB_HOST:-postgres}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_NAME=${DB_NAME:-solotext_db_staging}
+      - DB_USER=${DB_USER:-solotext_user}
+      - DB_PASSWORD=${DB_PASSWORD:-solotext_password}
+      - RABBITMQ_URL=${RABBITMQ_URL:-amqp://admin:admin123@rabbitmq:5672}
+      - ANALYSIS_QUEUE=analysis_queue
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=gpt-3.5-turbo
+      - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - solotext-network-staging
+    restart: unless-stopped
+    volumes:
+      - ./api:/app
+      - /app/node_modules
+
+networks:
+  solotext-network-staging:
+    driver: bridge
+
+volumes:
+  postgres_data_staging:
+  node_modules_backend_staging:
+  rabbitmq_data_staging:
+

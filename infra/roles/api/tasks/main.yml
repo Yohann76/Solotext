@@ -95,6 +95,17 @@
   become_user: "{{ app_user }}"
   ignore_errors: yes
 
+- name: Supprimer le volume PostgreSQL pour réinitialiser la base de données
+  command: docker compose down -v
+  args:
+    chdir: "{{ app_dir }}"
+  become: yes
+  become_user: "{{ app_user }}"
+  register: volume_remove_result
+  ignore_errors: yes
+  changed_when: volume_remove_result.rc == 0
+  failed_when: false
+
 - name: Construire et démarrer les services avec Docker Compose
   community.docker.docker_compose_v2:
     project_src: "{{ app_dir }}"

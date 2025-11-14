@@ -49,6 +49,15 @@
     mode: '0600'
   become: yes
 
+- name: S'assurer que le répertoire api existe
+  file:
+    path: "{{ app_dir }}/api"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0755'
+  become: yes
+
 - name: Créer le fichier .env pour l'API
   template:
     src: api.env.j2

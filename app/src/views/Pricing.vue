@@ -25,13 +25,13 @@
             <li>✅ Détection de duplication</li>
             <li>✅ Support email</li>
           </ul>
-          <a 
+          <router-link 
             v-if="!isAuthenticated" 
-            :href="appRegisterUrl" 
+            to="/register" 
             class="btn btn-outline"
           >
             Commencer gratuitement
-          </a>
+          </router-link>
           <div v-else class="current-plan-badge">
             <span v-if="currentPlan === 'freemium'">Plan actuel</span>
             <span v-else>Déjà inclus</span>
@@ -54,21 +54,14 @@
             <li>✅ Support prioritaire</li>
             <li>✅ Export PDF</li>
           </ul>
-          <a
-            v-if="!isAuthenticated"
-            :href="`${appRegisterUrl}?plan=premium1000`"
-            class="btn btn-primary"
-          >
-            Choisir Pro
-          </a>
           <button 
-            v-else-if="currentPlan !== 'premium1000'"
+            v-if="currentPlan !== 'premium1000'"
             type="button"
             @click="handleSubscribe('premium1000')"
             class="btn btn-primary"
             :disabled="loading"
           >
-            {{ loading ? 'Chargement...' : 'Upgrader vers Pro' }}
+            {{ loading ? 'Chargement...' : (isAuthenticated ? 'Upgrader vers Pro' : 'Choisir Pro') }}
           </button>
           <div v-else class="current-plan-badge">
             <span>Plan actuel</span>
@@ -91,21 +84,14 @@
             <li>✅ Export PDF</li>
             <li>✅ API access</li>
           </ul>
-          <a
-            v-if="!isAuthenticated"
-            :href="`${appRegisterUrl}?plan=premium3000`"
-            class="btn btn-outline"
-          >
-            Choisir Enterprise
-          </a>
           <button 
-            v-else-if="currentPlan !== 'premium3000'"
+            v-if="currentPlan !== 'premium3000'"
             type="button"
             @click="handleSubscribe('premium3000')"
             class="btn btn-outline"
             :disabled="loading"
           >
-            {{ loading ? 'Chargement...' : 'Upgrader vers Enterprise' }}
+            {{ loading ? 'Chargement...' : (isAuthenticated ? 'Upgrader vers Enterprise' : 'Choisir Enterprise') }}
           </button>
           <div v-else class="current-plan-badge">
             <span>Plan actuel</span>
@@ -129,21 +115,14 @@
             <li>✅ API access</li>
             <li>✅ Gestion multi-utilisateurs</li>
           </ul>
-          <a
-            v-if="!isAuthenticated"
-            :href="`${appRegisterUrl}?plan=premium6000`"
-            class="btn btn-outline"
-          >
-            Choisir Agence
-          </a>
           <button 
-            v-else-if="currentPlan !== 'premium6000'"
+            v-if="currentPlan !== 'premium6000'"
             type="button"
             @click="handleSubscribe('premium6000')"
             class="btn btn-outline"
             :disabled="loading"
           >
-            {{ loading ? 'Chargement...' : 'Upgrader vers Agence' }}
+            {{ loading ? 'Chargement...' : (isAuthenticated ? 'Upgrader vers Agence' : 'Choisir Agence') }}
           </button>
           <div v-else class="current-plan-badge">
             <span>Plan actuel</span>
@@ -196,10 +175,11 @@ const loadSubscription = async () => {
   }
 }
 
-// Gérer l'abonnement
+// Gérer l'abonnement - redirige directement vers Stripe
 const handleSubscribe = async (planType) => {
+  // Si non connecté, rediriger vers login avec le plan en paramètre
   if (!isAuthenticated.value) {
-    router.push(`/register?plan=${planType}`)
+    router.push(`/login?redirect=/tarifs&plan=${planType}`)
     return
   }
 
@@ -210,7 +190,7 @@ const handleSubscribe = async (planType) => {
     const result = await stripeService.createCheckoutSession(planType)
     
     if (result.success && result.data.checkoutUrl) {
-      // Rediriger vers Stripe Checkout
+      // Rediriger directement vers Stripe Checkout
       window.location.href = result.data.checkoutUrl
     } else {
       error(result.message || 'Erreur lors de la création de la session de paiement')

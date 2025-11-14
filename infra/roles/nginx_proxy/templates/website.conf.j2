@@ -1,0 +1,23 @@
+# Configuration Nginx pour le Website
+server {
+    listen 80;
+    server_name {{ website_domain }};
+
+    root {{ website_web_dir }};
+    index index.html;
+
+    # Gestion des routes SPA (Single Page Application)
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Configuration pour les fichiers statiques
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Gestion des erreurs
+    error_page 404 /index.html;
+}
+

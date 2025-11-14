@@ -1,0 +1,91 @@
+---
+# Rôle api : Déploiement de l'API via Docker Compose
+
+- name: Créer le répertoire de l'application
+  file:
+    path: "{{ app_dir }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0755'
+  become: yes
+
+- name: Configurer Git pour accepter le répertoire comme safe directory
+  command: git config --global --add safe.directory "{{ app_dir }}"
+  become: yes
+  ignore_errors: yes
+
+- name: Configurer Git pour accepter le répertoire comme safe directory (app_user)
+  command: git config --global --add safe.directory "{{ app_dir }}"
+  become: yes
+  become_user: "{{ app_user }}"
+  ignore_errors: yes
+
+- name: Cloner ou mettre à jour le dépôt Git
+  git:
+    repo: "{{ git_repo }}"
+    dest: "{{ app_dir }}"
+    version: "{{ git_branch | default(git_version) }}"
+    force: yes
+    update: yes
+  become: yes
+  when: git_repo is defined
+
+- name: Assurer les permissions du dépôt
+  file:
+    path: "{{ app_dir }}"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    recurse: yes
+  become: yes
+  when: git_repo is defined
+
+- name: Créer le fichier .env à la racine pour docker-compose
+  template:
+    src: docker-compose.env.j2
+    dest: "{{ app_dir }}/.env"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0600'
+  become: yes
+
+- name: Créer le fichier .env pour l'API
+  template:
+    src: api.env.j2
+    dest: "{{ app_dir }}/api/.env"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0600'
+  become: yes
+
+- name: Arrêter les conteneurs existants
+  community.docker.docker_compose_v2:
+    project_src: "{{ app_dir }}"
+    files:
+      - docker-compose.yml
+    state: absent
+  become: yes
+  become_user: "{{ app_user }}"
+  ignore_errors: yes
+
+- name: Construire et démarrer les services avec Docker Compose
+  community.docker.docker_compose_v2:
+    project_src: "{{ app_dir }}"
+    files:
+      - docker-compose.yml
+    state: present
+    pull: missing
+    build: always
+  become: yes
+  become_user: "{{ app_user }}"
+
+- name: Attendre que l'API soit prête
+  uri:
+    url: "http://localhost:{{ backend_port }}/api/health"
+    method: GET
+    status_code: [200, 404]
+  register: health_check
+  until: health_check.status == 200
+  retries: 30
+  delay: 5
+  ignore_errors: yes

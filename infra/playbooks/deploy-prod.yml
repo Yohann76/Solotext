@@ -12,6 +12,9 @@
   vars_files:
     - "{{ inventory_dir }}/group_vars/production.yml"
     - "{{ inventory_dir }}/group_vars/production/vault.yml"
+    - "{{ inventory_dir }}/group_vars/production/api.yml"
+    - "{{ inventory_dir }}/group_vars/production/app.yml"
+    - "{{ inventory_dir }}/group_vars/production/website.yml"
 
   pre_tasks:
     - name: Confirmer le déploiement en production
@@ -29,6 +32,8 @@
 
   roles:
     - role: common
+    - role: api
     - role: app
+    - role: website
     - role: nginx_proxy
 

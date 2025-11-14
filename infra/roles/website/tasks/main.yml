@@ -1,5 +1,5 @@
 ---
-# Rôle app : Build et déploiement de l'application frontend (statique)
+# Rôle website : Build et déploiement du website (statique)
 
 - name: Vérifier que Node.js est installé
   command: node --version
@@ -23,39 +23,38 @@
   become: yes
   when: node_check.rc != 0
 
-- name: Installer les dépendances de l'app
+- name: Installer les dépendances du website
   command: npm install
   args:
-    chdir: "{{ app_build_dir }}"
+    chdir: "{{ website_build_dir }}"
   become: yes
   become_user: "{{ app_user }}"
   when: node_check.rc == 0
 
-- name: Build de l'app pour la production
+- name: Build du website pour la production
   command: npm run build
   args:
-    chdir: "{{ app_build_dir }}"
+    chdir: "{{ website_build_dir }}"
   become: yes
   become_user: "{{ app_user }}"
   environment:
     NODE_ENV: production
-    VITE_API_URL: "{{ app_api_url }}"
   register: build_result
   when: node_check.rc == 0
 
-- name: Créer le répertoire web pour l'app
+- name: Créer le répertoire web pour le website
   file:
-    path: "{{ app_web_dir }}"
+    path: "{{ website_web_dir }}"
     state: directory
     owner: "{{ nginx_user }}"
     group: "{{ nginx_user }}"
     mode: '0755'
   become: yes
 
-- name: Copier les fichiers statiques de l'app
+- name: Copier les fichiers statiques du website
   copy:
-    src: "{{ app_build_dir }}/dist/"
-    dest: "{{ app_web_dir }}/"
+    src: "{{ website_build_dir }}/dist/"
+    dest: "{{ website_web_dir }}/"
     owner: "{{ nginx_user }}"
     group: "{{ nginx_user }}"
     mode: '0644'

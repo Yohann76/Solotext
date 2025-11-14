@@ -1,47 +1,17 @@
 ---
-# Variables pour l'environnement de production
-
-# Configuration de l'application
-app_name: solotext
-app_user: solotext
-app_group: solotext
-app_dir: /opt/solotext
-git_repo: https://github.com/Yohann76/Solotext
-git_branch: main
-git_version: HEAD
-
-# Configuration des ports
-backend_port: 3000
-frontend_port: 8080
-postgres_port: 5432
-rabbitmq_port: 5672
-rabbitmq_management_port: 15672
+# Variables communes pour l'environnement de production
 
 # Configuration Nginx
 nginx_user: www-data
 nginx_worker_processes: auto
 nginx_worker_connections: 1024
-nginx_domain: solotext.io
 nginx_ssl_enabled: true
 nginx_ssl_email: yohanndurand76@gmail.com
 
-# Configuration PostgreSQL
-postgres_version: "15-alpine"
-postgres_data_dir: /var/lib/postgresql/data
-postgres_backup_dir: /opt/backups/postgres
-
-# Configuration RabbitMQ
-rabbitmq_version: "3-management-alpine"
-rabbitmq_data_dir: /var/lib/rabbitmq
-
-db_name: "{{ vault_db_name }}"
-db_user: "{{ vault_db_user }}"
-db_password: "{{ vault_db_password }}"
-jwt_secret: "{{ vault_jwt_secret }}"
-stripe_secret_key: "{{ STRIPE_SECRET_KEY }}"
-stripe_public_key: "{{ STRIPE_PUBLIC_KEY }}"
-stripe_webhook_secret: "{{ STRIPE_WEBHOOK_SECRET }}"
-perplexity_api_key: "{{ vault_perplexity_api_key }}"
+# Domaines
+website_domain: solotext.io
+app_domain: app.solotext.io
+api_domain: api.solotext.io
 
 # Configuration des limites système
 max_open_files: 65536
@@ -67,4 +37,3 @@ health_check_interval: 30
 backup_enabled: true
 backup_retention_days: 30
 backup_schedule: "0 2 * * *"  # Tous les jours à 2h du matin
-

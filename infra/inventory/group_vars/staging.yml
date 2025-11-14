@@ -1,48 +1,17 @@
 ---
-# Variables pour l'environnement de staging
-
-# Configuration de l'application
-app_name: solotext
-app_user: solotext
-app_group: solotext
-app_dir: /opt/solotext
-git_repo: https://github.com/Yohann76/Solotext
-git_branch: develop
-git_version: HEAD
-
-# Configuration des ports
-backend_port: 3000
-frontend_port: 8080
-postgres_port: 5432
-rabbitmq_port: 5672
-rabbitmq_management_port: 15672
+# Variables communes pour l'environnement de staging
 
 # Configuration Nginx
 nginx_user: www-data
 nginx_worker_processes: auto
 nginx_worker_connections: 1024
-nginx_domain: staging.solotext.com
 nginx_ssl_enabled: false
 nginx_ssl_email: yohanndurand76@gmail.com
 
-# Configuration PostgreSQL
-postgres_version: "15-alpine"
-postgres_data_dir: /var/lib/postgresql/data
-postgres_backup_dir: /opt/backups/postgres
-
-# Configuration RabbitMQ
-rabbitmq_version: "3-management-alpine"
-rabbitmq_data_dir: /var/lib/rabbitmq
-
-# Configuration des secrets (chiffrés dans vault-staging.yml)
-db_name: "{{ vault_db_name }}"
-db_user: "{{ vault_db_user }}"
-db_password: "{{ vault_db_password }}"
-jwt_secret: "{{ vault_jwt_secret }}"
-stripe_secret_key: "{{ STRIPE_SECRET_KEY }}"
-stripe_public_key: "{{ STRIPE_PUBLIC_KEY }}"
-stripe_webhook_secret: "{{ STRIPE_WEBHOOK_SECRET }}"
-perplexity_api_key: "{{ vault_perplexity_api_key }}"
+# Domaines
+website_domain: staging.solotext.io
+app_domain: app.staging.solotext.io
+api_domain: api.staging.solotext.io
 
 # Configuration des limites système
 max_open_files: 65536
@@ -64,4 +33,3 @@ security_updates_only: true
 # Configuration du monitoring
 health_check_enabled: true
 health_check_interval: 30
-

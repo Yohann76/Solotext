@@ -22,7 +22,7 @@ services:
 
   backend:
     build:
-      context: ./backend
+      context: ./api
       dockerfile: Dockerfile
     container_name: solotext-backend
     ports:
@@ -38,7 +38,7 @@ services:
       - RABBITMQ_URL=amqp://admin:admin123@rabbitmq:5672
       - ANALYSIS_QUEUE=analysis_queue
     volumes:
-      - ./backend:/app
+      - ./api:/app
       - /app/node_modules
     networks:
       - solotext-network
@@ -54,31 +54,12 @@ services:
       retries: 3
       start_period: 40s
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: solotext-frontend
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    environment:
-      - NODE_ENV=development
-    command: sh -c "chmod -R 755 /app/node_modules/.bin 2>/dev/null || true && npm run dev -- --host 0.0.0.0"
-    depends_on:
-      - backend
-    networks:
-      - solotext-network
-    restart: unless-stopped
-
-  # Service Adminer for the database administration # http://localhost:8081/
+  # Service Adminer for the database administration # http://localhost:8082/
   adminer:
     image: adminer:4.8.1
     container_name: solotext-adminer
     ports:
-      - "8081:8080"
+      - "8082:8080"
     environment:
       - ADMINER_DEFAULT_SERVER=postgres
     depends_on:
@@ -118,7 +99,7 @@ services:
   # Service Analysis Worker for processing text analyses
   analysis-worker:
     build:
-      context: ./backend
+      context: ./api
       dockerfile: Dockerfile.worker
     container_name: solotext-analysis-worker
     environment:
@@ -142,7 +123,7 @@ services:
       - solotext-network
     restart: unless-stopped
     volumes:
-      - ./backend:/app
+      - ./api:/app
       - /app/node_modules
 
 networks:
@@ -152,5 +133,4 @@ networks:
 volumes:
   postgres_data:
   node_modules_backend:
-  node_modules_frontend:
   rabbitmq_data:

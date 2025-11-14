@@ -20,7 +20,7 @@
 
     <div class="nav-links" :class="{ open: isMobileOpen }" id="primary-navigation">
       <a :href="websiteFonctionnalitesUrl" class="nav-link" @click="closeMobile">Fonctionnalités</a>
-      <a :href="websiteTarifsUrl" class="nav-link" @click="closeMobile">Tarifs</a>
+      <router-link to="/tarifs" class="nav-link" @click="closeMobile">Tarifs</router-link>
       
       <template v-if="!isAuthenticated">
         <router-link to="/login" class="btn btn-outline btn-pill" @click="closeMobile">Connexion</router-link>

@@ -43,7 +43,7 @@ const routes = [
     path: '/tarifs',
     name: 'Pricing',
     component: Pricing,
-    meta: { title: 'Tarifs - SoloText', requiresAuth: true }
+    meta: { title: 'Tarifs - SoloText' }
   },
   { path: '/:pathMatch(.*)*', redirect: '/login' }
 ]

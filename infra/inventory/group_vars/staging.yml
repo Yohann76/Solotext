@@ -29,6 +29,11 @@ firewall_allowed_tcp_ports:
   - "80"    # HTTP
   - "443"   # HTTPS
   - "5432"  # PostgreSQL (si accès externe nécessaire)
+  - "3001"  # Backend API Dev (docker-compose.dev.yml)
+  - "8090"  # App Frontend Dev (docker-compose.dev.yml)
+  - "8091"  # Website Frontend Dev (docker-compose.dev.yml)
+  - "8083"  # Adminer Dev (docker-compose.dev.yml)
+  - "15673" # RabbitMQ Management Dev (docker-compose.dev.yml)
 
 firewall_allowed_udp_ports: []
 

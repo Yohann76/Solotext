@@ -24,22 +24,14 @@
             <li>✅ Détection de duplication</li>
             <li>✅ Support email</li>
           </ul>
-          <a 
-            v-if="!isAuthenticated" 
-            :href="`${appBaseUrl}/register`" 
-            class="btn btn-outline"
-          >
-            Commencer gratuitement
+          <a :href="`${appBaseUrl}/register`" class="btn btn-outline">
+            Accéder au paiement dans l'application
           </a>
-          <div v-else class="current-plan-badge">
-            <span v-if="currentPlan === 'freemium'">Plan actuel</span>
-            <span v-else>Déjà inclus</span>
-          </div>
         </div>
 
         <!-- Forfait Pro (Premium1000) -->
-        <div class="pricing-card" :class="{ 'featured': currentPlan !== 'premium1000' }">
-          <div v-if="currentPlan !== 'premium1000'" class="badge">Populaire</div>
+        <div class="pricing-card featured">
+          <div class="badge">Populaire</div>
           <h3>Pro</h3>
           <div class="price">
             <span class="currency">€</span>
@@ -53,25 +45,9 @@
             <li>✅ Support prioritaire</li>
             <li>✅ Export PDF</li>
           </ul>
-          <a
-            v-if="!isAuthenticated"
-            :href="`${appBaseUrl}/register?plan=premium1000`"
-            class="btn btn-primary"
-          >
-            Choisir Pro
+          <a :href="`${appBaseUrl}/tarifs?plan=premium1000`" class="btn btn-primary">
+            Accéder au paiement dans l'application
           </a>
-          <button 
-            v-else-if="currentPlan !== 'premium1000'"
-            type="button"
-            @click="handleSubscribe('premium1000')"
-            class="btn btn-primary"
-            :disabled="loading"
-          >
-            {{ loading ? 'Chargement...' : 'Upgrader vers Pro' }}
-          </button>
-          <div v-else class="current-plan-badge">
-            <span>Plan actuel</span>
-          </div>
         </div>
 
         <!-- Forfait Enterprise (Premium3000) -->
@@ -90,25 +66,9 @@
             <li>✅ Export PDF</li>
             <li>✅ API access</li>
           </ul>
-          <a
-            v-if="!isAuthenticated"
-            :href="`${appBaseUrl}/register?plan=premium3000`"
-            class="btn btn-outline"
-          >
-            Choisir Enterprise
+          <a :href="`${appBaseUrl}/tarifs?plan=premium3000`" class="btn btn-outline">
+            Accéder au paiement dans l'application
           </a>
-          <button 
-            v-else-if="currentPlan !== 'premium3000'"
-            type="button"
-            @click="handleSubscribe('premium3000')"
-            class="btn btn-outline"
-            :disabled="loading"
-          >
-            {{ loading ? 'Chargement...' : 'Upgrader vers Enterprise' }}
-          </button>
-          <div v-else class="current-plan-badge">
-            <span>Plan actuel</span>
-          </div>
         </div>
 
         <!-- Forfait Agence (Premium6000) -->
@@ -128,25 +88,9 @@
             <li>✅ API access</li>
             <li>✅ Gestion multi-utilisateurs</li>
           </ul>
-          <a
-            v-if="!isAuthenticated"
-            :href="`${appBaseUrl}/register?plan=premium6000`"
-            class="btn btn-outline"
-          >
-            Choisir Agence
+          <a :href="`${appBaseUrl}/tarifs?plan=premium6000`" class="btn btn-outline">
+            Accéder au paiement dans l'application
           </a>
-          <button 
-            v-else-if="currentPlan !== 'premium6000'"
-            type="button"
-            @click="handleSubscribe('premium6000')"
-            class="btn btn-outline"
-            :disabled="loading"
-          >
-            {{ loading ? 'Chargement...' : 'Upgrader vers Agence' }}
-          </button>
-          <div v-else class="current-plan-badge">
-            <span>Plan actuel</span>
-          </div>
         </div>
         </div>
       </div>
@@ -155,113 +99,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/authStore.js'
-import { useNotifications } from '../composables/useNotifications.js'
-import stripeService from '../services/stripe.js'
-
-const router = useRouter()
-const { isAuthenticated, user, checkAuth } = useAuthStore()
-const { success, error } = useNotifications()
-
-const loading = ref(false)
-const subscription = ref(null)
-
-// URL vers l'application pour connexion/inscription
+// URL vers l'application pour les tarifs
 const appBaseUrl = import.meta.env.VITE_APP_URL || 'http://51.178.80.14:8080'
-
-// Déterminer le plan actuel
-const currentPlan = computed(() => {
-  if (!subscription.value) {
-    // Si pas d'abonnement Stripe, vérifier le rôle
-    if (user.value?.role === 'premium1000') return 'premium1000'
-    if (user.value?.role === 'premium3000') return 'premium3000'
-    if (user.value?.role === 'premium6000') return 'premium6000'
-    return 'freemium'
-  }
-  return subscription.value.plan_type || 'freemium'
-})
-
-// Charger l'abonnement actuel
-const loadSubscription = async () => {
-  if (!isAuthenticated.value) return
-  
-  try {
-    const result = await stripeService.getSubscription()
-    if (result.success && result.data.subscription) {
-      subscription.value = result.data.subscription
-    }
-  } catch (err) {
-    console.error('Erreur lors du chargement de l\'abonnement:', err)
-  }
-}
-
-// Gérer l'abonnement
-const handleSubscribe = async (planType) => {
-  console.log('handleSubscribe appelé avec planType:', planType)
-  console.log('isAuthenticated.value:', isAuthenticated.value)
-  console.log('user.value:', user.value)
-  
-  // Vérifier l'authentification avant de continuer
-  const { checkAuth } = useAuthStore()
-  checkAuth()
-  
-  if (!isAuthenticated.value) {
-    console.log('Utilisateur non connecté, redirection vers register')
-    // Rediriger vers l'app pour s'inscrire (qui déclenchera Stripe après inscription)
-    const appBaseUrl = import.meta.env.VITE_APP_URL || 'http://51.178.80.14:8080'
-    window.location.href = `${appBaseUrl}/register?plan=${planType}`
-    return
-  }
-
-  console.log('Utilisateur connecté, appel direct à Stripe')
-  // Si connecté, appeler directement Stripe depuis le website
-  loading.value = true
-
-  try {
-    console.log('Création de la session Stripe pour plan:', planType)
-    // Créer une session de checkout Stripe directement depuis le website
-    const result = await stripeService.createCheckoutSession(planType)
-    console.log('Résultat Stripe:', result)
-    
-    if (result.success && result.data.checkoutUrl) {
-      console.log('Redirection vers Stripe:', result.data.checkoutUrl)
-      // Rediriger vers Stripe Checkout
-      window.location.href = result.data.checkoutUrl
-    } else {
-      console.error('Erreur dans la réponse Stripe:', result)
-      error(result.message || 'Erreur lors de la création de la session de paiement')
-    }
-  } catch (err) {
-    console.error('Erreur lors de l\'abonnement:', err)
-    error('Erreur lors de l\'abonnement. Veuillez réessayer.')
-  } finally {
-    loading.value = false
-  }
-}
-
-onMounted(async () => {
-  // Vérifier l'authentification au montage
-  checkAuth()
-  console.log('Pricing monté - isAuthenticated:', isAuthenticated.value)
-  console.log('Pricing monté - user:', user.value)
-  
-  if (isAuthenticated.value) {
-    await loadSubscription()
-  }
-  
-  // Vérifier si on revient d'un paiement Stripe
-  const urlParams = new URLSearchParams(window.location.search)
-  if (urlParams.get('checkout') === 'success') {
-    success('Paiement réussi ! Votre abonnement est maintenant actif.')
-    await loadSubscription() // Recharger l'abonnement
-    window.history.replaceState({}, document.title, '/tarifs')
-  } else if (urlParams.get('checkout') === 'cancelled') {
-    error('Paiement annulé. Vous pouvez réessayer quand vous le souhaitez.')
-    window.history.replaceState({}, document.title, '/tarifs')
-  }
-})
 </script>
 
 <style scoped>
@@ -427,16 +266,6 @@ onMounted(async () => {
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-.current-plan-badge {
-  text-align: center;
-  padding: 1rem;
-  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
-  border-radius: 8px;
-  color: #0c4a6e;
-  font-weight: 600;
-  border: 1px solid #32c4c0;
 }
 
 .container {

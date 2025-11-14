@@ -19,12 +19,14 @@
     </button>
 
     <div class="nav-links" :class="{ open: isMobileOpen }" id="primary-navigation">
+      <a :href="websiteFonctionnalitesUrl" class="nav-link" @click="closeMobile">Fonctionnalités</a>
+      <a :href="websiteTarifsUrl" class="nav-link" @click="closeMobile">Tarifs</a>
+      
       <template v-if="!isAuthenticated">
         <router-link to="/login" class="btn btn-outline btn-pill" @click="closeMobile">Connexion</router-link>
         <router-link to="/register" class="btn btn-primary btn-pill" @click="closeMobile">Rejoindre l'aventure</router-link>
       </template>
       <template v-else>
-        <router-link to="/tarifs" class="nav-link app-link" @click="closeMobile">Tarifs</router-link>
         <router-link to="/application" class="nav-link app-link" @click="closeMobile">Application</router-link>
         <router-link v-if="user?.role === 'admin'" to="/dashboard" class="nav-link app-link" @click="closeMobile">Dashboard</router-link>
         <UserIndicator @logout="handleLogout" />
@@ -34,7 +36,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import UserIndicator from '../UserIndicator.vue'
 import { useAuthStore } from '../../stores/authStore.js'
 import { useNotifications } from '../../composables/useNotifications.js'
@@ -42,6 +44,11 @@ import { useNotifications } from '../../composables/useNotifications.js'
 const { isAuthenticated, user, logout } = useAuthStore()
 const { success } = useNotifications()
 const isMobileOpen = ref(false)
+
+// URL vers le website (port 8081)
+const websiteBaseUrl = import.meta.env.VITE_WEBSITE_URL || 'http://51.178.80.14:8081'
+const websiteTarifsUrl = computed(() => `${websiteBaseUrl}/tarifs`)
+const websiteFonctionnalitesUrl = computed(() => `${websiteBaseUrl}/fonctionnalites`)
 
 const handleLogout = async () => {
   const userName = user.value?.displayName || 'Utilisateur'

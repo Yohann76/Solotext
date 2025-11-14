@@ -255,7 +255,7 @@ onMounted(async () => {
 }
 
 .hero.simple {
-  padding: 2rem 0 1rem 0;
+  padding: 10rem 0 1rem 0;
   text-align: center;
   background: transparent;
   margin-bottom: 0;

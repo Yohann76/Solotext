@@ -32,6 +32,7 @@ const checkAuth = () => {
   return { isAuthenticated: isAuthenticated.value, user: user.value }
 }
 
+
 // Function to login
 const login = async (email, password) => {
   try {

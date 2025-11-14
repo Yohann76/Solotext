@@ -3,6 +3,8 @@
 ## Objectif
 Séparer le site web marketing (landing page + blog) de l'application SaaS (avec DB, authentification).
 
+GOOD
+
 ## Architecture cible
 
 ### Staging (51.178.80.14, branche `develop`)
@@ -169,10 +171,10 @@ infra/
 
 ## Ordre d'exécution recommandé
 
-1. ✅ Garder backend pour api, garder frontend pour app, créer website pour website
-2. ✅ Configurer Ansible avec les nouveaux rôles
-3. ✅ Configurer Nginx pour les 3 domaines
-4. ✅ Migrer le code website
-5. ✅ Tester sur staging
-6. ✅ Déployer en production
+1. ✅ Separate API / Website / App 
+2. Configurer Ansible avec les nouveaux rôles
+3. Configurer Nginx pour les 3 domaines
+4. Zone DNS solotext.io
+5. Tester sur staging
+6. Déployer en production
 

@@ -23,6 +23,15 @@
   become: yes
   when: node_check.rc != 0
 
+- name: S'assurer que le répertoire website existe
+  file:
+    path: "{{ website_build_dir }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0755'
+  become: yes
+
 - name: Installer les dépendances du website
   command: npm install
   args:

@@ -9,7 +9,7 @@ app_dir: /opt/solotext
 
 # Configuration Git
 git_repo: https://github.com/Yohann76/Solotext
-git_branch: develop
+git_branch: feat-test-separate-api-frontend-website-with-ansible
 git_version: HEAD
 
 # Configuration des ports

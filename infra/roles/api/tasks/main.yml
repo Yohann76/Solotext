@@ -21,6 +21,24 @@
   become_user: "{{ app_user }}"
   ignore_errors: yes
 
+- name: Nettoyer les fichiers non suivis avant le checkout (si le dépôt existe)
+  command: git clean -fd
+  args:
+    chdir: "{{ app_dir }}"
+  become: yes
+  become_user: "{{ app_user }}"
+  ignore_errors: yes
+  when: git_repo is defined
+
+- name: Réinitialiser les modifications locales avant le checkout
+  command: git reset --hard HEAD
+  args:
+    chdir: "{{ app_dir }}"
+  become: yes
+  become_user: "{{ app_user }}"
+  ignore_errors: yes
+  when: git_repo is defined
+
 - name: Cloner ou mettre à jour le dépôt Git
   git:
     repo: "{{ git_repo }}"

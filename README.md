@@ -6,7 +6,7 @@
 - VueJS
 - Artifical inteligence 
 
-## Run project 
+## Infrastructure
 
 ### Makefile run 
 

@@ -5,7 +5,7 @@
 nginx_user: www-data
 nginx_worker_processes: auto
 nginx_worker_connections: 1024
-nginx_ssl_enabled: false
+nginx_ssl_enabled: true
 nginx_ssl_email: yohanndurand76@gmail.com
 
 # Domaines

@@ -49,6 +49,7 @@
   environment:
     NODE_ENV: production
     VITE_API_URL: "{{ app_api_url }}"
+    VITE_WEBSITE_URL: "{{ app_website_url }}"
   register: build_result
   when: node_check.rc == 0
   failed_when: build_result.rc != 0

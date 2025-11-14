@@ -15,7 +15,6 @@ git_version: HEAD
 # Configuration de l'app
 app_build_dir: "{{ app_dir }}/app"
 app_web_dir: /var/www/app
-app_api_url: "https://api.solotext.io"
 
 # Configuration Nginx
 nginx_user: www-data

@@ -13,6 +13,12 @@ website_domain: solotext.io
 app_domain: app.solotext.io
 api_domain: api.solotext.io
 
+# URLs pour les builds frontend (en clair, pas dans le vault)
+app_api_url: "https://{{ api_domain }}"
+app_website_url: "https://{{ website_domain }}"
+website_api_url: "https://{{ api_domain }}"
+website_app_url: "https://{{ app_domain }}"
+
 # Configuration des limites système
 max_open_files: 65536
 max_user_processes: 4096

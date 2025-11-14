@@ -48,6 +48,8 @@
   become_user: "{{ app_user }}"
   environment:
     NODE_ENV: production
+    VITE_API_URL: "{{ website_api_url }}"
+    VITE_APP_URL: "{{ website_app_url }}"
   register: build_result
   when: node_check.rc == 0
   failed_when: build_result.rc != 0

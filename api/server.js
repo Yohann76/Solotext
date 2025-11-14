@@ -20,8 +20,66 @@ const stripeRoutes = require('./routes/stripe');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Configuration CORS : autoriser les domaines et IPs
+const allowedOrigins = [
+  // Domaines de production
+  'https://app.solotext.io',
+  'https://solotext.io',
+  'https://api.solotext.io',
+  
+  // Domaines de staging
+  'https://app.staging.solotext.io',
+  'https://staging.solotext.io',
+  'https://api.staging.solotext.io',
+  
+  // IPs directes - Staging (51.178.80.14)
+  'http://51.178.80.14:8080',  // App staging
+  'http://51.178.80.14:8081',  // Website staging
+  'http://51.178.80.14:3000',  // API staging
+  
+  // IPs directes - Production (51.38.178.137)
+  'http://51.38.178.137:8080',  // App production
+  'http://51.38.178.137:8081',  // Website production
+  'http://51.38.178.137:3000',  // API production
+  
+  // Localhost pour le développement local
+  'http://localhost:8080',
+  'http://localhost:8081',
+  'http://localhost:3000',
+  'http://127.0.0.1:8080',
+  'http://127.0.0.1:8081',
+  'http://127.0.0.1:3000'
+];
+
+// Configuration CORS avec validation d'origine
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Autoriser les requêtes sans origine (ex: Postman, curl, applications mobiles)
+    if (!origin) {
+      return callback(null, true);
+    }
+    
+    // Vérifier si l'origine est autorisée
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      // En développement, autoriser toutes les origines pour faciliter le debug
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`⚠️  CORS: Origine non autorisée en développement: ${origin}`);
+        callback(null, true);
+      } else {
+        console.error(`❌ CORS: Origine non autorisée: ${origin}`);
+        callback(new Error('Non autorisé par CORS'));
+      }
+    }
+  },
+  credentials: true, // Autoriser les cookies et les en-têtes d'authentification
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

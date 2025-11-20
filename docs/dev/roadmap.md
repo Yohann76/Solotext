@@ -20,7 +20,7 @@
 
 ## V1.21 Graphics
 - Update landing page with color chart graphic (In progress)
-- Add Cookie management ()
+
 - Add argument marketing in 3 row section (in homepage)
 - Add Impact Header (link teachizy)
 - Add Favicon (Logo)

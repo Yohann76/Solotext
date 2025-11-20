@@ -128,6 +128,48 @@ services:
       - ./api:/app
       - /app/node_modules
 
+  # Service App Frontend (Vue.js)
+  app-frontend:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: solotext-app-frontend-dev
+    ports:
+      - "8090:8080"
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:3001/api}
+      - VITE_WEBSITE_URL=${VITE_WEBSITE_URL:-http://localhost:8091}
+    volumes:
+      - ./app:/app
+      - node_modules_app_dev:/app/node_modules
+    networks:
+      - solotext-network-dev
+    restart: unless-stopped
+    command: npm run dev -- --host 0.0.0.0 --port 8080
+    depends_on:
+      - backend
+
+  # Service Website Frontend (Vue.js)
+  website-frontend:
+    build:
+      context: ./website
+      dockerfile: Dockerfile
+    container_name: solotext-website-frontend-dev
+    ports:
+      - "8091:8091"
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:3001/api}
+      - VITE_APP_URL=${VITE_APP_URL:-http://localhost:8090}
+    volumes:
+      - ./website:/app
+      - node_modules_website_dev:/app/node_modules
+    networks:
+      - solotext-network-dev
+    restart: unless-stopped
+    command: npm run dev:server -- --host 0.0.0.0 --port 8091
+
 networks:
   solotext-network-dev:
     driver: bridge
@@ -135,5 +177,7 @@ networks:
 volumes:
   postgres_data_dev:
   node_modules_backend_dev:
+  node_modules_app_dev:
+  node_modules_website_dev:
   rabbitmq_data_dev:
 

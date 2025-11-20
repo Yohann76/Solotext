@@ -108,6 +108,48 @@ services:
       - ./api:/app
       - /app/node_modules
 
+  # Service App Frontend (Staging)
+  app-frontend:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: solotext-app-frontend-staging
+    ports:
+      - "8080:8080"  # Port interne, accessible uniquement via Nginx
+    environment:
+      - NODE_ENV=${NODE_ENV:-staging}
+      - VITE_API_URL=${VITE_API_URL:-https://api.staging.solotext.io/api}
+      - VITE_WEBSITE_URL=${VITE_WEBSITE_URL:-https://staging.solotext.io}
+    volumes:
+      - ./app:/app
+      - node_modules_app_staging:/app/node_modules
+    networks:
+      - solotext-network-staging
+    restart: unless-stopped
+    command: npm run dev -- --host 0.0.0.0 --port 8080
+    depends_on:
+      - backend
+
+  # Service Website Frontend (Staging)
+  website-frontend:
+    build:
+      context: ./website
+      dockerfile: Dockerfile
+    container_name: solotext-website-frontend-staging
+    ports:
+      - "8081:8081"  # Port interne, accessible uniquement via Nginx
+    environment:
+      - NODE_ENV=${NODE_ENV:-staging}
+      - VITE_API_URL=${VITE_API_URL:-https://api.staging.solotext.io/api}
+      - VITE_APP_URL=${VITE_APP_URL:-https://app.staging.solotext.io}
+    volumes:
+      - ./website:/app
+      - node_modules_website_staging:/app/node_modules
+    networks:
+      - solotext-network-staging
+    restart: unless-stopped
+    command: npm run dev:server -- --host 0.0.0.0 --port 8081
+
 networks:
   solotext-network-staging:
     driver: bridge
@@ -115,5 +157,7 @@ networks:
 volumes:
   postgres_data_staging:
   node_modules_backend_staging:
+  node_modules_app_staging:
+  node_modules_website_staging:
   rabbitmq_data_staging:
 

@@ -17,8 +17,9 @@ COPY . .
 # S'assurer que les permissions sont correctes
 RUN chmod -R 755 /app/node_modules/.bin || true
 
-# Exposer le port de développement
+# Exposer le port de développement (sera surchargé par docker-compose)
 EXPOSE 8080
 
 # Commande par défaut (développement)
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+# Le port sera surchargé par docker-compose selon l'environnement
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "8080"]

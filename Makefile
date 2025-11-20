@@ -35,15 +35,21 @@ dev-build:
 # Start services in development mode (works for both local and server)
 dev-run:
 	@echo "Starting services SoloText (development mode)..."
-	@$(DOCKER_COMPOSE) -f docker-compose.dev.yml up -d
-	@echo "✅ Docker services started!"
+	@echo "🧹 Nettoyage des anciens processus Node.js/Vite..."
+	-@pkill -f "vite.*8090" 2>/dev/null || true
+	-@pkill -f "vite.*8091" 2>/dev/null || true
+	-@pkill -f "vite.*8080" 2>/dev/null || true
+	-@pkill -f "vite.*8081" 2>/dev/null || true
+	-@if [ -f .dev-pids ]; then \
+		while read pid; do \
+			kill $$pid 2>/dev/null || true; \
+		done < .dev-pids; \
+		rm -f .dev-pids; \
+	fi
+	@echo "✅ Nettoyage terminé"
 	@echo ""
-	@echo "🚀 Starting frontends..."
-	@if [ ! -f .dev-pids ]; then touch .dev-pids; fi
-	@cd app && npm run dev:server > /dev/null 2>&1 & echo $$! >> ../.dev-pids && echo "✅ App frontend starting on port 8090..."
-	@sleep 2
-	@cd website && npm run dev:server > /dev/null 2>&1 & echo $$! >> ../.dev-pids && echo "✅ Website frontend starting on port 8091..."
-	@sleep 2
+	@$(DOCKER_COMPOSE) -f docker-compose.dev.yml up -d
+	@echo "✅ All Docker services started!"
 	@echo ""
 	@echo "🎉 All services started!"
 	@echo ""
@@ -60,21 +66,18 @@ dev-run:
 # Stop all services
 dev-kill:
 	@echo "Stopping services SoloText (development mode)..."
-	@if [ -f .dev-pids ]; then \
-		echo "Stopping frontends..."; \
+	@$(DOCKER_COMPOSE) -f docker-compose.dev.yml down
+	@echo "🧹 Nettoyage des processus Node.js/Vite restants..."
+	-@pkill -f "vite.*8090" 2>/dev/null || true
+	-@pkill -f "vite.*8091" 2>/dev/null || true
+	-@pkill -f "vite.*8080" 2>/dev/null || true
+	-@pkill -f "vite.*8081" 2>/dev/null || true
+	-@if [ -f .dev-pids ]; then \
 		while read pid; do \
-			if ps -p $$pid > /dev/null 2>&1; then \
-				kill $$pid 2>/dev/null || true; \
-			fi; \
+			kill $$pid 2>/dev/null || true; \
 		done < .dev-pids; \
 		rm -f .dev-pids; \
-		echo "✅ Frontends stopped"; \
 	fi
-	@pkill -f "vite.*8090" 2>/dev/null || true
-	@pkill -f "vite.*8091" 2>/dev/null || true
-	@pkill -f "vite.*8080" 2>/dev/null || true
-	@pkill -f "vite.*8081" 2>/dev/null || true
-	@$(DOCKER_COMPOSE) -f docker-compose.dev.yml down
 	@echo "✅ All services stopped!"
 
 # Display logs

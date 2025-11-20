@@ -279,14 +279,16 @@ export default {
   align-items: center;
   justify-content: center;
   position: relative;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(235.37deg, #072A25 0%, #031815 28%, #072A25 100%);
   padding: 20px;
 }
 
 .register-card {
-  background: white;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
   border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(50, 196, 192, 0.2);
   padding: 40px;
   width: 100%;
   max-width: 450px;
@@ -302,14 +304,15 @@ export default {
 .register-title {
   font-size: 2rem;
   font-weight: 700;
-  color: #2d3748;
+  color: #32C4C0;
   margin: 0 0 8px 0;
 }
 
 .register-subtitle {
-  color: #718096;
+  color: #32C4C0;
   margin: 0;
   font-size: 1rem;
+  opacity: 0.9;
 }
 
 .register-form {
@@ -326,7 +329,7 @@ export default {
 
 .form-label {
   font-weight: 600;
-  color: #2d3748;
+  color: #32C4C0;
   font-size: 0.9rem;
 }
 
@@ -341,8 +344,8 @@ export default {
 }
 
 .form-input:focus, .form-select:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #32C4C0;
+  box-shadow: 0 0 0 3px rgba(50, 196, 192, 0.1);
 }
 
 .form-input.error, .form-select.error {
@@ -376,7 +379,7 @@ export default {
   align-items: center;
   cursor: pointer;
   font-size: 0.9rem;
-  color: #4a5568;
+  color: #32C4C0;
 }
 
 .checkbox-container input {
@@ -384,17 +387,17 @@ export default {
 }
 
 .terms-link {
-  color: #667eea;
+  color: #32C4C0;
   text-decoration: none;
   transition: color 0.3s ease;
 }
 
 .terms-link:hover {
-  color: #5a67d8;
+  color: #019E8B;
 }
 
 .register-button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #32C4C0;
   color: white;
   border: none;
   padding: 14px 20px;
@@ -407,8 +410,9 @@ export default {
 }
 
 .register-button:hover:not(:disabled) {
+  background: #019E8B;
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 10px 20px rgba(50, 196, 192, 0.4);
 }
 
 .register-button:disabled {
@@ -449,18 +453,19 @@ export default {
 .register-footer {
   text-align: center;
   margin-top: 30px;
-  color: #718096;
+  color: #32C4C0;
+  opacity: 0.9;
 }
 
 .login-link {
-  color: #667eea;
+  color: #32C4C0;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.3s ease;
 }
 
 .login-link:hover {
-  color: #5a67d8;
+  color: #019E8B;
 }
 
 .register-background {

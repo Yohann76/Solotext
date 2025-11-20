@@ -28,12 +28,6 @@
 - Add argument marketing in 3 row section (in homepage)
 - Add Impact Header (link teachizy)
 - Add Favicon (Logo)
-- Edit login/register page with chart color
-- Add functionnality page (argument=section)
-    - Check each sentance on internet (each sentance = request in different search engine)
-    - Keep history of your analysis
-    - Export Analysis in PDF
-    - Find source in your different occurence..
 
 ## V1.3.2 Blog
 - Add blog page

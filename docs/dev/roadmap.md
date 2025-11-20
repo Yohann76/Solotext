@@ -20,14 +20,15 @@
 
 ## V1.21 Graphics
 - Update landing page with color chart graphic (In progress)
-- Add page : "conditions d’utilisation"  
-- Add page : "politique de confidentialité"  
-- Add page : CGU
-- Add page : CGV
 - Add Cookie management ()
 - Add argument marketing in 3 row section (in homepage)
 - Add Impact Header (link teachizy)
 - Add Favicon (Logo)
+
+- Complete page : "Mentions légales"  
+- Complete page : "politique de confidentialité"  
+- Complete page : CGU
+- Complete page : CGV
 
 ## V1.3.2 Blog
 - Add blog page

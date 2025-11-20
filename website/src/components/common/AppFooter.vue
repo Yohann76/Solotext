@@ -61,9 +61,10 @@
           </div>
           <div class="footer-column">
             <h4>Pages Légales</h4>
-            <a href="#">CGU / CGV</a>
-            <a href="#">Mentions légales</a>
-            <a href="#">Politique de confidentialité</a>
+            <router-link to="/cgu">CGU</router-link>
+            <router-link to="/cgv">CGV</router-link>
+            <router-link to="/mentions-legales">Mentions légales</router-link>
+            <router-link to="/politique-confidentialite">Politique de confidentialité</router-link>
           </div>
         </div>
       </div>
@@ -216,8 +217,19 @@ const handleNewsletterSubmit = () => {
 .footer-brand h3 { margin: 0 0 8px 0; font-size: 1.5rem; }
 .footer-links { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; }
 .footer-column h4 { margin: 0 0 12px; font-size: 1rem; color: #bfeae8; }
-.footer a { color: #e7fffe; text-decoration: none; opacity: 0.9; display: block; margin: 6px 0; }
-.footer a:hover { opacity: 1; }
+.footer a {
+  color: #ffffff;
+  text-decoration: none;
+  opacity: 0.9;
+  display: block;
+  margin: 6px 0;
+  transition: color 0.2s ease;
+}
+
+.footer a:hover {
+  color: #32C4C0;
+  opacity: 1;
+}
 .footer-bottom { margin-top: 24px; border-top: 1px solid rgba(255,255,255,0.12); padding-top: 16px; opacity: 0.8; font-size: 0.9rem; }
 
 /* Responsive */

@@ -10,6 +10,15 @@
 
 ## Infrastructure:
 
+create .env from .env.example in 
+
+- /Solotext/.env.example
+- /Solotext/website/.env.example
+- /Solotext/app/.env.example
+- /Solotext/api/.env.example
+
+Or add variable in Ansible vault for all infrastructure
+
 **Staging infra:** 
 
 ansible-galaxy install -r requirements.yml

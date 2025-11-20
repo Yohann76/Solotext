@@ -95,10 +95,10 @@ Multy-provider(Later):
 
 TODO: 
 - Verification backup DB (container postgres)
-- Verification env var (app var, deploy var, useless var...)
-- In prod not reload database
+- Verification if var stagging/production in vault correspond to local var
+- In prod not reload database (playbook)
 - Put reload on service (only backend, or only website)
-- In producation, not run adminer service (create a docker-compose.prod?)
+- In producation, not run adminer service (docker-compose)
 - add CI/CD (deploy staging with branch staging, deploy production on branch main)
 
 

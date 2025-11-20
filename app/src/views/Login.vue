@@ -48,11 +48,6 @@
         </div>
 
         <div class="form-options">
-          <label class="checkbox-container">
-            <input type="checkbox" v-model="form.rememberMe" />
-            <span class="checkmark"></span>
-            Se souvenir de moi
-          </label>
           <a href="#" class="forgot-password">Mot de passe oublié ?</a>
         </div>
 
@@ -104,8 +99,7 @@ export default {
     
     const form = reactive({
       email: '',
-      password: '',
-      rememberMe: false
+      password: ''
     })
     
     const errors = reactive({})
@@ -300,21 +294,9 @@ export default {
 
 .form-options {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   margin: 10px 0;
-}
-
-.checkbox-container {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  font-size: 0.9rem;
-  color: #32C4C0;
-}
-
-.checkbox-container input {
-  margin-right: 8px;
 }
 
 .forgot-password {

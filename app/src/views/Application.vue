@@ -1092,7 +1092,7 @@ export default {
   font-weight: 700;
   color: #2d3748;
   margin-bottom: 1rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #32C4C0 0%, #019E8B 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -1188,8 +1188,8 @@ export default {
 
 .form-textarea:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #32C4C0;
+  box-shadow: 0 0 0 3px rgba(50, 196, 192, 0.1);
 }
 
 .form-textarea.error {
@@ -1229,14 +1229,14 @@ export default {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #32C4C0 0%, #019E8B 100%);
   color: white;
   border-color: transparent;
 }
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 8px 25px rgba(50, 196, 192, 0.4);
 }
 
 .btn-large {
@@ -1319,7 +1319,7 @@ export default {
 }
 
 .stat-card-primary {
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #32C4C0;
   background: linear-gradient(135deg, #ffffff 0%, #f7f9fc 100%);
 }
 
@@ -1343,7 +1343,7 @@ export default {
 }
 
 .stat-icon-wrapper.duplicate {
-  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+  background: linear-gradient(135deg, #e0f7f5 0%, #b8ebe8 100%);
 }
 
 .stat-icon-wrapper.date {
@@ -1355,7 +1355,7 @@ export default {
 }
 
 .stat-icon-wrapper.sources {
-  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+  background: linear-gradient(135deg, #e0f7f5 0%, #b8ebe8 100%);
 }
 
 .stat-icon-wrapper.success {

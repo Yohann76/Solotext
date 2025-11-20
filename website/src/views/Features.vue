@@ -13,7 +13,7 @@
             </p>
           </div>
           <div class="feature-visual">
-            <div class="feature-icon-large">🔍</div>
+            <img :src="searchIllustration" alt="Recherche sur internet" class="feature-illustration" />
           </div>
         </div>
       </div>
@@ -32,7 +32,7 @@
             </p>
           </div>
           <div class="feature-visual">
-            <div class="feature-icon-large">📚</div>
+            <img :src="historyIllustration" alt="Historique des analyses" class="feature-illustration" />
           </div>
         </div>
       </div>
@@ -51,7 +51,7 @@
             </p>
           </div>
           <div class="feature-visual">
-            <div class="feature-icon-large">📄</div>
+            <img :src="exportIllustration" alt="Export PDF" class="feature-illustration" />
           </div>
         </div>
       </div>
@@ -70,7 +70,7 @@
             </p>
           </div>
           <div class="feature-visual">
-            <div class="feature-icon-large">🔗</div>
+            <img :src="sourcesIllustration" alt="Trouver les sources" class="feature-illustration" />
           </div>
         </div>
       </div>
@@ -79,6 +79,10 @@
 </template>
 
 <script setup>
+import searchIllustration from '../assets/undraw_svg/undraw_file-bundle_oaof.svg'
+import historyIllustration from '../assets/undraw_svg/undraw_text-files_tqjw.svg'
+import exportIllustration from '../assets/undraw_svg/undraw_file-search_cbur.svg'
+import sourcesIllustration from '../assets/undraw_svg/undraw_annotation_rz2w.svg'
 // header & footer injectés par PublicLayout
 </script>
 
@@ -191,10 +195,18 @@
   align-items: center;
 }
 
-.feature-icon-large {
-  font-size: 120px;
-  opacity: 0.8;
-  filter: drop-shadow(0 4px 8px rgba(50, 196, 192, 0.2));
+.feature-illustration {
+  width: 100%;
+  max-width: 500px;
+  height: auto;
+  opacity: 0.9;
+  filter: drop-shadow(0 8px 16px rgba(50, 196, 192, 0.15));
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.feature-illustration:hover {
+  transform: translateY(-5px);
+  opacity: 1;
 }
 
 /* Responsive */
@@ -213,8 +225,8 @@
     font-size: 32px;
   }
 
-  .feature-icon-large {
-    font-size: 80px;
+  .feature-illustration {
+    max-width: 400px;
   }
 
   .feature-section {
@@ -236,8 +248,8 @@
     line-height: 24px;
   }
 
-  .feature-icon-large {
-    font-size: 60px;
+  .feature-illustration {
+    max-width: 300px;
   }
 
   .feature-section {

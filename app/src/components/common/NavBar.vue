@@ -1,9 +1,9 @@
 <template>
   <nav class="nav">
     <div class="nav-left">
-      <router-link :to="isAuthenticated ? '/application' : '/login'" class="logo-link" aria-label="SoloText">
+      <a :href="websiteBaseUrl" class="logo-link" aria-label="SoloText">
         <h1 class="logo">Solo<span class="logo-text">Text</span></h1>
-      </router-link>
+      </a>
     </div>
 
     <button

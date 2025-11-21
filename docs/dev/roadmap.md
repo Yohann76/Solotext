@@ -11,7 +11,6 @@
 
 ## V1.2 Functionnal +
 - Newletter
-    - When user is registered, add email to newleter email by default with 1
     - can export list email with is_accepted=true (csv) in administration
 
 - Add red banner on top website (only on application) for display message (cette application est en beta test, pour tout probléme veuillez me contacter...)

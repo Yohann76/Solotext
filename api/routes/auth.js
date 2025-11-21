@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const { generateToken, verifyPassword, authenticateToken } = require('../middleware/auth');
 const User = require('../models/User');
+const Newsletter = require('../models/Newsletter');
 
 const router = express.Router();
 
@@ -143,6 +144,19 @@ router.post('/register', async (req, res) => {
 
     // Sauvegarder l'utilisateur
     await user.save();
+
+    // Inscrire automatiquement l'utilisateur à la newsletter
+    try {
+      await Newsletter.create({
+        email: user.email,
+        is_subscribed: true
+      });
+      console.log(`Utilisateur ${user.email} automatiquement inscrit à la newsletter`);
+    } catch (newsletterError) {
+      // Si l'email existe déjà dans la newsletter, on ignore l'erreur
+      // (peut arriver si quelqu'un s'est inscrit à la newsletter avant de créer un compte)
+      console.log(`Newsletter: Email ${user.email} déjà présent ou erreur:`, newsletterError.message);
+    }
 
     // Générer le token JWT
     const token = generateToken(user);

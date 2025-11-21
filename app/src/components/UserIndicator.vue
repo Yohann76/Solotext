@@ -27,9 +27,7 @@
           <button @click="goToProfile" class="dropdown-action">
             👤 Mon profil
           </button>
-          <button @click="goToSettings" class="dropdown-action">
-            ⚙️ Paramètres
-          </button>
+
           <!-- Lien admin pour les administrateurs -->
           <button 
             v-if="user?.role === 'admin'" 
@@ -74,12 +72,6 @@ export default {
       router.push('/profil')
     }
 
-    const goToSettings = () => {
-      closeMenu()
-      // TODO: Implémenter la page de paramètres
-      console.log('Aller aux paramètres')
-    }
-
     const goToDashboard = () => {
       closeMenu()
       router.push('/dashboard')
@@ -110,7 +102,7 @@ export default {
       showMenu,
       toggleMenu,
       goToProfile,
-      goToSettings,
+
       goToDashboard,
       logout: handleLogout
     }

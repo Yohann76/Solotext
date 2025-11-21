@@ -20,6 +20,10 @@
 
 - Profil page (name, email, password, our commande, list stripe subscription, remove subscription)
 
+## V1.3 product
+
+- Export analyse to PDF
+
 ## V1.21 Graphics
 - Update landing page with color chart graphic (In progress)
 - Add Favicon (Logo)
@@ -36,6 +40,8 @@
     - add our client (comeup service website logo..?)
     - Add argument marketing in 3 row section (in homepage)
 
+- Add Responsive navbar (hamburger nav)
+
 ## V1.3.2 Blog
 - Add structur for SEO (One H1, Ariane, H2 ...)
 - Update blog design (liste and single)
@@ -44,10 +50,6 @@
 - Add support fonction (send message, receive message in infobull)
 - Add contact page (per email -> mail solotext)
 - Add mailer informations (connexion, forget password, register)
-
-Multy-provider(Later):
-- Study input/output perplexity service for have same parameter in different provider
-- Create Second service with APIFY, or google content search..
 
 ## V1.3.3 Security
 - See security API route
@@ -63,8 +65,14 @@ GO TO MARKETING ROADMAP
 - Add 5 text corpus, and create script for test different provider on this corpus text for comparate result
 
 ## V1.5 
-- Diversify worker (Google search content, bing, apify...)
-- Add public API (and cost Limit, link website saas) (for diversify customer type) and another application of research link (WP Plugin...)
+
+Multy-provider(Later):
+    - Study input/output perplexity service for have same parameter in different provider
+    - Create Second service with APIFY, or google content search..
+    - Diversify worker (Google search content, bing, apify...)
+
+API:
+    - Add public API (and cost Limit, link website saas) (for diversify customer type) and another application of research link (WP Plugin...)
 
 ## V2.X
 
@@ -82,15 +90,16 @@ GO TO MARKETING ROADMAP
 
 ----------------------------------------------------------------------
 
+## V /prblm /bug /urgent in prod
+
+- ? 
+
+
 ## V /Maintenance
 
 - ? 
 
-## V /prblm /bug
-
-- ? 
-
-## V Deploy
+## V Deploy (before sell)
 
 TODO: 
 - Verification backup DB (container postgres)

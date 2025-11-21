@@ -44,6 +44,10 @@ export const endpoints = {
   stripe: {
     subscription: '/stripe/subscription',
     createCheckoutSession: '/stripe/create-checkout-session'
+  },
+
+  newsletter: {
+    subscribe: '/newsletter/subscribe'
   }
 }
 

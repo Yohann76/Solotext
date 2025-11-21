@@ -10,7 +10,10 @@
 - Si l'utilisateur n'a plus de crédit, afficher les crédits en rouge (et pouvoir faire évoluer son abonnement) (Ne plus pouvoir faire d'analyse (Griser le bouton avec un hover -> abonnez vous!))
 
 ## V1.2 Functionnal +
-- Add post api in back (for register new email from newletter form in footer)(new table with email + activate/desactive boolean)
+- Newletter
+    - add unsubscribe endpoint (boolean var 1 -> 0)
+    - When user is registered, add email to newleter email by default with 1
+    - can export list email with is_accepted=true (csv) in administration
 
 - Add red banner on top website (only on application) for display message (cette application est en beta test, pour tout probléme veuillez me contacter...)
     - La banner doit etre afficher que au dessus de l'application

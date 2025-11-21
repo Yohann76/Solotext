@@ -31,8 +31,8 @@
               placeholder="Votre email"
               required
             />
-            <button type="submit" class="newsletter-button">
-              <span class="button-text">Rejoindre</span>
+            <button type="submit" class="newsletter-button" :disabled="loading">
+              <span class="button-text">{{ loading ? '...' : 'Rejoindre' }}</span>
             </button>
           </form>
         </div>
@@ -76,13 +76,38 @@
 
 <script setup>
 import { ref } from 'vue'
+import { http, endpoints } from '../../api'
+import { useNotifications } from '../../composables/useNotifications'
 
 const newsletterEmail = ref('')
+const { success, error } = useNotifications()
+const loading = ref(false)
 
-const handleNewsletterSubmit = () => {
-  // TODO: Implémenter l'envoi de l'email à la newsletter
-  console.log('Newsletter subscription:', newsletterEmail.value)
-  newsletterEmail.value = ''
+const handleNewsletterSubmit = async () => {
+  console.log('Tentative d\'inscription newsletter:', newsletterEmail.value)
+  if (!newsletterEmail.value) return
+  
+  loading.value = true
+  try {
+    console.log('Envoi de la requête vers:', endpoints.newsletter.subscribe)
+    const response = await http.post(endpoints.newsletter.subscribe, { 
+      email: newsletterEmail.value 
+    })
+    console.log('Réponse reçue:', response)
+    
+    if (response.success) {
+      success(response.message || 'Inscription réussie !')
+      newsletterEmail.value = ''
+    } else {
+      console.error('Erreur API:', response.message)
+      error(response.message || 'Erreur lors de l\'inscription')
+    }
+  } catch (err) {
+    console.error('Erreur newsletter:', err)
+    error(err.message || 'Une erreur est survenue')
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 

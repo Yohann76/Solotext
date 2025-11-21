@@ -46,8 +46,9 @@ const { isAuthenticated, user, logout } = useAuthStore()
 const { success } = useNotifications()
 const isMobileOpen = ref(false)
 
-// URLs vers l'application (port 8080) pour connexion/inscription
-const appBaseUrl = import.meta.env.VITE_APP_URL || 'http://51.178.80.14:8080'
+// URLs vers l'application (port 8090 en dev, 8080 en staging/prod)
+// need verify env variable for different environment...
+const appBaseUrl = import.meta.env.VITE_APP_URL || 'http://localhost:8090'
 const appLoginUrl = computed(() => `${appBaseUrl}/login`)
 const appRegisterUrl = computed(() => `${appBaseUrl}/register`)
 const appApplicationUrl = computed(() => `${appBaseUrl}/application`)

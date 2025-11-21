@@ -6,16 +6,19 @@
       </router-link>
     </div>
 
+    <!-- Bouton Menu Mobile avec texte -->
     <button
-      class="burger"
+      class="menu-toggle"
       :aria-expanded="isMobileOpen ? 'true' : 'false'"
       aria-controls="primary-navigation"
-      aria-label="Ouvrir le menu"
       @click="toggleMobile"
     >
-      <span aria-hidden="true"></span>
-      <span aria-hidden="true"></span>
-      <span aria-hidden="true"></span>
+      <span class="menu-text">Menu</span>
+      <div class="menu-icon">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
     </button>
 
     <div class="nav-links" :class="{ open: isMobileOpen }" id="primary-navigation">
@@ -46,8 +49,7 @@ const { isAuthenticated, user, logout } = useAuthStore()
 const { success } = useNotifications()
 const isMobileOpen = ref(false)
 
-// URLs vers l'application (port 8090 en dev, 8080 en staging/prod)
-// need verify env variable for different environment...
+// URLs vers l'application
 const appBaseUrl = import.meta.env.VITE_APP_URL || 'http://localhost:8090'
 const appLoginUrl = computed(() => `${appBaseUrl}/login`)
 const appRegisterUrl = computed(() => `${appBaseUrl}/register`)
@@ -58,7 +60,6 @@ const handleLogoutClick = async () => {
   const userName = user.value?.displayName || 'Utilisateur'
   await logout()
   success(`Au revoir ${userName} ! Vous avez été déconnecté.`)
-  // Rediriger vers la page d'accueil après déconnexion
   router.push('/')
 }
 
@@ -86,13 +87,21 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   height: 96px;
+  /* On retire position: relative ici pour laisser les enfants gérer le z-index globalement si besoin, 
+     mais pour le contexte actuel, on va gérer les z-index des enfants explicitement */
 }
 
-.nav-left { flex-shrink: 0; }
+.nav-left { 
+  flex-shrink: 0; 
+  position: relative;
+  z-index: 1002; /* Au-dessus du menu mobile */
+}
 
 .logo-link {
   text-decoration: none;
   color: #ffffff;
+  display: flex;
+  align-items: center;
 }
 
 .logo {
@@ -100,12 +109,68 @@ onUnmounted(() => {
   font-weight: 800;
   color: #ffffff;
   margin: 0;
+  line-height: 1;
 }
 
 .logo-text {
   color: #031815;
 }
 
+/* Menu Toggle Button */
+.menu-toggle {
+  display: none; /* Caché sur desktop */
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1002; /* Au-dessus du menu mobile */
+}
+
+.menu-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.menu-text {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.menu-icon {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 18px;
+}
+
+.menu-icon span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: #ffffff;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+/* Animation Burger */
+.menu-toggle[aria-expanded="true"] .menu-icon span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+.menu-toggle[aria-expanded="true"] .menu-icon span:nth-child(2) {
+  opacity: 0;
+}
+.menu-toggle[aria-expanded="true"] .menu-icon span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+/* Navigation Links - Desktop */
 .nav-links {
   display: flex;
   align-items: center;
@@ -138,6 +203,7 @@ onUnmounted(() => {
 
 .app-link:hover { color: #031815; }
 
+/* Buttons */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -161,22 +227,68 @@ onUnmounted(() => {
 .btn-primary { background: var(--gradient-btn); color: white; border-color: transparent; }
 .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .nav { padding: 0 1rem; }
-  .burger { display: inline-flex; flex-direction: column; gap: 4px; border: 0; background: transparent; padding: 8px; cursor: pointer; }
-  .burger span { display: block; width: 22px; height: 2px; background: #ffffff; transition: transform .2s ease, opacity .2s ease; }
-  .burger[aria-expanded="true"] span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
-  .burger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
-  .burger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+/* Responsive Design */
+@media (max-width: 960px) {
+  .nav { 
+    padding: 0 1.5rem;
+  }
 
-  .nav-links { position: fixed; inset: 96px 0 auto 0; background: linear-gradient(235.37deg, #072A25 0%, #031815 28%, #072A25 100%); padding: 16px; transform: translateY(-120%); opacity: 0; display: grid; gap: 12px; }
-  .nav-links.open { transform: translateY(0); opacity: 1; }
-  .nav-link { font-size: 1.1rem; padding: 0.75rem 0; }
-  .btn { padding: 0.8rem 1.4rem; font-size: 1rem; min-width: 120px; }
+  .menu-toggle { 
+    display: flex; 
+  }
+
+  /* Mobile Menu Overlay - Slide Down */
+  .nav-links {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: #32c4c0;
+    padding: 110px 2rem 40px; /* Espace pour le header */
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 2rem;
+    transform: translateY(-100%); /* Départ du haut */
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 1001; /* Sous le logo/bouton (1002) mais au-dessus du reste */
+    overflow-y: auto;
+  }
+
+  .nav-links.open {
+    transform: translateY(0);
+  }
+
+  .nav-link {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    padding: 0.5rem 0;
+  }
+  
+  .nav-link:hover {
+    opacity: 0.8;
+  }
+
+  .btn {
+    width: 100%;
+    max-width: 300px;
+    padding: 1rem;
+    font-size: 1.1rem;
+  }
+  
+  .btn-outline {
+    border-color: #ffffff;
+    margin-top: 0.5rem;
+  }
 }
 
-@media (max-width: 640px) { .app-link { padding: 0.4rem 0.8rem; font-size: 0.9rem; } }
+@media (max-width: 480px) {
+  .nav { padding: 0 1rem; }
+  .logo { font-size: 1.8rem; }
+  .menu-text { display: none; } /* Optionnel : cacher le texte sur très petits écrans */
+}
 </style>
 
 

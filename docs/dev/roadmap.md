@@ -19,8 +19,6 @@
 
 - Profil page
     - Voir les crédits restants
-    - Vérifier le changement de password
-    - Organiser en collaspse/onglet (information, sécurité, abonnement & commande, support)
 
 ## V1.3 product
 

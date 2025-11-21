@@ -23,12 +23,12 @@ const checkAuth = () => {
   const wasAuthenticated = isAuthenticated.value
   isAuthenticated.value = authService.isAuthenticated()
   user.value = authService.getCurrentUser()
-  
+
   // Notify if the state has changed
   if (wasAuthenticated !== isAuthenticated.value) {
     notifyListeners()
   }
-  
+
   return { isAuthenticated: isAuthenticated.value, user: user.value }
 }
 
@@ -78,7 +78,7 @@ const logout = async () => {
     await authService.logout()
     checkAuth()
     notifyListeners()
-    
+
     // Rediriger vers la page de login après la déconnexion
     if (router && router.currentRoute) {
       const currentPath = router.currentRoute.value.path
@@ -98,6 +98,21 @@ const sync = () => {
   notifyListeners()
 }
 
+// Function to fetch user data from server
+const fetchUser = async () => {
+  try {
+    const result = await authService.getMe()
+    if (result.success) {
+      checkAuth() // Update local state from authService
+      notifyListeners()
+    }
+    return result
+  } catch (error) {
+    console.error('Erreur lors de la récupération du profil:', error)
+    return { success: false, message: 'Erreur de récupération' }
+  }
+}
+
 // Initialize the state at loading
 checkAuth()
 
@@ -106,14 +121,15 @@ export function useAuthStore() {
     // State
     isAuthenticated,
     user,
-    
+
     // Actions
     login,
     register,
     logout,
     checkAuth,
     sync,
-    
+    fetchUser,
+
     // Utilities
     subscribe
   }

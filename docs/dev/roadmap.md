@@ -32,7 +32,6 @@
 
 ## V1.3.2 Blog
 - Add structur for SEO (One H1, Ariane, H2 ...)
-- Add robots.txt
 - add sitemap.xml
 
 ## V1.3 Customer Saas

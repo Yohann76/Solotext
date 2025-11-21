@@ -28,7 +28,6 @@
       </template>
       <template v-else>
         <router-link to="/application" class="nav-link app-link" @click="closeMobile">Application</router-link>
-        <router-link v-if="user?.role === 'admin'" to="/dashboard" class="nav-link app-link" @click="closeMobile">Dashboard</router-link>
         <UserIndicator @logout="handleLogout" />
       </template>
     </div>

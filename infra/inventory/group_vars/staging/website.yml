@@ -1,0 +1,21 @@
+---
+# Variables pour le Website (staging)
+
+# Configuration de l'application
+app_name: solotext
+app_user: solotext
+app_group: solotext
+app_dir: /opt/solotext
+
+# Configuration Git
+git_repo: https://github.com/Yohann76/Solotext
+git_branch: feat-test-separate-api-frontend-website-with-ansible
+git_version: HEAD
+
+# Configuration du website
+website_build_dir: "{{ app_dir }}/website"
+website_web_dir: /var/www/website
+
+# Configuration Nginx
+nginx_user: www-data
+

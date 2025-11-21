@@ -1,0 +1,39 @@
+---
+# Playbook pour le déploiement sur l'environnement de production
+
+- name: Déploiement SoloText sur Production
+  hosts: production
+  become: yes
+  gather_facts: yes
+
+  vars:
+    deployment_env: production
+
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/production.yml"
+    - "{{ inventory_dir }}/group_vars/production/vault.yml"
+    - "{{ inventory_dir }}/group_vars/production/api.yml"
+    - "{{ inventory_dir }}/group_vars/production/app.yml"
+    - "{{ inventory_dir }}/group_vars/production/website.yml"
+
+  pre_tasks:
+    - name: Confirmer le déploiement en production
+      pause:
+        prompt: |
+          ⚠️  ATTENTION : Vous êtes sur le point de déployer en PRODUCTION ⚠️
+          
+          Vérifiez que :
+          - Tous les tests passent
+          - Les sauvegardes sont à jour
+          - Les variables d'environnement sont correctes
+          
+          Appuyez sur Entrée pour continuer ou Ctrl+C pour annuler
+        echo: yes
+
+  roles:
+    - role: common
+    - role: api
+    - role: app
+    - role: website
+    - role: nginx_proxy
+

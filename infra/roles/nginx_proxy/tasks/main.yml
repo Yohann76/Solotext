@@ -1,0 +1,158 @@
+---
+# Rôle nginx_proxy : Configuration du reverse proxy et SSL pour les 3 domaines
+
+- name: Installer Nginx
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Installer Certbot pour Let's Encrypt
+  apt:
+    name:
+      - certbot
+      - python3-certbot-nginx
+    state: present
+    update_cache: yes
+  become: yes
+  when: nginx_ssl_enabled | default(false)
+
+- name: Créer la configuration Nginx principale
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: '0644'
+  become: yes
+  notify: restart nginx
+
+- name: Supprimer la configuration par défaut
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  become: yes
+  ignore_errors: yes
+
+- name: Créer la configuration Nginx pour le Website
+  template:
+    src: website.conf.j2
+    dest: /etc/nginx/sites-available/{{ app_name }}-website
+    owner: root
+    group: root
+    mode: '0644'
+  become: yes
+  notify: restart nginx
+
+- name: Activer la configuration Website
+  file:
+    src: /etc/nginx/sites-available/{{ app_name }}-website
+    dest: /etc/nginx/sites-enabled/{{ app_name }}-website
+    state: link
+  become: yes
+  notify: restart nginx
+
+- name: Créer la configuration Nginx pour l'App
+  template:
+    src: app.conf.j2
+    dest: /etc/nginx/sites-available/{{ app_name }}-app
+    owner: root
+    group: root
+    mode: '0644'
+  become: yes
+  notify: restart nginx
+
+- name: Activer la configuration App
+  file:
+    src: /etc/nginx/sites-available/{{ app_name }}-app
+    dest: /etc/nginx/sites-enabled/{{ app_name }}-app
+    state: link
+  become: yes
+  notify: restart nginx
+
+- name: Créer la configuration Nginx pour l'API
+  template:
+    src: api.conf.j2
+    dest: /etc/nginx/sites-available/{{ app_name }}-api
+    owner: root
+    group: root
+    mode: '0644'
+  become: yes
+  notify: restart nginx
+
+- name: Activer la configuration API
+  file:
+    src: /etc/nginx/sites-available/{{ app_name }}-api
+    dest: /etc/nginx/sites-enabled/{{ app_name }}-api
+    state: link
+  become: yes
+  notify: restart nginx
+
+- name: Vérifier la configuration Nginx
+  command: nginx -t
+  register: nginx_test
+  changed_when: false
+  become: yes
+  failed_when: nginx_test.rc != 0
+
+- name: Démarrer et activer Nginx
+  systemd:
+    name: nginx
+    state: started
+    enabled: yes
+  become: yes
+
+- name: Obtenir les certificats SSL avec Let's Encrypt (Website)
+  command: >
+    certbot --nginx
+    -d {{ website_domain }}
+    --non-interactive
+    --agree-tos
+    --email {{ nginx_ssl_email }}
+    --redirect
+  become: yes
+  register: certbot_website
+  changed_when: "'Congratulations' in certbot_website.stdout or 'already' in certbot_website.stdout"
+  failed_when: certbot_website.rc != 0 and 'already' not in certbot_website.stdout
+  when: nginx_ssl_enabled | default(false)
+  notify: restart nginx
+
+- name: Obtenir les certificats SSL avec Let's Encrypt (App)
+  command: >
+    certbot --nginx
+    -d {{ app_domain }}
+    --non-interactive
+    --agree-tos
+    --email {{ nginx_ssl_email }}
+    --redirect
+  become: yes
+  register: certbot_app
+  changed_when: "'Congratulations' in certbot_app.stdout or 'already' in certbot_app.stdout"
+  failed_when: certbot_app.rc != 0 and 'already' not in certbot_app.stdout
+  when: nginx_ssl_enabled | default(false)
+  notify: restart nginx
+
+- name: Obtenir les certificats SSL avec Let's Encrypt (API)
+  command: >
+    certbot --nginx
+    -d {{ api_domain }}
+    --non-interactive
+    --agree-tos
+    --email {{ nginx_ssl_email }}
+    --redirect
+  become: yes
+  register: certbot_api
+  changed_when: "'Congratulations' in certbot_api.stdout or 'already' in certbot_api.stdout"
+  failed_when: certbot_api.rc != 0 and 'already' not in certbot_api.stdout
+  when: nginx_ssl_enabled | default(false)
+  notify: restart nginx
+
+- name: Configurer le renouvellement automatique des certificats
+  cron:
+    name: "Renouvellement certificats SSL SoloText"
+    minute: "0"
+    hour: "3"
+    job: "/usr/bin/certbot renew --quiet --nginx"
+  become: yes
+  when: nginx_ssl_enabled | default(false)

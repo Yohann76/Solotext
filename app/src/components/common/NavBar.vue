@@ -1,0 +1,176 @@
+<template>
+  <nav class="nav">
+    <div class="nav-left">
+      <a :href="websiteBaseUrl" class="logo-link" aria-label="SoloText">
+        <h1 class="logo">Solo<span class="logo-text">Text</span></h1>
+      </a>
+    </div>
+
+    <button
+      class="burger"
+      :aria-expanded="isMobileOpen ? 'true' : 'false'"
+      aria-controls="primary-navigation"
+      aria-label="Ouvrir le menu"
+      @click="toggleMobile"
+    >
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </button>
+
+    <div class="nav-links" :class="{ open: isMobileOpen }" id="primary-navigation">
+      <a :href="websiteFonctionnalitesUrl" class="nav-link" @click="closeMobile">Fonctionnalités</a>
+      <router-link to="/tarifs" class="nav-link" @click="closeMobile">Tarifs</router-link>
+      
+      <template v-if="!isAuthenticated">
+        <router-link to="/login" class="btn btn-outline btn-pill" @click="closeMobile">Connexion</router-link>
+        <router-link to="/register" class="btn btn-primary btn-pill" @click="closeMobile">Rejoindre l'aventure</router-link>
+      </template>
+      <template v-else>
+        <router-link to="/application" class="nav-link app-link" @click="closeMobile">Application</router-link>
+        <router-link v-if="user?.role === 'admin'" to="/dashboard" class="nav-link app-link" @click="closeMobile">Dashboard</router-link>
+        <UserIndicator @logout="handleLogout" />
+      </template>
+    </div>
+  </nav>
+</template>
+
+<script setup>
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import UserIndicator from '../UserIndicator.vue'
+import { useAuthStore } from '../../stores/authStore.js'
+import { useNotifications } from '../../composables/useNotifications.js'
+
+const { isAuthenticated, user, logout } = useAuthStore()
+const { success } = useNotifications()
+const isMobileOpen = ref(false)
+
+// URL vers le website (port 8081)
+const websiteBaseUrl = import.meta.env.VITE_WEBSITE_URL || 'http://51.178.80.14:8081'
+const websiteTarifsUrl = computed(() => `${websiteBaseUrl}/tarifs`)
+const websiteFonctionnalitesUrl = computed(() => `${websiteBaseUrl}/fonctionnalites`)
+
+const handleLogout = async () => {
+  const userName = user.value?.displayName || 'Utilisateur'
+  await logout()
+  success(`Au revoir ${userName} ! Vous avez été déconnecté.`)
+}
+
+const toggleMobile = () => { isMobileOpen.value = !isMobileOpen.value }
+const closeMobile = () => { isMobileOpen.value = false }
+
+const onKeydown = (e) => {
+  if (e.key === 'Escape') closeMobile()
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', onKeydown)
+})
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown)
+})
+</script>
+
+<style scoped>
+.nav {
+  max-width: 1200px;
+  margin: 16px auto;
+  padding: 0 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 96px;
+}
+
+.nav-left { flex-shrink: 0; }
+
+.logo-link {
+  text-decoration: none;
+  color: #ffffff;
+}
+
+.logo {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0;
+}
+
+.logo-text {
+  color: #031815;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2.5rem;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: #ffffff;
+  font-weight: 500;
+  font-size: 20px;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  padding: 0.5rem 0;
+  transition: color 0.3s ease;
+  position: relative;
+}
+
+.nav-link:hover { color: #031815; }
+
+.app-link {
+  color: #ffffff;
+  font-weight: 500;
+  font-size: 20px;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: color 0.3s ease;
+}
+
+.app-link:hover { color: #031815; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.9rem 1.8rem;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1.05rem;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  cursor: pointer;
+  min-width: 120px;
+}
+
+.btn-pill { border-radius: 9999px; }
+
+.btn-outline { color: #ffffff; border-color: rgba(255,255,255,0.7); background: transparent; }
+.btn-outline:hover { background: #667eea; color: white; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); }
+
+.btn-primary { background: var(--gradient-btn); color: white; border-color: transparent; }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .nav { padding: 0 1rem; }
+  .burger { display: inline-flex; flex-direction: column; gap: 4px; border: 0; background: transparent; padding: 8px; cursor: pointer; }
+  .burger span { display: block; width: 22px; height: 2px; background: #ffffff; transition: transform .2s ease, opacity .2s ease; }
+  .burger[aria-expanded="true"] span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  .burger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+  .burger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+  .nav-links { position: fixed; inset: 96px 0 auto 0; background: linear-gradient(235.37deg, #072A25 0%, #031815 28%, #072A25 100%); padding: 16px; transform: translateY(-120%); opacity: 0; display: grid; gap: 12px; }
+  .nav-links.open { transform: translateY(0); opacity: 1; }
+  .nav-link { font-size: 1.1rem; padding: 0.75rem 0; }
+  .btn { padding: 0.8rem 1.4rem; font-size: 1rem; min-width: 120px; }
+}
+
+@media (max-width: 640px) { .app-link { padding: 0.4rem 0.8rem; font-size: 0.9rem; } }
+</style>
+
+

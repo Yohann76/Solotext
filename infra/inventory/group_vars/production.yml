@@ -1,0 +1,45 @@
+---
+# Variables communes pour l'environnement de production
+
+# Configuration Nginx
+nginx_user: www-data
+nginx_worker_processes: auto
+nginx_worker_connections: 1024
+nginx_ssl_enabled: true
+nginx_ssl_email: yohanndurand76@gmail.com
+
+# Domaines
+website_domain: solotext.io
+app_domain: app.solotext.io
+api_domain: api.solotext.io
+
+# URLs pour les builds frontend (en clair, pas dans le vault)
+app_api_url: "https://{{ api_domain }}/api"
+app_website_url: "https://{{ website_domain }}"
+website_api_url: "https://{{ api_domain }}/api"
+website_app_url: "https://{{ app_domain }}"
+
+# Configuration des limites système
+max_open_files: 65536
+max_user_processes: 4096
+
+# Configuration du firewall
+firewall_allowed_tcp_ports:
+  - "22"    # SSH
+  - "80"    # HTTP
+  - "443"   # HTTPS
+
+firewall_allowed_udp_ports: []
+
+# Configuration des mises à jour automatiques
+auto_updates_enabled: true
+security_updates_only: true
+
+# Configuration du monitoring
+health_check_enabled: true
+health_check_interval: 30
+
+# Configuration des sauvegardes
+backup_enabled: true
+backup_retention_days: 30
+backup_schedule: "0 2 * * *"  # Tous les jours à 2h du matin

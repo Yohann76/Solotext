@@ -1,0 +1,18 @@
+---
+galaxy_info:
+  author: SoloText Team
+  description: Rôle commun pour la configuration système de base
+  license: MIT
+  min_ansible_version: "2.9"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+  galaxy_tags:
+    - system
+    - common
+    - security
+
+dependencies: []
+

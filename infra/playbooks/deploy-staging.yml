@@ -1,0 +1,25 @@
+---
+# Playbook pour le déploiement sur l'environnement de staging
+
+- name: Déploiement SoloText sur Staging
+  hosts: staging
+  become: yes
+  gather_facts: yes
+
+  vars:
+    deployment_env: staging
+
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/staging.yml"
+    - "{{ inventory_dir }}/group_vars/staging/vault.yml"
+    - "{{ inventory_dir }}/group_vars/staging/api.yml"
+    - "{{ inventory_dir }}/group_vars/staging/app.yml"
+    - "{{ inventory_dir }}/group_vars/staging/website.yml"
+
+  roles:
+    - role: common
+    - role: api
+    - role: app
+    - role: website
+    - role: nginx_proxy
+

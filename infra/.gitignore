@@ -1,0 +1,16 @@
+# Ansible
+*.retry
+.vault_pass
+vault_pass.txt
+.vault_password
+vault_password.txt
+
+# Fichiers temporaires
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+

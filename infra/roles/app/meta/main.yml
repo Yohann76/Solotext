@@ -1,0 +1,9 @@
+---
+galaxy_info:
+  role_name: app
+  author: SoloText Team
+  description: Build et déploiement de l'application frontend (statique)
+  license: MIT
+
+dependencies: []
+

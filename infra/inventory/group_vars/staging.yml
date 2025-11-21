@@ -1,0 +1,46 @@
+---
+# Variables communes pour l'environnement de staging
+
+# Configuration Nginx
+nginx_user: www-data
+nginx_worker_processes: auto
+nginx_worker_connections: 1024
+nginx_ssl_enabled: true
+nginx_ssl_email: yohanndurand76@gmail.com
+
+# Domaines
+website_domain: staging.solotext.io
+app_domain: app.staging.solotext.io
+api_domain: api.staging.solotext.io
+
+# URLs pour les builds frontend (en clair, pas dans le vault)
+app_api_url: "https://{{ api_domain }}/api"
+app_website_url: "https://{{ website_domain }}"
+website_api_url: "https://{{ api_domain }}/api"
+website_app_url: "https://{{ app_domain }}"
+
+# Configuration des limites système
+max_open_files: 65536
+max_user_processes: 4096
+
+# Configuration du firewall
+firewall_allowed_tcp_ports:
+  - "22"    # SSH
+  - "80"    # HTTP
+  - "443"   # HTTPS
+  - "5432"  # PostgreSQL (si accès externe nécessaire)
+  - "3001"  # Backend API Dev (docker-compose.dev.yml)
+  - "8090"  # App Frontend Dev (docker-compose.dev.yml)
+  - "8091"  # Website Frontend Dev (docker-compose.dev.yml)
+  - "8083"  # Adminer Dev (docker-compose.dev.yml)
+  - "15673" # RabbitMQ Management Dev (docker-compose.dev.yml)
+
+firewall_allowed_udp_ports: []
+
+# Configuration des mises à jour automatiques
+auto_updates_enabled: false
+security_updates_only: true
+
+# Configuration du monitoring
+health_check_enabled: true
+health_check_interval: 30

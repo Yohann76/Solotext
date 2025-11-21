@@ -1,0 +1,15 @@
+---
+# Handlers pour le rôle nginx_proxy
+
+- name: restart nginx
+  systemd:
+    name: nginx
+    state: restarted
+  become: yes
+
+- name: reload nginx
+  systemd:
+    name: nginx
+    state: reloaded
+  become: yes
+

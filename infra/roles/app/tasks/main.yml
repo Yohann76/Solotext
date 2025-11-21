@@ -1,0 +1,106 @@
+---
+# Rôle app : Build et déploiement de l'application frontend (statique)
+
+- name: Vérifier que Node.js est installé
+  command: node --version
+  register: node_check
+  changed_when: false
+  failed_when: false
+
+- name: Installer Node.js si nécessaire
+  apt:
+    name: nodejs
+    state: present
+    update_cache: yes
+  become: yes
+  when: node_check.rc != 0
+
+- name: Installer npm si nécessaire
+  apt:
+    name: npm
+    state: present
+    update_cache: yes
+  become: yes
+  when: node_check.rc != 0
+
+- name: S'assurer que le répertoire app existe
+  file:
+    path: "{{ app_build_dir }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0755'
+  become: yes
+
+- name: Installer les dépendances de l'app
+  command: npm install
+  args:
+    chdir: "{{ app_build_dir }}"
+  become: yes
+  become_user: "{{ app_user }}"
+  when: node_check.rc == 0
+
+- name: Build de l'app pour la production
+  command: npm run build
+  args:
+    chdir: "{{ app_build_dir }}"
+  become: yes
+  become_user: "{{ app_user }}"
+  environment:
+    NODE_ENV: production
+    VITE_API_URL: "{{ app_api_url }}"
+    VITE_WEBSITE_URL: "{{ app_website_url }}"
+  register: build_result
+  when: node_check.rc == 0
+  failed_when: build_result.rc != 0
+
+- name: Vérifier que le répertoire dist existe après le build
+  stat:
+    path: "{{ app_build_dir }}/dist"
+  register: dist_dir
+  when: node_check.rc == 0
+
+- name: Échouer si le répertoire dist n'existe pas
+  fail:
+    msg: "Le build de l'app a échoué : le répertoire dist/ n'existe pas"
+  when: node_check.rc == 0 and not dist_dir.stat.exists
+
+- name: S'assurer que le répertoire parent /var/www existe
+  file:
+    path: /var/www
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  become: yes
+
+- name: Créer le répertoire web pour l'app
+  file:
+    path: "{{ app_web_dir }}"
+    state: directory
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_user }}"
+    mode: '0755'
+  become: yes
+
+- name: Copier les fichiers statiques de l'app
+  copy:
+    src: "{{ app_build_dir }}/dist/"
+    dest: "{{ app_web_dir }}/"
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_user }}"
+    mode: '0755'
+    directory_mode: '0755'
+    remote_src: yes
+  become: yes
+  when: node_check.rc == 0 and dist_dir.stat.exists
+
+- name: Corriger les permissions récursives de l'app (garantit les bonnes permissions)
+  file:
+    path: "{{ app_web_dir }}"
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_user }}"
+    mode: '0755'
+    recurse: yes
+  become: yes
+

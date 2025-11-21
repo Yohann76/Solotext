@@ -1,0 +1,313 @@
+const express = require('express');
+const router = express.Router();
+const Analysis = require('../models/Analysis');
+const Sentence = require('../models/Sentence');
+const { authenticateToken } = require('../middleware/auth');
+const queueService = require('../services/queueService');
+const CreditService = require('../services/creditService');
+const TextProcessor = require('../workers/lib/TextProcessor');
+
+// POST /api/analyses - Create a new analysis
+router.post('/', authenticateToken, async (req, res) => {
+  try {
+    const { source_text } = req.body;
+    const userId = req.user.id;
+
+    // Validation
+    if (!source_text || source_text.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Le texte source est requis',
+        code: 'MISSING_SOURCE_TEXT'
+      });
+    }
+
+    if (source_text.trim().length < 10) {
+      return res.status(400).json({
+        success: false,
+        message: 'Le texte doit contenir au moins 10 caractères',
+        code: 'TEXT_TOO_SHORT'
+      });
+    }
+
+    // Calculer le nombre de phrases (même algorithme que le backend)
+    const sentences = TextProcessor.splitIntoSentences(source_text.trim());
+    const sentenceCount = sentences.length;
+
+    if (sentenceCount === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Aucune phrase valide détectée dans le texte. Assurez-vous que votre texte contient des phrases terminées par un point, un point d\'exclamation ou un point d\'interrogation.',
+        code: 'NO_VALID_SENTENCES'
+      });
+    }
+
+    // Vérifier les crédits disponibles
+    const creditCheck = await CreditService.canAnalyze(userId, sentenceCount);
+    
+    if (!creditCheck.canAnalyze) {
+      return res.status(403).json({
+        success: false,
+        message: creditCheck.reason || 'Crédits insuffisants',
+        code: 'INSUFFICIENT_CREDITS',
+        data: {
+          creditsInfo: creditCheck.creditsInfo,
+          requiredCredits: sentenceCount
+        }
+      });
+    }
+
+    // Create the analysis
+    const analysis = await Analysis.create({
+      user_id: userId,
+      source_text: source_text.trim(),
+      // duplicate_percent null by default // must be update with worker
+      status: 'waiting_for_process', // Status initial
+      analyzed_at: new Date() // Date of analysis
+    });
+
+    // Consommer les crédits (on consomme maintenant car l'analyse est créée)
+    // Note: Si l'analyse échoue plus tard, on ne rembourse pas les crédits (comportement standard)
+    await CreditService.consumeCredits(userId, sentenceCount);
+
+    // Send analysis task to queue
+    const taskSent = await queueService.sendAnalysisTask(analysis.id, analysis.source_text);
+    
+    if (!taskSent) {
+      console.warn(`⚠️ Impossible d'envoyer la tâche d'analyse #${analysis.id} à la queue`);
+      // Continue anyway, analysis is created
+    }
+
+    // Return the created analysis
+    res.status(201).json({
+      success: true,
+      message: 'Analyse créée avec succès et envoyée au traitement',
+      data: {
+        analysis: {
+          id: analysis.id,
+          user_id: analysis.user_id,
+          source_text: analysis.source_text,
+          duplicate_percent: analysis.duplicate_percent,
+          status: analysis.status,
+          created_at: analysis.created_at,
+          updated_at: analysis.updated_at
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Error creating analysis:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      code: 'INTERNAL_ERROR'
+    });
+  }
+});
+
+// GET /api/analyses - Get the analyses of the user
+router.get('/', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { page = 1, limit = 10 } = req.query;
+
+    const offset = (page - 1) * limit;
+
+    const analyses = await Analysis.findAndCountAll({
+      where: { user_id: userId },
+      order: [['created_at', 'DESC']],
+      limit: parseInt(limit),
+      offset: parseInt(offset)
+    });
+
+    res.json({
+      success: true,
+      data: {
+        analyses: analyses.rows,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: analyses.count,
+          pages: Math.ceil(analyses.count / limit)
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Erreur lors de la récupération des analyses:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur interne du serveur',
+      code: 'INTERNAL_ERROR'
+    });
+  }
+});
+
+// GET /api/analyses/:id/sentences - Récupérer les phrases d'une analyse
+router.get('/:id/sentences', authenticateToken, async (req, res) => {
+  try {
+    const analysisId = parseInt(req.params.id);
+    const userId = req.user.id;
+
+    // Vérifier que l'analyse appartient à l'utilisateur
+    const analysis = await Analysis.findOne({
+      where: {
+        id: analysisId,
+        user_id: userId
+      }
+    });
+
+    if (!analysis) {
+      return res.status(404).json({
+        success: false,
+        message: 'Analyse non trouvée',
+        code: 'ANALYSIS_NOT_FOUND'
+      });
+    }
+
+    // Récupérer les phrases de l'analyse
+    const sentences = await Sentence.findAll({
+      where: {
+        analysis_id: analysisId
+      },
+      order: [['id', 'ASC']]
+    });
+
+    res.json({
+      success: true,
+      sentences: sentences
+    });
+
+  } catch (error) {
+    console.error('Error fetching analysis sentences:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur interne du serveur',
+      code: 'INTERNAL_ERROR'
+    });
+  }
+});
+
+// GET /api/analyses/:id - Get a specific analysis
+router.get('/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const analysis = await Analysis.findOne({
+      where: { 
+        id: id,
+        user_id: userId 
+      }
+    });
+
+    if (!analysis) {
+      return res.status(404).json({
+        success: false,
+        message: 'Analysis not found',
+        code: 'ANALYSIS_NOT_FOUND'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: { analysis }
+    });
+
+  } catch (error) {
+    console.error('Erreur lors de la récupération de l\'analyse:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur interne du serveur',
+      code: 'INTERNAL_ERROR'
+    });
+  }
+});
+
+// PUT /api/analyses/:id - Update an analysis
+router.put('/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const { duplicate_percent, status } = req.body;
+
+    const analysis = await Analysis.findOne({
+      where: { 
+        id: id,
+        user_id: userId 
+      }
+    });
+
+    if (!analysis) {
+      return res.status(404).json({
+        success: false,
+        message: 'Analyse non trouvée',
+        code: 'ANALYSIS_NOT_FOUND'
+      });
+    }
+
+    // Update the fields provided
+    if (duplicate_percent !== undefined) {
+      analysis.duplicate_percent = duplicate_percent;
+    }
+    if (status !== undefined) {
+      analysis.status = status;
+    }
+
+    await analysis.save();
+
+    res.json({
+      success: true,
+      message: 'Analyse mise à jour avec succès',
+      data: { analysis }
+    });
+
+  } catch (error) {
+    console.error('Error updating analysis:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur interne du serveur',
+      code: 'INTERNAL_ERROR'
+    });
+  }
+});
+
+// DELETE /api/analyses/:id - Delete an analysis
+router.delete('/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const analysis = await Analysis.findOne({
+      where: { 
+        id: id,
+        user_id: userId 
+      }
+    });
+
+    if (!analysis) {
+      return res.status(404).json({
+        success: false,
+        message: 'Analyse non trouvée',
+        code: 'ANALYSIS_NOT_FOUND'
+      });
+    }
+
+    await analysis.destroy();
+
+    res.json({
+      success: true,
+      message: 'Analyse supprimée avec succès'
+    });
+
+  } catch (error) {
+    console.error('Error deleting analysis:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur interne du serveur',
+      code: 'INTERNAL_ERROR'
+    });
+  }
+});
+
+module.exports = router;

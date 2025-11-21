@@ -31,10 +31,9 @@
 - Complete page : CGV
 
 ## V1.3.2 Blog
-- Add structur for SEO
+- Add structur for SEO (One H1, Ariane, H2 ...)
 - Add robots.txt
 - add sitemap.xml
-- add link blog in footer page
 
 ## V1.3 Customer Saas
 - Add support fonction (send message, receive message in infobull)

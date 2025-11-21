@@ -1,9 +1,10 @@
 ---
-title: "Bienvenue sur le blog SoloText"
+title: "SoloText, Détection de duplication sur internet"
 date: "2024-01-15"
-description: "Découvrez notre nouveau blog et les actualités de SoloText"
-tags: ["actualité", "solotext"]
-author: "Équipe SoloText"
+description: "Découvrez comment Solotext fonctionne"
+tags: ["guide", "solotext"]
+author: "SoloText"
+imageHeader: "solotext-comprendre.jpg"
 ---
 
 # Bienvenue sur le blog SoloText

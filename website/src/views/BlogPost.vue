@@ -45,6 +45,9 @@
       <section class="post-content">
         <div class="container">
           <article class="post-article">
+            <div v-if="post.imageHeader" class="post-header-image">
+              <img :src="post.imageHeader" :alt="post.title" />
+            </div>
             <div
               class="post-body"
               v-html="post.content"
@@ -109,6 +112,36 @@ function formatDate(date) {
   background: linear-gradient(135deg, #32C4C0 0%, #019E8B 100%);
   color: #fff;
   padding: 80px 0 60px;
+}
+
+.post-hero .container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.post-hero .post-title {
+  font-family: "Neulis Alt", sans-serif;
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1.2em;
+  margin: 0 0 1.5rem;
+  color: #fff;
+}
+
+.post-hero .post-meta {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.9;
+  font-size: 16px;
+}
+
+.post-hero .post-description {
+  font-size: 18px;
+  line-height: 1.6em;
+  opacity: 0.9;
+  margin: 0;
 }
 
 .post-hero .container {
@@ -187,6 +220,21 @@ function formatDate(date) {
   padding: 48px;
   box-shadow: 0 4px 16px rgba(3, 24, 21, 0.08);
   margin-bottom: 2rem;
+}
+
+.post-header-image {
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  background: linear-gradient(135deg, #E0F7F5 0%, #B8EBE8 100%);
+}
+
+.post-header-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .post-body {

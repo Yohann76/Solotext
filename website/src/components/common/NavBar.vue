@@ -20,6 +20,7 @@
 
     <div class="nav-links" :class="{ open: isMobileOpen }" id="primary-navigation">
       <router-link to="/fonctionnalites" class="nav-link" @click="closeMobile">Fonctionnalités</router-link>
+      <router-link to="/blog" class="nav-link" @click="closeMobile">Blog</router-link>
       <router-link to="/tarifs" class="nav-link" @click="closeMobile">Tarifs</router-link>
 
       <template v-if="!isAuthenticated">

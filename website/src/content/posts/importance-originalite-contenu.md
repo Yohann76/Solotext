@@ -4,6 +4,7 @@ date: "2024-02-01"
 description: "Pourquoi l'originalité du contenu est cruciale pour votre réputation en ligne"
 tags: ["seo", "contenu", "réputation"]
 author: "Équipe SoloText"
+imageHeader: "solotext-comprendre.jpg"
 ---
 
 # L'importance de l'originalité du contenu en 2024

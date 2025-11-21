@@ -11,6 +11,11 @@ const md = new MarkdownIt({
 const posts = ref([])
 const loaded = ref(false)
 
+// Charger toutes les images du blog au démarrage
+const blogImages = import.meta.glob('../assets/blog/*.{jpg,jpeg,png,webp,svg}', { 
+  eager: true 
+})
+
 /**
  * Parse le front matter YAML d'un fichier Markdown
  */
@@ -31,6 +36,26 @@ function parseFrontMatter(content) {
   } catch (error) {
     console.error('Erreur lors du parsing YAML:', error)
     return { data: {}, content: markdownContent }
+  }
+}
+
+/**
+ * Charge une image d'article par son nom
+ */
+function getPostImage(imageName) {
+  if (!imageName) return null
+  
+  try {
+    // Chercher l'image correspondante dans les images chargées
+    const imagePath = Object.keys(blogImages).find(path => {
+      const fileName = path.split('/').pop()
+      return fileName === imageName || fileName.includes(imageName)
+    })
+    
+    return imagePath ? blogImages[imagePath].default : null
+  } catch (error) {
+    console.error('Erreur lors du chargement de l\'image:', error)
+    return null
   }
 }
 
@@ -59,9 +84,13 @@ export async function loadPosts() {
       // Parser le Markdown en HTML
       const htmlContent = md.render(content)
       
+      // Charger l'image header si spécifiée dans le front matter
+      const imageHeader = frontMatter.imageHeader ? getPostImage(frontMatter.imageHeader) : null
+      
       return {
         slug,
         ...frontMatter,
+        imageHeader,
         content: htmlContent,
         rawContent: content,
         date: new Date(frontMatter.date)

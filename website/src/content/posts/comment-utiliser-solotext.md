@@ -4,6 +4,7 @@ date: "2024-01-20"
 description: "Apprenez à utiliser SoloText efficacement pour analyser vos textes"
 tags: ["tutoriel", "guide", "utilisation"]
 author: "Équipe SoloText"
+imageHeader: "solotext-comprendre.jpg"
 ---
 
 # Comment utiliser SoloText : Guide complet

@@ -46,6 +46,13 @@
             :key="post.slug"
             class="post-card"
           >
+            <router-link v-if="post.imageHeader" :to="`/blog/${post.slug}`" class="post-image-link">
+              <img
+                :src="post.imageHeader"
+                :alt="post.title"
+                class="post-image"
+              />
+            </router-link>
             <div class="post-header">
               <div class="post-tags">
                 <span
@@ -243,14 +250,40 @@ function formatDate(date) {
 .post-card {
   background: #fff;
   border-radius: 12px;
-  padding: 2rem;
+  overflow: hidden;
   box-shadow: 0 4px 16px rgba(3, 24, 21, 0.08);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 .post-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 24px rgba(3, 24, 21, 0.12);
+}
+
+.post-image-link {
+  display: block;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #E0F7F5 0%, #B8EBE8 100%);
+  text-decoration: none;
+}
+
+.post-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.post-card:hover .post-image {
+  transform: scale(1.05);
+}
+
+.post-card > .post-header {
+  padding: 1.5rem 2rem 0;
 }
 
 .post-header {
@@ -282,6 +315,7 @@ function formatDate(date) {
 
 .post-title {
   margin: 0 0 1rem;
+  padding: 0 2rem;
   font-family: "Neulis Alt", sans-serif;
   font-size: 24px;
   font-weight: 700;
@@ -304,6 +338,7 @@ function formatDate(date) {
   color: #031815;
   opacity: 0.8;
   margin: 0 0 1.5rem;
+  padding: 0 2rem;
 }
 
 .post-link {
@@ -311,6 +346,8 @@ function formatDate(date) {
   text-decoration: none;
   font-weight: 600;
   transition: color 0.2s ease;
+  padding: 0 2rem 2rem;
+  margin-top: auto;
 }
 
 .post-link:hover {

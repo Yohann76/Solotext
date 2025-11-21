@@ -26,29 +26,31 @@ const allowedOrigins = [
   'https://app.solotext.io',
   'https://solotext.io',
   'https://api.solotext.io',
-  
+
   // Domaines de staging
   'https://app.staging.solotext.io',
   'https://staging.solotext.io',
   'https://api.staging.solotext.io',
-  
+
   // IPs directes - Staging (51.178.80.14)
   'http://51.178.80.14:8080',  // App staging
   'http://51.178.80.14:8081',  // Website staging
   'http://51.178.80.14:3000',  // API staging
-  
+
   // IPs directes - Production (51.38.178.137)
   'http://51.38.178.137:8080',  // App production
   'http://51.38.178.137:8081',  // Website production
   'http://51.38.178.137:3000',  // API production
-  
+
   // Localhost pour le développement local
   'http://localhost:8080',
   'http://localhost:8081',
   'http://localhost:3000',
   'http://127.0.0.1:8080',
   'http://127.0.0.1:8081',
-  'http://127.0.0.1:3000'
+  'http://127.0.0.1:8081',
+  'http://127.0.0.1:3000',
+  'http://localhost:8090'
 ];
 
 // Configuration CORS avec validation d'origine
@@ -58,7 +60,7 @@ const corsOptions = {
     if (!origin) {
       return callback(null, true);
     }
-    
+
     // Vérifier si l'origine est autorisée
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
@@ -98,7 +100,7 @@ const { authenticateToken, requireRole } = require('./middleware/auth');
 
 // Routes de base
 app.get('/', (req, res) => {
-  res.json({ 
+  res.json({
     message: 'API SoloText - Serveur en cours d\'exécution',
     version: '1.0.0',
     endpoints: {
@@ -122,8 +124,8 @@ app.use('/api/admin', adminRoutes);
 
 // Route de santé
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
+  res.json({
+    status: 'OK',
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
   });
@@ -134,7 +136,7 @@ app.get('/api/users', authenticateToken, requireRole(['admin']), async (req, res
   try {
     const { page = 1, limit = 50 } = req.query;
     const offset = (page - 1) * limit;
-    
+
     const { count, rows: users } = await User.findAndCountAll({
       attributes: { exclude: ['password'] },
       order: [['created_at', 'DESC']],
@@ -167,14 +169,14 @@ app.get('/api/users/:id', authenticateToken, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const user = await User.findByPk(id);
-    
+
     if (!user) {
       return res.status(404).json({
         success: false,
         message: 'Utilisateur non trouvé'
       });
     }
-    
+
     res.json({
       success: true,
       data: user
@@ -191,7 +193,7 @@ app.get('/api/users/:id', authenticateToken, async (req, res) => {
 app.post('/api/users', authenticateToken, requireRole(['admin']), async (req, res) => {
   try {
     const { email, password, role = 'user' } = req.body;
-    
+
     if (!email) {
       return res.status(400).json({
         success: false,
@@ -223,21 +225,21 @@ app.post('/api/users', authenticateToken, requireRole(['admin']), async (req, re
     }
 
     // Hasher le mot de passe
-    const bcrypt = require('bcrypt');
+    const bcrypt = require('bcryptjs');
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
-    
-    const newUser = await User.create({ 
-      email, 
+
+    const newUser = await User.create({
+      email,
       password: hashedPassword,
-      role 
+      role
     });
 
     // Retourner l'utilisateur sans le mot de passe
     const userResponse = await User.findByPk(newUser.id, {
       attributes: { exclude: ['password'] }
     });
-    
+
     res.status(201).json({
       success: true,
       data: userResponse,
@@ -250,7 +252,7 @@ app.post('/api/users', authenticateToken, requireRole(['admin']), async (req, re
         message: 'Un utilisateur avec cet email existe déjà'
       });
     }
-    
+
     res.status(500).json({
       success: false,
       message: 'Erreur lors de la création de l\'utilisateur',
@@ -263,9 +265,9 @@ app.put('/api/users/:id', authenticateToken, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const { email, password, role } = req.body;
-    
+
     const user = await User.findByPk(id);
-    
+
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -275,23 +277,23 @@ app.put('/api/users/:id', authenticateToken, async (req, res) => {
 
     // Mise à jour des données
     const updateData = {};
-    
+
     if (email) {
       // Vérifier si l'email n'est pas déjà utilisé par un autre utilisateur
-      const existingUser = await User.findOne({ 
-        where: { 
-          email, 
-          id: { [Op.ne]: id } 
-        } 
+      const existingUser = await User.findOne({
+        where: {
+          email,
+          id: { [Op.ne]: id }
+        }
       });
-      
+
       if (existingUser) {
         return res.status(400).json({
           success: false,
           message: 'Cet email est déjà utilisé par un autre utilisateur'
         });
       }
-      
+
       updateData.email = email;
     }
 
@@ -300,18 +302,18 @@ app.put('/api/users/:id', authenticateToken, async (req, res) => {
     }
 
     if (password) {
-      const bcrypt = require('bcrypt');
+      const bcrypt = require('bcryptjs');
       const saltRounds = 10;
       updateData.password = await bcrypt.hash(password, saltRounds);
     }
-    
+
     await user.update(updateData);
 
     // Retourner l'utilisateur mis à jour sans le mot de passe
     const updatedUser = await User.findByPk(id, {
       attributes: { exclude: ['password'] }
     });
-    
+
     res.json({
       success: true,
       data: updatedUser,
@@ -339,16 +341,16 @@ app.delete('/api/users/:id', authenticateToken, requireRole(['admin']), async (r
     }
 
     const user = await User.findByPk(id);
-    
+
     if (!user) {
       return res.status(404).json({
         success: false,
         message: 'Utilisateur non trouvé'
       });
     }
-    
+
     await user.destroy();
-    
+
     res.json({
       success: true,
       message: 'Utilisateur supprimé avec succès'
@@ -372,7 +374,7 @@ app.get('/api/analyses', authenticateToken, async (req, res) => {
       }],
       order: [['analyzed_at', 'DESC']]
     });
-    
+
     res.json({
       success: true,
       data: analyses,
@@ -390,21 +392,21 @@ app.get('/api/analyses', authenticateToken, async (req, res) => {
 app.post('/api/analyses', authenticateToken, async (req, res) => {
   try {
     const { user_id, source_text, duplicate_percent } = req.body;
-    
+
     if (!user_id || !source_text || duplicate_percent === undefined) {
       return res.status(400).json({
         success: false,
         message: 'user_id, source_text et duplicate_percent sont requis'
       });
     }
-    
+
     const newAnalysis = await Analysis.create({
       user_id,
       analyzed_at: new Date(),
       source_text,
       duplicate_percent
     });
-    
+
     res.status(201).json({
       success: true,
       data: newAnalysis,
@@ -427,7 +429,7 @@ app.get('/api/analyses/:id/sentences', async (req, res) => {
       where: { analysis_id },
       order: [['created_at', 'ASC']]
     });
-    
+
     res.json({
       success: true,
       data: sentences,
@@ -446,21 +448,21 @@ app.post('/api/analyses/:id/sentences', async (req, res) => {
   try {
     const analysis_id = parseInt(req.params.id);
     const { sentence_text, source_url, is_duplicate } = req.body;
-    
+
     if (!sentence_text) {
       return res.status(400).json({
         success: false,
         message: 'sentence_text est requis'
       });
     }
-    
+
     const newSentence = await Sentence.create({
       analysis_id,
       sentence_text,
       source_url,
       is_duplicate: is_duplicate || false
     });
-    
+
     res.status(201).json({
       success: true,
       data: newSentence,
@@ -485,7 +487,7 @@ app.get('/api/subscriptions', async (req, res) => {
       }],
       order: [['created_at', 'DESC']]
     });
-    
+
     res.json({
       success: true,
       data: subscriptions,
@@ -502,23 +504,23 @@ app.get('/api/subscriptions', async (req, res) => {
 
 app.post('/api/subscriptions', async (req, res) => {
   try {
-    const { 
-      user_id, 
-      stripe_subscription_id, 
-      status, 
-      start_date, 
-      current_period_start, 
-      current_period_end, 
-      cancel_at_period_end 
+    const {
+      user_id,
+      stripe_subscription_id,
+      status,
+      start_date,
+      current_period_start,
+      current_period_end,
+      cancel_at_period_end
     } = req.body;
-    
+
     if (!user_id || !stripe_subscription_id || !status) {
       return res.status(400).json({
         success: false,
         message: 'user_id, stripe_subscription_id et status sont requis'
       });
     }
-    
+
     const newSubscription = await Subscription.create({
       user_id,
       stripe_subscription_id,
@@ -528,7 +530,7 @@ app.post('/api/subscriptions', async (req, res) => {
       current_period_end: current_period_end || new Date(),
       cancel_at_period_end: cancel_at_period_end || false
     });
-    
+
     res.status(201).json({
       success: true,
       data: newSubscription,
@@ -565,7 +567,7 @@ const startServer = async () => {
   try {
     // Tester la connexion à la base de données
     await testConnection();
-    
+
     // Démarrer le serveur
     app.listen(PORT, () => {
       console.log(`🚀 Serveur démarré sur le port ${PORT}`);

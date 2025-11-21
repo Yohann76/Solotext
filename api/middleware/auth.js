@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 
 // Clé secrète pour JWT (en production, utiliser une variable d'environnement)
@@ -26,10 +26,10 @@ const authenticateToken = async (req, res, next) => {
 
     // Vérifier et décoder le token
     const decoded = jwt.verify(token, JWT_SECRET);
-    
+
     // Récupérer l'utilisateur depuis la base de données
     const user = await User.findByPk(decoded.userId);
-    
+
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -50,7 +50,7 @@ const authenticateToken = async (req, res, next) => {
         code: 'INVALID_TOKEN'
       });
     }
-    
+
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({
         success: false,
@@ -84,7 +84,7 @@ const requireRole = (roles) => {
 
     // Convertir roles en array si c'est une string
     const allowedRoles = Array.isArray(roles) ? roles : [roles];
-    
+
     if (!allowedRoles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,
@@ -115,7 +115,7 @@ const optionalAuth = async (req, res, next) => {
         req.user = user;
       }
     }
-    
+
     next();
   } catch (error) {
     // En cas d'erreur, continuer sans utilisateur
@@ -133,7 +133,7 @@ const generateToken = (user) => {
     role: user.role
   };
 
-  return jwt.sign(payload, JWT_SECRET, { 
+  return jwt.sign(payload, JWT_SECRET, {
     expiresIn: JWT_EXPIRES_IN,
     issuer: 'solotext-api',
     audience: 'solotext-client'

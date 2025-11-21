@@ -1,5 +1,5 @@
 const express = require('express');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const { generateToken, verifyPassword, authenticateToken } = require('../middleware/auth');
 const User = require('../models/User');
 
@@ -23,8 +23,8 @@ router.post('/login', async (req, res) => {
     }
 
     // Rechercher l'utilisateur
-    const user = await User.findOne({ 
-      where: { email: email.toLowerCase() } 
+    const user = await User.findOne({
+      where: { email: email.toLowerCase() }
     });
 
     if (!user) {
@@ -46,7 +46,7 @@ router.post('/login', async (req, res) => {
 
     // Vérifier le mot de passe
     const isPasswordValid = await verifyPassword(password, user.password);
-    
+
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
@@ -114,8 +114,8 @@ router.post('/register', async (req, res) => {
     }
 
     // Vérifier si l'utilisateur existe déjà
-    const existingUser = await User.findOne({ 
-      where: { email: email.toLowerCase() } 
+    const existingUser = await User.findOne({
+      where: { email: email.toLowerCase() }
     });
 
     if (existingUser) {
@@ -129,7 +129,7 @@ router.post('/register', async (req, res) => {
     // Créer le nouvel utilisateur
     const today = new Date();
     const todayDate = today.toISOString().split('T')[0]; // Format YYYY-MM-DD
-    
+
     const user = new User({
       email: email.toLowerCase(),
       role: role, // Par défaut 'user' = freemium (200 crédits)
@@ -236,7 +236,7 @@ router.post('/change-password', authenticateToken, async (req, res) => {
 
     // Vérifier le mot de passe actuel
     const isCurrentPasswordValid = await verifyPassword(currentPassword, req.user.password);
-    
+
     if (!isCurrentPasswordValid) {
       return res.status(401).json({
         success: false,

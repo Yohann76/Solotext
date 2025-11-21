@@ -16,7 +16,7 @@ export default defineConfig({
     cors: true,
     watch: {
       usePolling: true,
-      interval: 2000, 
+      interval: 2000,
       ignored: [
         '**/node_modules/**',
         '**/.git/**',
@@ -47,7 +47,7 @@ export default defineConfig({
     // Les changements de fichiers seront détectés mais nécessiteront un rechargement manuel
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'http://backend:3000',
         changeOrigin: true
       }
     }

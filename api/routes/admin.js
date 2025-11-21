@@ -1,5 +1,5 @@
 const express = require('express');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const { Op, fn, col } = require('sequelize');
 const { authenticateToken, requireRole } = require('../middleware/auth');
 const User = require('../models/User');
@@ -175,24 +175,24 @@ router.delete('/users/:id', async (req, res) => {
  */
 router.get('/analyses', async (req, res) => {
   try {
-    const { 
-      page = 1, 
-      limit = 50, 
-      status = '', 
-      userId = '', 
-      sortBy = 'created_at', 
-      sortOrder = 'DESC' 
+    const {
+      page = 1,
+      limit = 50,
+      status = '',
+      userId = '',
+      sortBy = 'created_at',
+      sortOrder = 'DESC'
     } = req.query;
 
     const offset = (page - 1) * limit;
-    
+
     // Construction des conditions de recherche
     const whereClause = {};
-    
+
     if (status) {
       whereClause.status = status;
     }
-    
+
     if (userId) {
       whereClause.user_id = parseInt(userId);
     }
@@ -212,16 +212,16 @@ router.get('/analyses', async (req, res) => {
     // Calcul des statistiques
     const totalAnalyses = await Analysis.count();
     const waitingAnalyses = await Analysis.count({ where: { status: 'waiting_for_process' } });
-    const inProgressAnalyses = await Analysis.count({ 
-      where: { 
-        status: ['sentence_segmentation_in_progress', 'sentence_analysis_in_progress'] 
-      } 
+    const inProgressAnalyses = await Analysis.count({
+      where: {
+        status: ['sentence_segmentation_in_progress', 'sentence_analysis_in_progress']
+      }
     });
     const completedAnalyses = await Analysis.count({ where: { status: 'analysis_completed' } });
-    const errorAnalyses = await Analysis.count({ 
-      where: { 
-        status: ['sentence_segmentation_error', 'sentence_analysis_error'] 
-      } 
+    const errorAnalyses = await Analysis.count({
+      where: {
+        status: ['sentence_segmentation_error', 'sentence_analysis_error']
+      }
     });
 
     res.json({
@@ -260,7 +260,7 @@ router.get('/analyses', async (req, res) => {
 router.get('/analyses/:id', async (req, res) => {
   try {
     const analysisId = parseInt(req.params.id);
-    
+
     const analysis = await Analysis.findByPk(analysisId, {
       include: [{
         model: User,
@@ -299,7 +299,7 @@ router.get('/analyses/:id', async (req, res) => {
 router.delete('/analyses/:id', async (req, res) => {
   try {
     const analysisId = parseInt(req.params.id);
-    
+
     const analysis = await Analysis.findByPk(analysisId);
     if (!analysis) {
       return res.status(404).json({
@@ -390,8 +390,8 @@ router.put('/providers/:id', async (req, res) => {
     res.json({ success: true, message: 'Statut du fournisseur mis à jour', data: updatedProvider });
   } catch (error) {
     console.error(`Erreur lors de la mise à jour du fournisseur ${req.params.id}:`, error);
-    res.status(error.statusCode || 500).json({ 
-      success: false, 
+    res.status(error.statusCode || 500).json({
+      success: false,
       message: error.message || 'Erreur lors de la mise à jour du fournisseur'
     });
   }

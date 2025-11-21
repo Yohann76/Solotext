@@ -37,5 +37,5 @@ Allow: /cgv
 
 Crawl-delay: 1
 
-Sitemap: https://solotext.com/sitemap.xml
+Sitemap: https://solotext.io/sitemap.xml
 

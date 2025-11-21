@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "vite",
     "dev:server": "vite --config vite.config.dev.js",
+    "generate:sitemap": "node scripts/generate-sitemap.js",
+    "prebuild": "npm run generate:sitemap",
     "build": "vite build",
     "preview": "vite preview"
   },

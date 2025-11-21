@@ -18,11 +18,10 @@
     - la banner doit avoir une variable d'environnement pour le message
     - la banner doit avoir une variable d'environnement pour la couleur de la banner
 
+- Profil page (name, email, password, our commande, list stripe subscription, remove subscription)
+
 ## V1.21 Graphics
 - Update landing page with color chart graphic (In progress)
-
-- Add argument marketing in 3 row section (in homepage)
-- Add Impact Header (link teachizy)
 - Add Favicon (Logo)
 
 - Complete page : "Mentions légales"  
@@ -30,13 +29,20 @@
 - Complete page : CGU
 - Complete page : CGV
 
+- Update homepage
+    - Update Header Design (link teachizy)
+    - Define and implement policy
+    - add testimony
+    - add our client (comeup service website logo..?)
+    - Add argument marketing in 3 row section (in homepage)
+
 ## V1.3.2 Blog
 - Add structur for SEO (One H1, Ariane, H2 ...)
-- add sitemap.xml
+- Update blog design (liste and single)
 
 ## V1.3 Customer Saas
 - Add support fonction (send message, receive message in infobull)
-- Add contact page (per email?)
+- Add contact page (per email -> mail solotext)
 - Add mailer informations (connexion, forget password, register)
 
 Multy-provider(Later):
@@ -46,6 +52,11 @@ Multy-provider(Later):
 ## V1.3.3 Security
 - See security API route
 - See JWT Connexion
+
+************************************
+THIS SAAS IS ONLINE
+GO TO MARKETING ROADMAP
+************************************
 
 ## V1.3.1 Worker test
 - Write test worker and lib (Unit test)
@@ -67,7 +78,6 @@ Multy-provider(Later):
 ## V4 Project (New target)
 
 - Actual website -> for content/agency SEO
-
 - Add new website (color blue) -> for school (1 university, different professor licence...)
 
 ----------------------------------------------------------------------

@@ -23,6 +23,12 @@
 ## V1.3 product
 
 - Export analyse to PDF
+    - Improve Header Solotext branding
+    - Improve Footer Solotext branding
+    - Add duplicate text in PDF (link textarea)
+
+- Verify if sentance is exactly duplicated...
+
 
 ## V1.21 Graphics
 - Update landing page with color chart graphic (In progress)
@@ -39,8 +45,6 @@
     - add testimony
     - add our client (comeup service website logo..?)
     - Add argument marketing in 3 row section (in homepage)
-
-- Add Responsive navbar (hamburger nav)
 
 ## V1.3.2 Blog
 - Add structur for SEO (One H1, Ariane, H2 ...)

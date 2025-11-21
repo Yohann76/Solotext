@@ -118,7 +118,10 @@
             <div v-else class="analysis-viewer">
               <div class="viewer-header">
                 <h1 class="page-title">Analyse #{{ selectedAnalysis.id }}</h1>
-                <div class="viewer-actions">
+                  <div class="viewer-actions">
+                  <button @click="exportToPDF" class="btn btn-export">
+                    <span class="btn-icon">📄</span> Exporter en PDF
+                  </button>
                   <button @click="startNewAnalysis" class="btn btn-primary">
                     + Nouvelle analyse
                   </button>
@@ -299,6 +302,8 @@ import { useNotifications } from '../composables/useNotifications.js'
 import analysisService from '../services/analysis.js'
 import creditsService from '../services/credits.js'
 import { getTextStats } from '../utils/textProcessor.js'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 export default {
   name: 'Application',
@@ -839,7 +844,102 @@ export default {
       }
     }
 
+    // Exporter l'analyse en PDF
+    const exportToPDF = () => {
+      if (!selectedAnalysis.value) return
+
+      const doc = new jsPDF()
+      const analysis = selectedAnalysis.value
+      const stats = analysisStats.value
+      
+      // Couleurs de la marque
+      const primaryColor = [50, 196, 192] // #32C4C0
+      const darkColor = [45, 55, 72] // #2d3748
+      
+      // En-tête
+      doc.setFontSize(22)
+      doc.setTextColor(...primaryColor)
+      doc.text('SoloText', 20, 20)
+      
+      doc.setFontSize(16)
+      doc.setTextColor(...darkColor)
+      doc.text("Rapport d'analyse de plagiat", 20, 30)
+      
+      // Ligne de séparation
+      doc.setDrawColor(...primaryColor)
+      doc.setLineWidth(0.5)
+      doc.line(20, 35, 190, 35)
+      
+      // Informations générales
+      doc.setFontSize(12)
+      doc.setTextColor(100)
+      doc.text(`Analyse #${analysis.id}`, 20, 45)
+      doc.text(`Date: ${formatDate(analysis.analyzed_at || analysis.created_at)}`, 120, 45)
+      
+      // Tableau récapitulatif des statistiques
+      const statsData = [
+        ['Duplication', `${analysis.duplicate_percent}%`],
+        ['Phrases analysées', stats.totalSentences],
+        ['Sources trouvées', duplicateSources.value.length],
+        ['Phrases originales', stats.originalSentences],
+        ['Phrases dupliquées', stats.duplicateSentences]
+      ]
+      
+      autoTable(doc, {
+        startY: 55,
+        head: [['Métrique', 'Valeur']],
+        body: statsData,
+        theme: 'striped',
+        headStyles: { fillColor: primaryColor },
+        styles: { fontSize: 12, cellPadding: 5 },
+        columnStyles: {
+          0: { fontStyle: 'bold', cellWidth: 100 },
+          1: { cellWidth: 'auto' }
+        }
+      })
+      
+      // Liste des sources détectées
+      if (duplicateSources.value.length > 0) {
+        const sourcesData = duplicateSources.value.map((source, index) => [
+          `#${index + 1}`,
+          getDomainFromUrl(source.url),
+          source.url,
+          `${source.count} phrase(s)`
+        ])
+        
+        doc.text('Sources détectées', 20, doc.lastAutoTable.finalY + 15)
+        
+        autoTable(doc, {
+          startY: doc.lastAutoTable.finalY + 20,
+          head: [['#', 'Domaine', 'URL', 'Occurrences']],
+          body: sourcesData,
+          theme: 'grid',
+          headStyles: { fillColor: darkColor },
+          styles: { fontSize: 10, cellPadding: 3 },
+          columnStyles: {
+            0: { cellWidth: 15 },
+            1: { cellWidth: 40 },
+            2: { cellWidth: 'auto' }, // URL prend le reste
+            3: { cellWidth: 30 }
+          }
+        })
+      }
+      
+      // Pied de page
+      const pageCount = doc.internal.getNumberOfPages()
+      doc.setFontSize(10)
+      doc.setTextColor(150)
+      for(let i = 1; i <= pageCount; i++) {
+        doc.setPage(i)
+        doc.text(`Page ${i} sur ${pageCount} - Généré par SoloText`, 105, 290, { align: 'center' })
+      }
+      
+      // Sauvegarde
+      doc.save(`SoloText_Analyse_${analysis.id}.pdf`)
+    }
+
     return {
+      exportToPDF,
       form,
       errors,
       loading,
@@ -1672,6 +1772,36 @@ export default {
   border-radius: 4px;
   font-size: 0.75rem;
   font-weight: 500;
+}
+
+.btn-export {
+  background-color: #f8fafc;
+  border: 2px solid #cbd5e0;
+  color: #4a5568;
+  font-weight: 600;
+  margin-right: 10px;
+  min-width: 220px; /* Largeur minimale augmentée pour égaliser */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-export:hover {
+  background-color: #e2e8f0;
+  border-color: #a0aec0;
+  color: #2d3748;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.btn-icon {
+  margin-right: 8px;
+  font-size: 1.2rem;
+}
+
+/* Pour s'assurer que le bouton "+ Nouvelle analyse" a aussi la même taille minimale dans ce contexte */
+.viewer-actions .btn {
+  min-width: 220px;
 }
 
 /* Responsive */

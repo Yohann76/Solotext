@@ -6,6 +6,7 @@ const Register = () => import('../views/Register.vue')
 const Application = () => import('../views/Application.vue')
 const AdminDashboard = () => import('../views/AdminDashboard.vue')
 const Pricing = () => import('../views/Pricing.vue')
+const ProfilePage = () => import('../views/ProfilePage.vue')
 
 /**
  * Route definitions for the application
@@ -38,6 +39,12 @@ const routes = [
     name: 'AdminDashboard',
     component: AdminDashboard,
     meta: { title: 'Tableau de bord Admin - SoloText', requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/profil',
+    name: 'Profile',
+    component: ProfilePage,
+    meta: { title: 'Mon Profil - SoloText', requiresAuth: true }
   },
   {
     path: '/tarifs',

@@ -17,7 +17,10 @@
     - la banner doit avoir une variable d'environnement pour le message
     - la banner doit avoir une variable d'environnement pour la couleur de la banner
 
-- Profil page (name, email, password, our commande, list stripe subscription, remove subscription)
+- Profil page
+    - Voir les crédits restants
+    - Vérifier le changement de password
+    - Organiser en collaspse/onglet (information, sécurité, abonnement & commande, support)
 
 ## V1.3 product
 

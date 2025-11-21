@@ -71,8 +71,7 @@ export default {
 
     const goToProfile = () => {
       closeMenu()
-      // TODO: Implémenter la page de profil
-      console.log('Aller au profil')
+      router.push('/profil')
     }
 
     const goToSettings = () => {

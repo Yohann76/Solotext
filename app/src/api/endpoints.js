@@ -46,6 +46,13 @@ export const endpoints = {
     root: '/credits'
   },
 
+  user: {
+    profile: '/user/profile',
+    updateProfile: '/user/profile',
+    subscriptions: '/user/subscriptions',
+    cancelSubscription: '/user/subscriptions/cancel'
+  },
+
   stripe: {
     subscription: '/stripe/subscription',
     createCheckoutSession: '/stripe/create-checkout-session'

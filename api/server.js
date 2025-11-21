@@ -17,6 +17,7 @@ const adminRoutes = require('./routes/admin');
 const creditsRoutes = require('./routes/credits');
 const stripeRoutes = require('./routes/stripe');
 const newsletterRoutes = require('./routes/newsletter');
+const userRoutes = require('./routes/user');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -117,6 +118,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/credits', creditsRoutes);
 app.use('/api/stripe', stripeRoutes);
 app.use('/api/newsletter', newsletterRoutes);
+app.use('/api/user', userRoutes);
 
 // Routes des analyses (protégées)
 app.use('/api/analyses', analysesRoutes);

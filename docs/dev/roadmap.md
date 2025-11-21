@@ -11,7 +11,6 @@
 
 ## V1.2 Functionnal +
 - Newletter
-    - add unsubscribe endpoint (boolean var 1 -> 0)
     - When user is registered, add email to newleter email by default with 1
     - can export list email with is_accepted=true (csv) in administration
 

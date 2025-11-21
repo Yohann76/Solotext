@@ -58,4 +58,53 @@ router.post('/subscribe', async (req, res) => {
     }
 });
 
+/**
+ * POST /api/newsletter/unsubscribe
+ * Unsubscribe from the newsletter
+ */
+router.post('/unsubscribe', async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: 'L\'email est requis'
+            });
+        }
+
+        // Find subscriber
+        const subscriber = await Newsletter.findOne({ where: { email: email.toLowerCase() } });
+
+        if (!subscriber) {
+            return res.status(404).json({
+                success: false,
+                message: 'Cet email n\'est pas inscrit à notre newsletter.'
+            });
+        }
+
+        if (!subscriber.is_subscribed) {
+            return res.json({
+                success: true,
+                message: 'Vous êtes déjà désinscrit de notre newsletter.'
+            });
+        }
+
+        // Unsubscribe
+        await subscriber.update({ is_subscribed: false });
+
+        res.json({
+            success: true,
+            message: 'Vous avez été désinscrit de notre newsletter avec succès.'
+        });
+
+    } catch (error) {
+        console.error('Erreur lors de la désinscription newsletter:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Une erreur est survenue lors de la désinscription.'
+        });
+    }
+});
+
 module.exports = router;

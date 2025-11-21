@@ -7,6 +7,7 @@ const Analysis = require('../models/Analysis');
 const Sentence = require('../models/Sentence');
 const ApiCall = require('../models/ApiCall');
 const AdminConfigProvider = require('../models/AdminConfigProvider');
+const Newsletter = require('../models/Newsletter');
 const adminService = require('../services/adminService');
 
 const router = express.Router();
@@ -393,6 +394,114 @@ router.put('/providers/:id', async (req, res) => {
     res.status(error.statusCode || 500).json({
       success: false,
       message: error.message || 'Erreur lors de la mise à jour du fournisseur'
+    });
+  }
+});
+
+// ========================================
+// ROUTES DE GESTION DE LA NEWSLETTER
+// ========================================
+
+/**
+ * GET /api/admin/newsletter/stats
+ * Récupérer les statistiques de la newsletter
+ */
+router.get('/newsletter/stats', async (req, res) => {
+  try {
+    const total = await Newsletter.count();
+    const subscribed = await Newsletter.count({ where: { is_subscribed: true } });
+    const unsubscribed = await Newsletter.count({ where: { is_subscribed: false } });
+
+    res.json({
+      success: true,
+      data: {
+        total,
+        subscribed,
+        unsubscribed
+      }
+    });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des stats newsletter:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la récupération des statistiques'
+    });
+  }
+});
+
+/**
+ * GET /api/admin/newsletter
+ * Récupérer tous les abonnés avec pagination
+ */
+router.get('/newsletter', async (req, res) => {
+  try {
+    const { page = 1, limit = 50, status } = req.query;
+    const offset = (page - 1) * limit;
+
+    const where = {};
+    if (status === 'subscribed') {
+      where.is_subscribed = true;
+    } else if (status === 'unsubscribed') {
+      where.is_subscribed = false;
+    }
+
+    const { count, rows } = await Newsletter.findAndCountAll({
+      where,
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+      order: [['updated_at', 'DESC']]
+    });
+
+    res.json({
+      success: true,
+      data: {
+        newsletters: rows,
+        pagination: {
+          total: count,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          totalPages: Math.ceil(count / limit)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des newsletters:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la récupération des newsletters'
+    });
+  }
+});
+
+/**
+ * GET /api/admin/newsletter/export
+ * Exporter les emails inscrits en CSV
+ */
+router.get('/newsletter/export', async (req, res) => {
+  try {
+    const subscribers = await Newsletter.findAll({
+      where: { is_subscribed: true },
+      order: [['created_at', 'DESC']],
+      attributes: ['email', 'created_at', 'updated_at']
+    });
+
+    // Créer le CSV
+    const csvHeader = 'Email,Date d\'inscription,Dernière mise à jour\n';
+    const csvRows = subscribers.map(sub =>
+      `${sub.email},${sub.created_at.toISOString()},${sub.updated_at.toISOString()}`
+    ).join('\n');
+
+    const csv = csvHeader + csvRows;
+
+    // Définir les headers pour le téléchargement
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename=newsletter-subscribers-${new Date().toISOString().split('T')[0]}.csv`);
+    res.send('\uFEFF' + csv); // BOM pour UTF-8
+  } catch (error) {
+    console.error('Erreur lors de l\'export CSV:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de l\'export CSV'
     });
   }
 });

@@ -10,8 +10,6 @@
 - Si l'utilisateur n'a plus de crédit, afficher les crédits en rouge (et pouvoir faire évoluer son abonnement) (Ne plus pouvoir faire d'analyse (Griser le bouton avec un hover -> abonnez vous!))
 
 ## V1.2 Functionnal +
-- Newletter
-    - can export list email with is_accepted=true (csv) in administration
 
 - Add red banner on top website (only on application) for display message (cette application est en beta test, pour tout probléme veuillez me contacter...)
     - La banner doit etre afficher que au dessus de l'application

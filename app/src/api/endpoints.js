@@ -34,6 +34,11 @@ export const endpoints = {
     },
     costs: {
       userCosts: '/admin/costs/users'
+    },
+    newsletter: {
+      root: '/admin/newsletter',
+      stats: '/admin/newsletter/stats',
+      export: '/admin/newsletter/export'
     }
   },
 

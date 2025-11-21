@@ -45,6 +45,13 @@
               🎧 Support
             </button>
             <button 
+              @click="activeTab = 'newsletter'" 
+              class="nav-item"
+              :class="{ active: activeTab === 'newsletter' }"
+            >
+              📧 Newsletter
+            </button>
+            <button 
               @click="activeTab = 'settings'" 
               class="nav-item"
               :class="{ active: activeTab === 'settings' }"
@@ -314,6 +321,11 @@
             </div>
           </div>
 
+          <!-- Onglet Newsletter -->
+          <div v-if="activeTab === 'newsletter'" class="tab-content">
+            <AdminNewsletter />
+          </div>
+
           <!-- Onglet Paramètres -->
           <div v-if="activeTab === 'settings'" class="tab-content">
             <div class="content-header">
@@ -440,6 +452,7 @@ import { useAuthStore } from '../stores/authStore.js'
 import { useNotifications } from '../composables/useNotifications.js'
 import adminService from '../services/admin.js'
 import UserCostsDropdown from '../components/UserCostsDropdown.vue'
+import AdminNewsletter from './AdminNewsletter.vue'
 
 export default {
   name: 'AdminDashboard',
@@ -447,6 +460,7 @@ export default {
     CommonHeader,
     Notification,
     UserCostsDropdown,
+    AdminNewsletter,
   },
   setup() {
     const router = useRouter()

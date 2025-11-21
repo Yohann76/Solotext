@@ -89,3 +89,9 @@ docker compose exec backend npm run db:seed:all (add fixtures)
 docker compose exec backend npm run migration:generate (create new migration)
 docker compose exec backend npm run seed:generate (create new seed/fixtures)
 ```
+
+## run seed in dev-run
+
+```
+docker compose -f docker-compose.dev.yml exec backend npm run db:seed:all
+```

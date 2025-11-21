@@ -7,6 +7,8 @@ const MentionsLegales = () => import('../views/MentionsLegales.vue')
 const PolitiqueConfidentialite = () => import('../views/PolitiqueConfidentialite.vue')
 const CGU = () => import('../views/CGU.vue')
 const CGV = () => import('../views/CGV.vue')
+const Blog = () => import('../views/Blog.vue')
+const BlogPost = () => import('../views/BlogPost.vue')
 const PublicLayout = () => import('../components/layouts/PublicLayout.vue')
 
 /**
@@ -58,6 +60,18 @@ const routes = [
         name: 'CGV',
         component: CGV,
         meta: { title: 'Conditions Générales de Vente - SoloText' }
+      },
+      {
+        path: 'blog',
+        name: 'Blog',
+        component: Blog,
+        meta: { title: 'Blog - SoloText' }
+      },
+      {
+        path: 'blog/:slug',
+        name: 'BlogPost',
+        component: BlogPost,
+        meta: { title: 'Article - Blog SoloText' }
       }
     ]
   },

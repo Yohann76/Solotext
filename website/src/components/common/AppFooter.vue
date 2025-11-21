@@ -55,7 +55,7 @@
           </div>
           <div class="footer-column">
             <h4>Support</h4>
-            <a href="#">Blog</a>
+            <router-link to="/blog">Blog</router-link>
             <a href="#">Documentation</a>
             <a href="#">Contact</a>
           </div>

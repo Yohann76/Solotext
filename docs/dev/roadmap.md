@@ -31,14 +31,10 @@
 - Complete page : CGV
 
 ## V1.3.2 Blog
-- Add blog page
-- Add Single blog page
 - Add structur for SEO
 - Add robots.txt
 - add sitemap.xml
 - add link blog in footer page
-
-- add blog article (with markdown content and vue)
 
 ## V1.3 Customer Saas
 - Add support fonction (send message, receive message in infobull)

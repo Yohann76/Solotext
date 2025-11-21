@@ -1,0 +1,42 @@
+---
+# Variables pour l'API (production)
+
+# Configuration de l'application
+app_name: solotext
+app_user: solotext
+app_group: solotext
+app_dir: /opt/solotext
+
+# Configuration Git
+git_repo: https://github.com/Yohann76/Solotext
+git_branch: main
+git_version: HEAD
+
+# Configuration des ports
+backend_port: 3000
+postgres_port: 5432
+rabbitmq_port: 5672
+rabbitmq_management_port: 15672
+
+# Configuration PostgreSQL
+postgres_version: "15-alpine"
+postgres_data_dir: /var/lib/postgresql/data
+postgres_backup_dir: /opt/backups/postgres
+
+# Configuration RabbitMQ
+rabbitmq_version: "3-management-alpine"
+rabbitmq_data_dir: /var/lib/rabbitmq
+
+# Configuration des secrets (références au vault)
+db_name: "{{ vault_db_name }}"
+db_user: "{{ vault_db_user }}"
+db_password: "{{ vault_db_password }}"
+jwt_secret: "{{ vault_jwt_secret }}"
+stripe_secret_key: "{{ STRIPE_SECRET_KEY }}"
+stripe_public_key: "{{ STRIPE_PUBLIC_KEY }}"
+stripe_webhook_secret: "{{ STRIPE_WEBHOOK_SECRET }}"
+stripe_price_id_premium1000: "{{ STRIPE_PRICE_ID_PREMIUM1000 }}"
+stripe_price_id_premium3000: "{{ STRIPE_PRICE_ID_PREMIUM3000 }}"
+stripe_price_id_premium6000: "{{ STRIPE_PRICE_ID_PREMIUM6000 }}"
+perplexity_api_key: "{{ vault_perplexity_api_key }}"
+

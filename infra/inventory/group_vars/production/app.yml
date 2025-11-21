@@ -1,0 +1,21 @@
+---
+# Variables pour l'App frontend (production)
+
+# Configuration de l'application
+app_name: solotext
+app_user: solotext
+app_group: solotext
+app_dir: /opt/solotext
+
+# Configuration Git
+git_repo: https://github.com/Yohann76/Solotext
+git_branch: main
+git_version: HEAD
+
+# Configuration de l'app
+app_build_dir: "{{ app_dir }}/app"
+app_web_dir: /var/www/app
+
+# Configuration Nginx
+nginx_user: www-data
+

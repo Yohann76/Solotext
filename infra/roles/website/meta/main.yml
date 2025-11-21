@@ -1,0 +1,9 @@
+---
+galaxy_info:
+  role_name: website
+  author: SoloText Team
+  description: Build et déploiement du website (statique)
+  license: MIT
+
+dependencies: []
+

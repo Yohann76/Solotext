@@ -1,10 +1,5 @@
 # Roadmap
 
-## V1 Base Saas, and short therm option
-
-- Add base infra for deploy on prod server
-- Use HTTPS Certificat (Let's Encryptt)(infra as code if possible)
-
 ## V1.1 Payment Interface (Stripe) [In progress -> testing this]
 - Add stripe paiement (with différent subscription, active etc...) -> stripe = redirect page with button..
 - Ajouter une limite a un utilisateur qui sera défini par son abonnement (Table user ou une relation via stripe?)
@@ -17,47 +12,37 @@
 ## V1.2 Functionnal +
 - Add post api in back (for register new email from newletter form in footer)(new table with email + activate/desactive boolean)
 
-## V1.4 Deploy Saas - Saas is online!
-
-- Kubernetes for deployment/ Other simple deploy
-- Install automatically on prod server (git, docker, make,build-essential)
-- Add github action (test + prettier?)
-- Add backup DB (container export)
-
 - Add red banner on top website (only on application) for display message (cette application est en beta test, pour tout probléme veuillez me contacter...)
     - La banner doit etre afficher que au dessus de l'application
     - la banner doit avoir une variable d'envionnement display true/false
     - la banner doit avoir une variable d'environnement pour le message
     - la banner doit avoir une variable d'environnement pour la couleur de la banner
 
+- Profil page (name, email, password, our commande, list stripe subscription, remove subscription)
+
 ## V1.21 Graphics
 - Update landing page with color chart graphic (In progress)
-- Add page : "conditions d’utilisation"  
-- Add page : "politique de confidentialité"  
-- Add page : CGU
-- Add page : CGV
-- Add Cookie management ()
-- Add argument marketing in 3 row section (in homepage)
-- Add Impact Header (link teachizy)
 - Add Favicon (Logo)
-- Edit login/register page with chart color
-- Add functionnality page (argument=section)
-    - Check each sentance on internet (each sentance = request in different search engine)
-    - Keep history of your analysis
-    - Export Analysis in PDF
-    - Find source in your different occurence..
+
+- Complete page : "Mentions légales"  
+- Complete page : "politique de confidentialité"  
+- Complete page : CGU
+- Complete page : CGV
+
+- Update homepage
+    - Update Header Design (link teachizy)
+    - Define and implement policy
+    - add testimony
+    - add our client (comeup service website logo..?)
+    - Add argument marketing in 3 row section (in homepage)
 
 ## V1.3.2 Blog
-- Add blog page
-- Add Single blog page
-- Add structur for SEO
-- Add robots.txt
-- add sitemap.xml
-- add link blog in footer page
+- Add structur for SEO (One H1, Ariane, H2 ...)
+- Update blog design (liste and single)
 
 ## V1.3 Customer Saas
 - Add support fonction (send message, receive message in infobull)
-- Add contact page (per email?)
+- Add contact page (per email -> mail solotext)
 - Add mailer informations (connexion, forget password, register)
 
 Multy-provider(Later):
@@ -67,6 +52,11 @@ Multy-provider(Later):
 ## V1.3.3 Security
 - See security API route
 - See JWT Connexion
+
+************************************
+THIS SAAS IS ONLINE
+GO TO MARKETING ROADMAP
+************************************
 
 ## V1.3.1 Worker test
 - Write test worker and lib (Unit test)
@@ -88,51 +78,27 @@ Multy-provider(Later):
 ## V4 Project (New target)
 
 - Actual website -> for content/agency SEO
-
 - Add new website (color blue) -> for school (1 university, different professor licence...)
 
 ----------------------------------------------------------------------
 
 ## V /Maintenance
 
-- add blog article ...?
+- ? 
 
 ## V /prblm /bug
 
-- Improve database queries (a folder/repository in the backend) to separate database calls that are in files like routes, for example, sorted by model.
-
-- App: Improve interface design 
-
-- TODO: In producation, not run adminer service (create a docker-compose.prod?)
-
+- ? 
 
 ## V Deploy
-- Verification backup DB
 
-# Infra description (TODO)
+TODO: 
+- Verification backup DB (container postgres)
+- Verification if var stagging/production in vault correspond to local var
+- In prod not reload database (playbook)
+- Put reload on service (only backend, or only website)
+- In producation, not run adminer service (docker-compose)
+- add CI/CD (deploy staging with branch staging, deploy production on branch main)
 
-Need to separe website (no DB on landing website) and app (db, login etc...)
-
-Stagging: 51.178.80.14 (dev branch for CI/CD)
-- api.staging.solotext.io
-- app.staging.solotext.io
-- staging.solotext.io (for blog use api or Nuxt Content)
-
-Prod: 51.38.178.137 (main branch for CI/CD)
-- solotext.io (for blog use api or Nuxt Content)
-- api.solotext.io
-- app.solotext.io
-
-Ansible Var:
-
-```
-group_vars/
-  production/
-    api.yml
-    app.yml
-  staging/
-    api.yml
-    app.yml
-```
 
 

@@ -1,18 +1,9 @@
 ---
 galaxy_info:
+  role_name: app
   author: SoloText Team
-  description: Rôle pour le déploiement du backend Node.js avec Docker
+  description: Build et déploiement de l'application frontend (statique)
   license: MIT
-  min_ansible_version: "2.9"
-  platforms:
-    - name: Ubuntu
-      versions:
-        - focal
-        - jammy
-  galaxy_tags:
-    - backend
-    - nodejs
-    - docker
 
 dependencies: []
 

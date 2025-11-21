@@ -1,0 +1,8 @@
+---
+galaxy_info:
+  role_name: api
+  author: SoloText Team
+  description: Déploiement de l'API (backend + DB + worker) via Docker Compose
+  license: MIT
+
+dependencies: []

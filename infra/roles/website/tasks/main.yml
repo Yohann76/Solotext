@@ -1,0 +1,106 @@
+---
+# Rôle website : Build et déploiement du website (statique)
+
+- name: Vérifier que Node.js est installé
+  command: node --version
+  register: node_check
+  changed_when: false
+  failed_when: false
+
+- name: Installer Node.js si nécessaire
+  apt:
+    name: nodejs
+    state: present
+    update_cache: yes
+  become: yes
+  when: node_check.rc != 0
+
+- name: Installer npm si nécessaire
+  apt:
+    name: npm
+    state: present
+    update_cache: yes
+  become: yes
+  when: node_check.rc != 0
+
+- name: S'assurer que le répertoire website existe
+  file:
+    path: "{{ website_build_dir }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0755'
+  become: yes
+
+- name: Installer les dépendances du website
+  command: npm install
+  args:
+    chdir: "{{ website_build_dir }}"
+  become: yes
+  become_user: "{{ app_user }}"
+  when: node_check.rc == 0
+
+- name: Build du website pour la production
+  command: npm run build
+  args:
+    chdir: "{{ website_build_dir }}"
+  become: yes
+  become_user: "{{ app_user }}"
+  environment:
+    NODE_ENV: production
+    VITE_API_URL: "{{ website_api_url }}"
+    VITE_APP_URL: "{{ website_app_url }}"
+  register: build_result
+  when: node_check.rc == 0
+  failed_when: build_result.rc != 0
+
+- name: Vérifier que le répertoire dist existe après le build
+  stat:
+    path: "{{ website_build_dir }}/dist"
+  register: dist_dir
+  when: node_check.rc == 0
+
+- name: Échouer si le répertoire dist n'existe pas
+  fail:
+    msg: "Le build du website a échoué : le répertoire dist/ n'existe pas"
+  when: node_check.rc == 0 and not dist_dir.stat.exists
+
+- name: S'assurer que le répertoire parent /var/www existe
+  file:
+    path: /var/www
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  become: yes
+
+- name: Créer le répertoire web pour le website
+  file:
+    path: "{{ website_web_dir }}"
+    state: directory
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_user }}"
+    mode: '0755'
+  become: yes
+
+- name: Copier les fichiers statiques du website
+  copy:
+    src: "{{ website_build_dir }}/dist/"
+    dest: "{{ website_web_dir }}/"
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_user }}"
+    mode: '0755'
+    directory_mode: '0755'
+    remote_src: yes
+  become: yes
+  when: node_check.rc == 0 and dist_dir.stat.exists
+
+- name: Corriger les permissions récursives du website (garantit les bonnes permissions)
+  file:
+    path: "{{ website_web_dir }}"
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_user }}"
+    mode: '0755'
+    recurse: yes
+  become: yes
+
